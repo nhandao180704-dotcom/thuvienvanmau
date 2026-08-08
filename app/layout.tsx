@@ -1,0 +1,70 @@
+import { Geist, Geist_Mono } from 'next/font/google'
+import { Analytics } from '@vercel/analytics/next'
+import type { Metadata, Viewport } from 'next'
+import { AuthProvider } from '@/lib/auth-context'
+import { ToastContainer } from '@/components/Toast'
+import './globals.css'
+
+const geistSans = Geist({ subsets: ['latin'] })
+const geistMono = Geist_Mono({ subsets: ['latin'] })
+
+export const metadata: Metadata = {
+  title: 'Thư Viện Văn Mẫu THCS - Kho Bài Văn Lớp 6, 7, 8, 9',
+  description: 'Thư viện văn mẫu THCS với hàng nghìn bài văn biểu cảm, tự sự, thuyết minh, nghị luận, phân tích tác phẩm cho học sinh lớp 6, 7, 8, 9. Tìm kiếm và đọc bài văn ngay.',
+  generator: 'v0.app',
+  keywords: 'bài văn THCS, văn mẫu, lớp 6, lớp 7, lớp 8, lớp 9, văn nghị luận, văn tự sự, văn biểu cảm',
+  
+  // --- BẮT ĐẦU PHẦN THÊM MỚI CHO PWA ---
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'Văn Mẫu',
+  },
+  // --- KẾT THÚC PHẦN THÊM MỚI ---
+
+  icons: {
+    icon: [
+      {
+        url: '/icon-light-32x32.png',
+        media: '(prefers-color-scheme: light)',
+      },
+      {
+        url: '/icon-dark-32x32.png',
+        media: '(prefers-color-scheme: dark)',
+      },
+      {
+        url: '/icon.svg',
+        type: 'image/svg+xml',
+      },
+    ],
+    apple: '/apple-icon.png',
+  },
+}
+
+export const viewport: Viewport = {
+  colorScheme: 'light',
+  themeColor: '#0066CC',
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: true,
+}
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode
+}>) {
+  return (
+    <html lang="vi" className="bg-background">
+      <body className={`${geistSans.className} antialiased`}>
+        <AuthProvider>
+          {children}
+        </AuthProvider>
+        <ToastContainer />
+        {process.env.NODE_ENV === 'production' && <Analytics />}
+      </body>
+    </html>
+  )
+}
