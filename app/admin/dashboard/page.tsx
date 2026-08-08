@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase-client'
@@ -8,7 +8,8 @@ import AdminSidebar from '@/components/AdminSidebar'
 import AdminHeader from '@/components/AdminHeader'
 import { Plus, Edit, Trash2, BookOpen, Eye, CheckCircle, Clock } from 'lucide-react'
 
-export default function AdminDashboard() {
+// 1. Tách toàn bộ nội dung cũ thành một component riêng tên là DashboardContent
+function DashboardContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
 
@@ -134,7 +135,6 @@ export default function AdminDashboard() {
               <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
                 <div className="flex justify-between items-center mb-6">
                   <h2 className="text-xl font-bold text-slate-800">Danh sách Bài Văn ({essays.length})</h2>
-                  {/* FIX LỖI 404: Đã sửa đường dẫn thành /admin/new */}
                   <Link href="/admin/new" className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium transition">
                     <Plus className="w-4 h-4" /> Thêm bài văn
                   </Link>
@@ -159,11 +159,9 @@ export default function AdminDashboard() {
                           <td className="py-4 text-slate-600">{essay.grade}</td>
                           <td className="py-4 text-slate-600">{essay.genre}</td>
                           <td className="py-4 text-right space-x-4">
-                            {/* FIX LỖI: Gắn Link mở trang Sửa Bài */}
                             <Link href={`/admin/edit/${essay.id}`} className="text-blue-500 hover:text-blue-700">
                               <Edit className="w-5 h-5 inline" />
                             </Link>
-                            {/* FIX LỖI: Gắn lệnh Xóa */}
                             <button onClick={() => handleDeleteEssay(essay.id)} className="text-red-500 hover:text-red-700">
                               <Trash2 className="w-5 h-5 inline" />
                             </button>
@@ -233,5 +231,18 @@ export default function AdminDashboard() {
         </main>
       </div>
     </div>
+  )
+}
+
+// 2. Component chính bọc DashboardContent trong Suspense
+export default function AdminDashboard() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 text-slate-500">
+        Đang tải trang quản trị...
+      </div>
+    }>
+      <DashboardContent />
+    </Suspense>
   )
 }
