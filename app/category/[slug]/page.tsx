@@ -3,6 +3,9 @@ import Navbar from '@/components/Navbar'
 import { ArrowLeft, BookOpen, ArrowRight, Eye, Calendar, PlayCircle } from 'lucide-react'
 import { supabase } from '@/lib/supabase-client'
 
+// 1. Thêm dòng này ở đầu file để ép Next.js render động khi có yêu cầu, bỏ qua lỗi build tĩnh
+export const dynamic = 'force-dynamic'
+
 export default async function CategoryPage({ params }: { params: Promise<{ slug: string }> }) {
   const resolvedParams = await params;
   const slug = resolvedParams.slug;
