@@ -2,7 +2,8 @@
 
 import Link from 'next/link'
 import { usePathname, useSearchParams } from 'next/navigation'
-import { LayoutDashboard, FileText, Settings, BookOpen, HelpCircle } from 'lucide-react'
+// Bổ sung import BrainCircuit
+import { LayoutDashboard, FileText, Settings, BookOpen, HelpCircle, BrainCircuit } from 'lucide-react'
 
 export default function AdminSidebar() {
   const pathname = usePathname()
@@ -30,6 +31,13 @@ export default function AdminSidebar() {
       icon: HelpCircle,
       // Sáng lên khi ở tab quizzes
       isActive: pathname === '/admin/dashboard' && tab === 'quizzes',
+    },
+    {
+      label: 'Phòng luyện thi',
+      href: '/admin/dashboard?tab=practice',
+      icon: BrainCircuit,
+      // Sáng lên khi ở tab practice
+      isActive: pathname === '/admin/dashboard' && tab === 'practice',
     },
     {
       label: 'Cài đặt hệ thống',

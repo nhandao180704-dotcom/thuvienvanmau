@@ -7,7 +7,8 @@ import { supabase } from '@/lib/supabase-client'
 import AdminSidebar from '@/components/AdminSidebar'
 import AdminHeader from '@/components/AdminHeader'
 import DashboardCharts from '@/components/DashboardCharts'
-import { Plus, Edit, Trash2, BookOpen, Eye, CheckCircle, Clock } from 'lucide-react'
+// Bổ sung thêm BrainCircuit và ArrowRight cho giao diện luyện thi
+import { Plus, Edit, Trash2, BookOpen, Eye, CheckCircle, Clock, Users, BrainCircuit, ArrowRight } from 'lucide-react'
 
 // 1. Tách toàn bộ nội dung cũ thành một component riêng tên là DashboardContent
 function DashboardContent() {
@@ -46,7 +47,6 @@ function DashboardContent() {
     try {
       const { error } = await supabase.from('essays').delete().eq('id', id);
       if (error) throw error;
-      // Cập nhật lại danh sách sau khi xóa thành công
       setEssays(essays.filter(essay => essay.id !== id));
       alert('Đã xóa bài văn thành công!');
     } catch (error) {
@@ -125,7 +125,6 @@ function DashboardContent() {
               </div>
 
               <DashboardCharts />
-
             </div>
           )}
 
@@ -218,7 +217,7 @@ function DashboardContent() {
                           <td className="py-4 text-slate-600">Lớp {quiz.grade_level}</td>
                           <td className="py-4 text-slate-600 truncate max-w-xs pr-4">{quiz.description}</td>
                           <td className="py-4 text-right space-x-4">
-                            <button className="text-blue-500 hover:text-blue-700 cursor-not-allowed opacity-50" title="Tính năng Sửa đề thi đang phát triển"><Edit className="w-5 h-5 inline" /></button>
+                            <button className="text-blue-500 hover:text-blue-700 cursor-not-allowed opacity-50"><Edit className="w-5 h-5 inline" /></button>
                             <button onClick={() => handleDeleteQuiz(quiz.id)} className="text-red-500 hover:text-red-700">
                               <Trash2 className="w-5 h-5 inline" />
                             </button>
@@ -229,6 +228,43 @@ function DashboardContent() {
                   </table>
                 )}
               </div>
+            </div>
+          )}
+
+          {/* TAB MỚI: PHÒNG LUYỆN THI */}
+          {currentTab === 'practice' && (
+            <div className="animate-in fade-in duration-300">
+              <div className="mb-8">
+                <h1 className="text-3xl font-bold text-slate-900 mb-2">Phòng Luyện Thi</h1>
+                <p className="text-slate-500">Khu vực làm bài kiểm tra trắc nghiệm dành cho học sinh</p>
+              </div>
+
+              {loading ? (
+                <p className="text-center py-20 text-slate-500">Đang tải phòng thi...</p>
+              ) : quizzes.length === 0 ? (
+                <div className="bg-white p-10 rounded-3xl border border-slate-200 text-center">
+                  <p className="text-slate-500 mb-4">Chưa có đề thi nào trong hệ thống.</p>
+                  <Link href="/admin/quizzes/new" className="text-blue-600 hover:underline font-medium">Vào Quản lý Đề thi để tạo mới ngay</Link>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {quizzes.map((quiz) => (
+                    <div key={quiz.id} className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm hover:border-blue-300 hover:shadow-md transition duration-300 flex flex-col">
+                      <div className="flex items-center gap-4 mb-4">
+                        <div className="p-4 bg-indigo-50 text-indigo-600 rounded-2xl"><BrainCircuit className="w-8 h-8" /></div>
+                        <div>
+                          <h2 className="text-xl font-bold text-slate-800">{quiz.title}</h2>
+                          <span className="text-xs font-bold px-2 py-1 bg-slate-100 text-slate-600 rounded-md">Lớp {quiz.grade_level}</span>
+                        </div>
+                      </div>
+                      <p className="text-slate-500 mb-6 flex-1 line-clamp-2">{quiz.description}</p>
+                      <Link href={`/practice/${quiz.id}`} className="w-full py-3 bg-slate-900 text-white rounded-xl font-bold flex justify-center items-center gap-2 hover:bg-blue-600 transition">
+                        Vào làm bài <ArrowRight className="w-4 h-4" />
+                      </Link>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
