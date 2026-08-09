@@ -48,13 +48,17 @@ export default function QuizTakingPage() {
       const { data: quizData } = await supabase.from('quizzes').select('*').eq('id', quizId).single()
       if (quizData) setQuiz(quizData)
 
-      const { data: questionsData, error } = await supabase.from('questions').select('*').eq('quiz_id', quizId)
+      // Lấy danh sách câu hỏi kèm theo các lựa chọn từ bảng options
+      const { data: questionsData, error } = await supabase
+        .from('questions')
+        .select('*, options(*)')
+        .eq('quiz_id', quizId)
+
       if (error) console.error("Lỗi lấy câu hỏi:", error)
       
       if (questionsData) {
-        console.log("CHI TIẾT CÂU HỎI SỐ 1:", questionsData[0])
-      setQuestions(questionsData)
-    }
+        setQuestions(questionsData)
+      }
     } catch (error) {
       console.error("Lỗi:", error)
     } finally {
@@ -89,44 +93,30 @@ export default function QuizTakingPage() {
     return `${m}:${s}`
   }
 
-  // Hàm quét toàn diện để tìm ra nội dung đáp án từ DB
+  // Hàm lấy text đáp án từ bảng options hoặc các cột dự phòng
   const getOptionText = (q: any, opt: string) => {
-    if (!q) return `Lựa chọn ${opt}`
-    const keyLower = opt.toLowerCase()
-    
-    // Thử các tên trường chuẩn trước
-    const directVal = 
-      q[`option_${keyLower}`] ||
-      q[`opt_${keyLower}`] ||
-      q[`ans_${keyLower}`] ||
-      q[opt] ||
-      q[keyLower]
+    if (q.options && Array.isArray(q.options) && q.options.length > 0) {
+      // Tìm option khớp với key (A, B, C, D hoặc thứ tự index)
+      const targetOpt = q.options.find((o: any) => 
+        o.option_key === opt || 
+        o.key === opt || 
+        o.label === opt ||
+        o.option_label === opt
+      )
+      if (targetOpt) return targetOpt.option_text || targetOpt.text || targetOpt.content || targetOpt.value
 
-    // Kiểm tra xem giá trị có phải là text hợp lệ không (không phải dạng ID UUID hay chuỗi ngày tháng ISO)
-    const isValidText = (val: any) => {
-      if (!val || typeof val !== 'string') return false
-      const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(val)
-      const isDateISO = /^\d{4}-\d{2}-\d{2}T/.test(val)
-      return !isUUID && !isDateISO
-    }
-
-    if (isValidText(directVal)) return directVal
-
-    // Quét toàn bộ các trường trong bảng để tìm chuỗi text hợp lệ
-    for (const k of Object.keys(q)) {
-      const val = q[k]
-      if (
-        k.toLowerCase().includes(keyLower) && 
-        isValidText(val) &&
-        k !== 'question_text' && 
-        k !== 'text' && 
-        k !== 'correct_answer'
-      ) {
-        return val
+      // Nếu không khớp key, lấy theo thứ tự A=0, B=1, C=2, D=3
+      const indexMap: Record<string, number> = { 'A': 0, 'B': 1, 'C': 2, 'D': 3 }
+      const idx = indexMap[opt]
+      if (q.options[idx]) {
+        const item = q.options[idx]
+        return item.option_text || item.text || item.content || item.value || `Lựa chọn ${opt}`
       }
     }
 
-    return `Lựa chọn ${opt}`
+    // Dự phòng quét các cột trực tiếp nếu có
+    const keyLower = opt.toLowerCase()
+    return q[`option_${keyLower}`] || q[`opt_${keyLower}`] || `Lựa chọn ${opt}`
   }
 
   if (loading) return <div className="min-h-screen flex items-center justify-center bg-slate-50"><p className="text-slate-500 text-lg animate-pulse">Đang chuẩn bị đề thi...</p></div>
