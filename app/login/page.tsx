@@ -9,12 +9,11 @@ export default function StudentLoginPage() {
   const [copied, setCopied] = useState(false)
   
   // Đã sửa thành đường link trang chủ Thư viện chính thức
-  const targetUrl = 'https://thuvienvanmau.vercel.app/library'
+  const targetUrl = 'https://thuvienvanmau.vercel.app/'
 
   const handleEnterLibrary = (e: React.FormEvent) => {
     e.preventDefault()
-    // Đổi '/' thành '/library' để vào thẳng thư viện
-    router.push('/library')
+    router.push('/')
   }
 
   const handleCopy = () => {
