@@ -51,7 +51,10 @@ export default function QuizTakingPage() {
       const { data: questionsData, error } = await supabase.from('questions').select('*').eq('quiz_id', quizId)
       if (error) console.error("Lỗi lấy câu hỏi:", error)
       
-      if (questionsData) setQuestions(questionsData)
+      if (questionsData) {
+        console.log("Dữ liệu câu hỏi chi tiết:", questionsData)
+        setQuestions(questionsData)
+      }
     } catch (error) {
       console.error("Lỗi:", error)
     } finally {
@@ -86,17 +89,28 @@ export default function QuizTakingPage() {
     return `${m}:${s}`
   }
 
-  // Hàm tự động lấy nội dung đáp án bất kể tên cột trong DB là gì
+  // Hàm quét toàn diện để tìm ra nội dung đáp án từ DB
   const getOptionText = (q: any, opt: string) => {
     const keyLower = opt.toLowerCase()
-    return (
+    
+    // Thử tìm các key phổ biến
+    const found = 
       q[`option_${keyLower}`] ||
       q[`opt_${keyLower}`] ||
       q[`ans_${keyLower}`] ||
+      q[`answer_${keyLower}`] ||
       q[opt] ||
-      q[keyLower] ||
-      `Đáp án ${opt}`
-    )
+      q[keyLower]
+
+    if (found) return found
+
+    // Nếu cấu trúc lưu dưới dạng bảng options liên kết hoặc mảng phụ
+    if (q.options && Array.isArray(q.options)) {
+      const match = q.options.find((o: any) => o.key === opt || o.option_key === opt || o.label === opt)
+      if (match) return match.text || match.content || match.option_text
+    }
+
+    return `Lựa chọn ${opt}`
   }
 
   if (loading) return <div className="min-h-screen flex items-center justify-center bg-slate-50"><p className="text-slate-500 text-lg animate-pulse">Đang chuẩn bị đề thi...</p></div>
@@ -138,7 +152,7 @@ export default function QuizTakingPage() {
                 <div key={idx} className={`bg-white p-6 rounded-2xl border-2 ${isCorrect ? 'border-emerald-200' : isUnanswered ? 'border-amber-200' : 'border-red-200'}`}>
                   <div className="flex gap-3 mb-4">
                     <span className="font-bold text-slate-400">Câu {idx + 1}:</span>
-                    <p className="font-bold text-slate-800">{q.question_text || q.text}</p>
+                    <p className="font-bold text-slate-800">{q.question_text || q.text || q.content}</p>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pl-10">
                     {['A', 'B', 'C', 'D'].map(opt => {
@@ -205,7 +219,7 @@ export default function QuizTakingPage() {
           <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-200">
             <h2 className="text-sm font-bold text-blue-600 mb-4 tracking-widest uppercase">Câu {currentQuestion + 1} / {questions.length}</h2>
             <p className="text-2xl font-bold text-slate-800 mb-10 leading-relaxed">
-              {q.question_text || q.text}
+              {q?.question_text || q?.text || q?.content}
             </p>
 
             <div className="space-y-4">
