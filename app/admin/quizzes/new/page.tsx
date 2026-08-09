@@ -6,15 +6,15 @@ import { supabase } from '@/lib/supabase-client'
 import AdminSidebar from '@/components/AdminSidebar'
 import AdminHeader from '@/components/AdminHeader'
 import { ToastContainer, useToast } from '@/components/Toast'
-import { Plus, Trash2, ArrowLeft, Save } from 'lucide-react'
+import { Plus, Trash2, ArrowLeft, Save, CheckCircle2 } from 'lucide-react'
 
 interface QuestionInput {
   question_text: string
   explanation: string
-  options: { option_text: string; is_correct: boolean }[]
+  correct_answer: string
+  options: { option_key: string; option_text: string }[]
 }
 
-// 1. Tách toàn bộ giao diện và logic thành một Component con (QuizForm)
 function QuizForm() {
   const router = useRouter()
   const { success, error: showError } = useToast()
@@ -26,11 +26,12 @@ function QuizForm() {
     {
       question_text: '',
       explanation: '',
+      correct_answer: 'A',
       options: [
-        { option_text: '', is_correct: true },
-        { option_text: '', is_correct: false },
-        { option_text: '', is_correct: false },
-        { option_text: '', is_correct: false },
+        { option_key: 'A', option_text: '' },
+        { option_key: 'B', option_text: '' },
+        { option_key: 'C', option_text: '' },
+        { option_key: 'D', option_text: '' },
       ],
     },
   ])
@@ -41,11 +42,12 @@ function QuizForm() {
       {
         question_text: '',
         explanation: '',
+        correct_answer: 'A',
         options: [
-          { option_text: '', is_correct: true },
-          { option_text: '', is_correct: false },
-          { option_text: '', is_correct: false },
-          { option_text: '', is_correct: false },
+          { option_key: 'A', option_text: '' },
+          { option_key: 'B', option_text: '' },
+          { option_key: 'C', option_text: '' },
+          { option_key: 'D', option_text: '' },
         ],
       },
     ])
@@ -77,12 +79,9 @@ function QuizForm() {
     setQuestions(updated)
   }
 
-  const handleSelectCorrectOption = (qIndex: number, oIndex: number) => {
+  const handleCorrectAnswerChange = (qIndex: number, correctKey: string) => {
     const updated = [...questions]
-    updated[qIndex].options = updated[qIndex].options.map((opt, idx) => ({
-      ...opt,
-      is_correct: idx === oIndex,
-    }))
+    updated[qIndex].correct_answer = correctKey
     setQuestions(updated)
   }
 
@@ -102,6 +101,7 @@ function QuizForm() {
 
     setLoading(true)
     try {
+      // 1. Tạo mới đề thi (quizzes)
       const { data: quizData, error: quizErr } = await supabase
         .from('quizzes')
         .insert([{ title, description, grade_level: gradeLevel }])
@@ -110,10 +110,16 @@ function QuizForm() {
 
       if (quizErr) throw quizErr
 
+      // 2. Tạo các câu hỏi và lựa chọn tương ứng
       for (const q of questions) {
         const { data: qData, error: qErr } = await supabase
           .from('questions')
-          .insert([{ quiz_id: quizData.id, question_text: q.question_text, explanation: q.explanation }])
+          .insert([{ 
+            quiz_id: quizData.id, 
+            question_text: q.question_text, 
+            explanation: q.explanation,
+            correct_answer: q.correct_answer 
+          }])
           .select()
           .single()
 
@@ -121,8 +127,8 @@ function QuizForm() {
 
         const optionsToInsert = q.options.map(opt => ({
           question_id: qData.id,
-          option_text: opt.option_text,
-          is_correct: opt.is_correct,
+          option_key: opt.option_key,
+          option_text: opt.option_text
         }))
 
         const { error: optErr } = await supabase.from('options').insert(optionsToInsert)
@@ -130,7 +136,7 @@ function QuizForm() {
       }
 
       success('Tạo đề thi trắc nghiệm thành công!')
-      setTimeout(() => router.push('/admin/dashboard'), 1500)
+      setTimeout(() => router.push('/admin/dashboard?tab=quizzes'), 1500)
     } catch (err: any) {
       console.error(err)
       showError(err.message || 'Có lỗi xảy ra khi tạo đề thi')
@@ -208,6 +214,7 @@ function QuizForm() {
                       type="button"
                       onClick={() => removeQuestion(qIndex)}
                       className="text-red-500 hover:text-red-700 p-2"
+                      title="Xóa câu hỏi này"
                     >
                       <Trash2 className="w-5 h-5" />
                     </button>
@@ -224,27 +231,44 @@ function QuizForm() {
                     required
                   />
 
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pl-4 border-l-2 border-blue-100">
                     {q.options.map((opt, oIndex) => (
-                      <div key={oIndex} className="flex items-center space-x-2 border p-2 rounded-xl">
-                        <input
-                          type="radio"
-                          name={`correct_${qIndex}`}
-                          checked={opt.is_correct}
-                          onChange={() => handleSelectCorrectOption(qIndex, oIndex)}
-                          className="w-4 h-4 text-blue-600 cursor-pointer"
-                        />
-                        <span className="font-bold text-slate-500">{String.fromCharCode(65 + oIndex)}.</span>
+                      <div key={oIndex} className="flex items-center gap-2">
+                        <span className="font-bold text-slate-500 w-6">{opt.option_key}.</span>
                         <input
                           type="text"
                           value={opt.option_text}
                           onChange={e => handleOptionTextChange(qIndex, oIndex, e.target.value)}
-                          placeholder={`Đáp án ${String.fromCharCode(65 + oIndex)}`}
-                          className="w-full outline-none text-sm"
+                          placeholder={`Lựa chọn ${opt.option_key}`}
+                          className="w-full px-3 py-1.5 border border-slate-200 rounded-lg outline-none text-sm focus:border-blue-500"
                           required
                         />
                       </div>
                     ))}
+                  </div>
+
+                  {/* KHU VỰC CHỌN ĐÁP ÁN ĐÚNG */}
+                  <div className="mt-4 pt-4 border-t border-slate-100 flex flex-col md:flex-row md:items-center gap-3">
+                    <span className="text-sm font-bold text-slate-700 flex items-center gap-1">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-500" /> Đáp án đúng:
+                    </span>
+                    <div className="flex gap-4">
+                      {['A', 'B', 'C', 'D'].map(key => (
+                        <label key={key} className="flex items-center gap-1.5 cursor-pointer hover:bg-slate-50 px-2 py-1 rounded">
+                          <input 
+                            type="radio" 
+                            name={`correct-${qIndex}`} 
+                            value={key}
+                            checked={q.correct_answer === key}
+                            onChange={() => handleCorrectAnswerChange(qIndex, key)}
+                            className="w-4 h-4 text-emerald-600 focus:ring-emerald-500 border-slate-300"
+                          />
+                          <span className={`text-sm font-bold ${q.correct_answer === key ? 'text-emerald-700' : 'text-slate-600'}`}>
+                            {key}
+                          </span>
+                        </label>
+                      ))}
+                    </div>
                   </div>
 
                   <input
@@ -252,7 +276,7 @@ function QuizForm() {
                     value={q.explanation}
                     onChange={e => handleExplanationChange(qIndex, e.target.value)}
                     placeholder="Lời giải thích đáp án đúng (không bắt buộc)"
-                    className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none"
+                    className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none mt-2"
                   />
                 </div>
               </div>
@@ -283,7 +307,6 @@ function QuizForm() {
   )
 }
 
-// 2. Component chính export ra ngoài sẽ dùng Suspense bọc TOÀN BỘ QuizForm
 export default function CreateQuizPage() {
   return (
     <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-slate-500 font-medium">Đang tải dữ liệu...</div>}>

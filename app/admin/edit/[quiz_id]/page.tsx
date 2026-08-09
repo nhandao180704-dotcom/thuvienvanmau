@@ -5,7 +5,7 @@ import { useRouter, useParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase-client'
 import AdminSidebar from '@/components/AdminSidebar'
 import AdminHeader from '@/components/AdminHeader'
-import { ArrowLeft, Save, HelpCircle, Trash2, Plus } from 'lucide-react'
+import { ArrowLeft, Save, HelpCircle, Trash2, Plus, CheckCircle2 } from 'lucide-react'
 
 export default function EditQuizPage() {
   const router = useRouter()
@@ -58,6 +58,7 @@ export default function EditQuizPage() {
       id: `temp-${Date.now()}`, // ID tạm thời để React nhận diện
       quiz_id: id,
       question_text: '',
+      correct_answer: 'A', // Mặc định đáp án đúng là A
       isNew: true, // Cờ đánh dấu đây là câu hỏi mới cần Insert
       options: [
         { option_key: 'A', option_text: '' },
@@ -73,7 +74,6 @@ export default function EditQuizPage() {
   const handleDeleteQuestion = async (qIndex: number, qId: string) => {
     if (!window.confirm('Bạn có chắc chắn muốn xóa câu hỏi này?')) return
 
-    // Nếu là câu hỏi đã có trong Database (không phải câu hỏi vừa bấm thêm)
     if (!qId.toString().startsWith('temp-')) {
       try {
         const { error } = await supabase.from('questions').delete().eq('id', qId)
@@ -85,7 +85,6 @@ export default function EditQuizPage() {
       }
     }
 
-    // Xóa khỏi UI
     const updated = [...questions]
     updated.splice(qIndex, 1)
     setQuestions(updated)
@@ -100,6 +99,12 @@ export default function EditQuizPage() {
   const handleOptionTextChange = (qIndex: number, optIndex: number, text: string) => {
     const updated = [...questions]
     updated[qIndex].options[optIndex].option_text = text
+    setQuestions(updated)
+  }
+
+  const handleCorrectAnswerChange = (qIndex: number, correctKey: string) => {
+    const updated = [...questions]
+    updated[qIndex].correct_answer = correctKey
     setQuestions(updated)
   }
 
@@ -119,15 +124,18 @@ export default function EditQuizPage() {
       // 2. Cập nhật/Thêm mới từng câu hỏi
       for (const q of questions) {
         if (q.isNew) {
-          // THÊM MỚI (INSERT)
+          // THÊM MỚI (INSERT) - Đã bổ sung correct_answer
           const { data: newQ, error: newQErr } = await supabase
             .from('questions')
-            .insert({ quiz_id: id, question_text: q.question_text })
+            .insert({ 
+              quiz_id: id, 
+              question_text: q.question_text,
+              correct_answer: q.correct_answer || 'A'
+            })
             .select().single()
 
           if (newQErr) throw newQErr
 
-          // Thêm các đáp án cho câu hỏi mới
           if (q.options) {
             const optionsToInsert = q.options.map((opt: any) => ({
               question_id: newQ.id,
@@ -137,10 +145,13 @@ export default function EditQuizPage() {
             await supabase.from('options').insert(optionsToInsert)
           }
         } else {
-          // CẬP NHẬT (UPDATE) câu hỏi cũ
+          // CẬP NHẬT (UPDATE) câu hỏi cũ - Đã bổ sung correct_answer
           await supabase
             .from('questions')
-            .update({ question_text: q.question_text })
+            .update({ 
+              question_text: q.question_text,
+              correct_answer: q.correct_answer || 'A'
+            })
             .eq('id', q.id)
 
           if (q.options && Array.isArray(q.options)) {
@@ -249,10 +260,33 @@ export default function EditQuizPage() {
                       </div>
                     ))}
                   </div>
+
+                  {/* KHU VỰC CHỌN ĐÁP ÁN ĐÚNG */}
+                  <div className="mt-4 pt-4 border-t border-slate-100 flex flex-col md:flex-row md:items-center gap-3">
+                    <span className="text-sm font-bold text-slate-700 flex items-center gap-1">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-500" /> Đáp án đúng:
+                    </span>
+                    <div className="flex gap-4">
+                      {['A', 'B', 'C', 'D'].map(key => (
+                        <label key={key} className="flex items-center gap-1.5 cursor-pointer hover:bg-slate-50 px-2 py-1 rounded">
+                          <input 
+                            type="radio" 
+                            name={`correct-${q.id || qIndex}`} 
+                            value={key}
+                            checked={q.correct_answer === key || (!q.correct_answer && key === 'A')}
+                            onChange={() => handleCorrectAnswerChange(qIndex, key)}
+                            className="w-4 h-4 text-emerald-600 focus:ring-emerald-500 border-slate-300"
+                          />
+                          <span className={`text-sm font-bold ${q.correct_answer === key || (!q.correct_answer && key === 'A') ? 'text-emerald-700' : 'text-slate-600'}`}>
+                            {key}
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               ))}
 
-              {/* NÚT THÊM CÂU HỎI */}
               <div className="pt-2">
                 <button
                   type="button"
