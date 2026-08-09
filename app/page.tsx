@@ -4,10 +4,9 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Navbar from '@/components/Navbar'
 import Sidebar from '@/components/Sidebar'
-import { Search, Sparkles, BookOpen, Clock, Eye, Bookmark, Flame, ArrowRight, ChevronRight, Star } from 'lucide-react'
+import { Search, Sparkles, BookOpen, Clock, Eye, Bookmark, Flame, ArrowRight, Star } from 'lucide-react'
 import { supabase } from '@/lib/supabase-client'
 
-// Dữ liệu cho Banner tự động chuyển động
 const BANNERS = [
   {
     title: "Khám phá kho tàng Văn Mẫu Xuất Sắc",
@@ -35,13 +34,10 @@ export default function LibraryPage() {
   const [searchTermSubmitted, setSearchTermSubmitted] = useState('')
   const [essays, setEssays] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
-  
-  // State cho Banner Slider
   const [currentBanner, setCurrentBanner] = useState(0)
 
   const TABS = ['Tất cả', 'Lớp 6', 'Lớp 7', 'Lớp 8', 'Lớp 9', 'Ôn thi vào 10']
 
-  // Auto chuyển Banner mỗi 5 giây
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentBanner((prev) => (prev + 1) % BANNERS.length)
@@ -66,7 +62,6 @@ export default function LibraryPage() {
     } catch (err) {
       console.error('Lỗi tải bài viết:', err)
     } finally {
-      // Fake delay nhẹ 0.5s để nhìn rõ hiệu ứng Skeleton Loading cực xịn
       setTimeout(() => setLoading(false), 500)
     }
   }
@@ -100,9 +95,7 @@ export default function LibraryPage() {
     <div className="min-h-screen bg-[#F4F7FB] text-slate-800 font-sans pb-20 selection:bg-blue-300 selection:text-blue-900 overflow-x-hidden">
       <Navbar />
 
-      {/* --- PHẦN 1: DYNAMIC BANNER CAROUSEL --- */}
-      <div className="relative h-[500px] md:h-[600px] w-full overflow-hidden flex items-center justify-center">
-        {/* Nền Banner chuyển động */}
+      <div className="relative min-h-[550px] md:h-[600px] w-full overflow-hidden flex items-center justify-center pb-8">
         {BANNERS.map((banner, index) => (
           <div 
             key={index}
@@ -110,31 +103,22 @@ export default function LibraryPage() {
           />
         ))}
 
-        {/* Lưới Texture (Pattern) */}
         <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-20 z-10 mix-blend-overlay"></div>
-
-        {/* Các khối cầu ánh sáng trôi nổi (Floating Particles) */}
         <div className="absolute top-10 left-10 w-64 h-64 bg-white/20 rounded-full blur-3xl animate-bounce z-10" style={{ animationDuration: '7s' }}></div>
         <div className="absolute bottom-10 right-20 w-80 h-80 bg-white/10 rounded-full blur-3xl animate-pulse z-10" style={{ animationDuration: '5s' }}></div>
 
-        {/* Nội dung Banner */}
-        <div className="relative z-20 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center flex flex-col items-center">
-          
+        <div className="relative z-20 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center flex flex-col items-center mt-10">
           <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/10 backdrop-blur-md border border-white/30 text-white font-bold mb-8 shadow-[0_0_20px_rgba(255,255,255,0.2)] animate-in slide-in-from-top-4 duration-700">
             {BANNERS[currentBanner].icon} 
             <span className="transition-all duration-500">{BANNERS[currentBanner].subtitle}</span>
           </div>
           
-          <h1 className="text-4xl md:text-6xl lg:text-7xl font-black text-white tracking-tight mb-8 leading-tight drop-shadow-2xl">
-            {BANNERS[currentBanner].title.split(' ').map((word, i) => (
-              <span key={i} className="inline-block animate-in slide-in-from-bottom-8 duration-700" style={{ animationDelay: `${i * 100}ms`, animationFillMode: 'both' }}>
-                {word}&nbsp;
-              </span>
-            ))}
+          {/* Ép toàn bộ chữ nằm trên 1 hàng ngang duy nhất bằng whitespace-nowrap */}
+          <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight mb-10 leading-tight drop-shadow-2xl whitespace-nowrap">
+            {BANNERS[currentBanner].title}
           </h1>
           
-          {/* Thanh tìm kiếm rực rỡ */}
-          <form onSubmit={handleSearchSubmit} className="w-full max-w-3xl relative group">
+          <form onSubmit={handleSearchSubmit} className="w-full max-w-3xl relative group mb-6">
             <div className="absolute inset-0 bg-white/20 rounded-full blur-xl group-focus-within:bg-white/40 transition-all duration-500"></div>
             <div className="relative flex items-center">
               <Search className="absolute left-6 w-6 h-6 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
@@ -154,8 +138,7 @@ export default function LibraryPage() {
             </div>
           </form>
 
-          {/* Dots chỉ báo Banner */}
-          <div className="flex gap-2 mt-12">
+          <div className="flex gap-2 mt-6">
             {BANNERS.map((_, idx) => (
               <button 
                 key={idx} 
@@ -167,15 +150,10 @@ export default function LibraryPage() {
         </div>
       </div>
 
-      {/* --- PHẦN 2: NỘI DUNG CHÍNH (MAIN CONTENT) --- */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-10 relative z-30">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8 relative z-30">
         <div className="flex flex-col lg:flex-row gap-10">
-          
-          {/* CỘT TRÁI (DANH SÁCH BÀI VIẾT) */}
           <div className="flex-1 space-y-8 w-full">
-            
-            {/* Tabs chọn lớp hiện đại */}
-            <div className="bg-white/80 backdrop-blur-xl p-2 rounded-2xl shadow-lg border border-white overflow-x-auto hide-scrollbar touch-pan-x">
+            <div className="bg-white/80 backdrop-blur-xl p-2 rounded-2xl shadow-sm border border-slate-200 overflow-x-auto hide-scrollbar touch-pan-x">
               <div className="flex items-center w-max gap-2">
                 {TABS.map((tab) => (
                   <button
@@ -203,9 +181,7 @@ export default function LibraryPage() {
               </span>
             </div>
 
-            {/* HIỆN THỊ DỮ LIỆU */}
             {loading ? (
-              // SKELETON LOADING CAO CẤP
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {[1, 2, 3, 4, 5, 6].map((i) => (
                   <div key={i} className="bg-white rounded-3xl p-6 border border-slate-100 h-48 animate-pulse flex flex-col justify-between">
@@ -243,9 +219,7 @@ export default function LibraryPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {filteredEssays.map((essay) => (
                   <Link href={`/essay/${essay.id}`} key={essay.id} className="group h-full outline-none">
-                    {/* THẺ BÀI VIẾT TƯƠNG TÁC CAO CẤP */}
                     <div className="bg-white rounded-3xl p-6 shadow-sm border-2 border-transparent group-hover:border-blue-100 group-hover:shadow-2xl group-hover:-translate-y-2 group-focus:-translate-y-2 transition-all duration-500 h-full flex flex-col relative overflow-hidden">
-                      {/* Vệt sáng chéo khi Hover */}
                       <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-50 to-purple-50 rounded-bl-full -z-10 group-hover:scale-[2] transition-transform duration-700"></div>
                       
                       <div className="flex justify-between items-start mb-5">
@@ -271,7 +245,6 @@ export default function LibraryPage() {
                           <span className="flex items-center gap-1.5 hover:text-blue-500 transition-colors"><Eye size={16} /> {essay.views || 0}</span>
                           <span className="flex items-center gap-1.5"><Clock size={16} /> {new Date(essay.created_at).toLocaleDateString('vi-VN')}</span>
                         </div>
-                        {/* Nút Đọc ngay trượt ngang */}
                         <div className="flex items-center gap-1 text-blue-600 font-black opacity-0 -translate-x-4 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
                           Đọc <ArrowRight size={18} />
                         </div>
@@ -283,13 +256,11 @@ export default function LibraryPage() {
             )}
           </div>
 
-          {/* CỘT PHẢI (SIDEBAR) */}
           <div className="w-full lg:w-[340px] shrink-0">
             <div className="sticky top-24">
               <Sidebar />
             </div>
           </div>
-
         </div>
       </main>
     </div>
