@@ -161,3 +161,49 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* ====================================================
+   CUSTOM ANIMATIONS & KEYFRAMES (HIỆU ỨNG ĐỘNG BỔ SUNG)
+   ==================================================== */
+
+@keyframes breathe {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.85;
+  }
+}
+
+@keyframes marquee {
+  0% {
+    transform: translateX(100%);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+@keyframes neonPulse {
+  0%, 100% {
+    box-shadow: 0 0 10px rgba(59, 130, 246, 0.6), 0 0 20px rgba(59, 130, 246, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(139, 92, 246, 0.8), 0 0 40px rgba(139, 92, 246, 0.6);
+  }
+}
+
+/* CÁC CLASS ĐỂ GỌI HIỆU ỨNG VÀO 컴PONENT */
+.animate-breathe {
+  animation: breathe 3s ease-in-out infinite;
+}
+
+.animate-marquee {
+  animation: marquee 15s linear infinite;
+}
+
+.animate-neon-pulse {
+  animation: neonPulse 2s infinite;
+}
