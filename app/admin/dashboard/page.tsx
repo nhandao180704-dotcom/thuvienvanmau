@@ -217,9 +217,9 @@ function DashboardContent() {
                           <td className="py-4 text-slate-600">Lớp {quiz.grade_level}</td>
                           <td className="py-4 text-slate-600 truncate max-w-xs pr-4">{quiz.description}</td>
                           <td className="py-4 text-right space-x-4">
-                            <Link href={`/admin/quizzes/edit/${quiz.id}`} className="text-blue-500 hover:text-blue-700 transition">
+                            <Link href={`/admin/edit/${quiz.id}`} className="text-blue-500 hover:text-blue-700 transition">
                               <Edit className="w-5 h-5 inline" />
-                          </Link>
+                            </Link>
                             <button onClick={() => handleDeleteQuiz(quiz.id)} className="text-red-500 hover:text-red-700">
                               <Trash2 className="w-5 h-5 inline" />
                             </button>
