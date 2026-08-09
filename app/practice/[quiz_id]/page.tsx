@@ -92,28 +92,37 @@ export default function QuizTakingPage() {
   // Hàm quét toàn diện để tìm ra nội dung đáp án từ DB
   const getOptionText = (q: any, opt: string) => {
     if (!q) return `Lựa chọn ${opt}`
-    const keyLower = opt.toLowerCase() // 'a', 'b', 'c', 'd'
+    const keyLower = opt.toLowerCase()
     
-    // 1. Quét các tên trường phổ biến
-    const found = 
+    // Thử các tên trường chuẩn trước
+    const directVal = 
       q[`option_${keyLower}`] ||
       q[`opt_${keyLower}`] ||
       q[`ans_${keyLower}`] ||
-      q[`answer_${keyLower}`] ||
-      q[`lua_chon_${keyLower}`] ||
       q[opt] ||
       q[keyLower]
 
-    if (found) return found
+    // Kiểm tra xem giá trị có phải là text hợp lệ không (không phải dạng ID UUID hay chuỗi ngày tháng ISO)
+    const isValidText = (val: any) => {
+      if (!val || typeof val !== 'string') return false
+      const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(val)
+      const isDateISO = /^\d{4}-\d{2}-\d{2}T/.test(val)
+      return !isUUID && !isDateISO
+    }
 
-    // 2. Tự động quét toàn bộ key trong bản ghi nếu có chứa ký tự của đáp án
-    const allKeys = Object.keys(q)
-    for (const k of allKeys) {
-      if (k.toLowerCase().includes(keyLower) && typeof q[k] === 'string' && q[k].trim() !== '') {
-        // Tránh nhầm với nội dung câu hỏi chính
-        if (k !== 'question_text' && k !== 'text') {
-          return q[k]
-        }
+    if (isValidText(directVal)) return directVal
+
+    // Quét toàn bộ các trường trong bảng để tìm chuỗi text hợp lệ
+    for (const k of Object.keys(q)) {
+      const val = q[k]
+      if (
+        k.toLowerCase().includes(keyLower) && 
+        isValidText(val) &&
+        k !== 'question_text' && 
+        k !== 'text' && 
+        k !== 'correct_answer'
+      ) {
+        return val
       }
     }
 
