@@ -48,7 +48,6 @@ export default function QuizTakingPage() {
       const { data: quizData } = await supabase.from('quizzes').select('*').eq('id', quizId).single()
       if (quizData) setQuiz(quizData)
 
-      // Lấy danh sách câu hỏi kèm theo các lựa chọn từ bảng options
       const { data: questionsData, error } = await supabase
         .from('questions')
         .select('*, options(*)')
@@ -93,10 +92,8 @@ export default function QuizTakingPage() {
     return `${m}:${s}`
   }
 
-  // Hàm lấy text đáp án từ bảng options hoặc các cột dự phòng
   const getOptionText = (q: any, opt: string) => {
     if (q.options && Array.isArray(q.options) && q.options.length > 0) {
-      // Tìm option khớp với key (A, B, C, D hoặc thứ tự index)
       const targetOpt = q.options.find((o: any) => 
         o.option_key === opt || 
         o.key === opt || 
@@ -105,7 +102,6 @@ export default function QuizTakingPage() {
       )
       if (targetOpt) return targetOpt.option_text || targetOpt.text || targetOpt.content || targetOpt.value
 
-      // Nếu không khớp key, lấy theo thứ tự A=0, B=1, C=2, D=3
       const indexMap: Record<string, number> = { 'A': 0, 'B': 1, 'C': 2, 'D': 3 }
       const idx = indexMap[opt]
       if (q.options[idx]) {
@@ -114,7 +110,6 @@ export default function QuizTakingPage() {
       }
     }
 
-    // Dự phòng quét các cột trực tiếp nếu có
     const keyLower = opt.toLowerCase()
     return q[`option_${keyLower}`] || q[`opt_${keyLower}`] || `Lựa chọn ${opt}`
   }
@@ -142,7 +137,8 @@ export default function QuizTakingPage() {
               </div>
             </div>
 
-            <Link href="/admin/dashboard?tab=practice" className="inline-block px-8 py-3 bg-slate-900 text-white rounded-xl font-bold hover:bg-blue-600 transition">
+            {/* ĐÃ SỬA LẠI LINK QUAY VỀ PHÒNG LUYỆN THI PUBLIC */}
+            <Link href="/practice" className="inline-block px-8 py-3 bg-slate-900 text-white rounded-xl font-bold hover:bg-blue-600 transition">
               Quay lại Phòng luyện thi
             </Link>
           </div>
@@ -196,7 +192,8 @@ export default function QuizTakingPage() {
       <header className="bg-white border-b border-slate-200 sticky top-0 z-10">
         <div className="max-w-5xl mx-auto px-6 h-20 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Link href="/admin/dashboard?tab=practice" className="p-2 hover:bg-slate-100 rounded-lg text-slate-500">
+            {/* ĐÃ SỬA LẠI LINK QUAY VỀ PHÒNG LUYỆN THI PUBLIC */}
+            <Link href="/practice" className="p-2 hover:bg-slate-100 rounded-lg text-slate-500">
               <ArrowLeft className="w-6 h-6" />
             </Link>
             <div>

@@ -27,8 +27,9 @@ export default function Sidebar() {
     fetchHotEssays()
   }, [])
 
+  // ĐÃ CẬP NHẬT: Đổi href của mục Trắc nghiệm thành '/practice'
   const examPrepItems = [
-    { id: 1, title: 'Ôn thi vào lớp 10: Phần trắc nghiệm', badge: 'Hot', href: '/category/trac-nghiem-10' },
+    { id: 1, title: 'Ôn thi vào lớp 10: Phần trắc nghiệm', badge: 'Hot', href: '/practice' },
     { id: 2, title: 'Đề thi mẫu vào lớp 10 năm 2026', badge: 'Mới', href: '/category/de-thi-10' },
     { id: 3, title: 'Bí kíp đạt điểm cao Văn vào 10', badge: 'Hay', href: '/category/bi-kip-10' },
   ]
