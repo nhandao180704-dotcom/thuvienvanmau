@@ -15,10 +15,9 @@ export default function QuizTakingPage() {
   const [questions, setQuestions] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
-  // State cho quá trình làm bài
   const [currentQuestion, setCurrentQuestion] = useState(0)
   const [answers, setAnswers] = useState<Record<number, string>>({})
-  const [timeLeft, setTimeLeft] = useState(15 * 60) // 15 phút
+  const [timeLeft, setTimeLeft] = useState(15 * 60)
   const [isSubmitted, setIsSubmitted] = useState(false)
   const [score, setScore] = useState(0)
 
@@ -26,7 +25,6 @@ export default function QuizTakingPage() {
     if (quizId) fetchQuizData()
   }, [quizId])
 
-  // Đếm ngược thời gian
   useEffect(() => {
     if (loading || isSubmitted || timeLeft <= 0) return
 
@@ -34,7 +32,7 @@ export default function QuizTakingPage() {
       setTimeLeft((prev) => {
         if (prev <= 1) {
           clearInterval(timer)
-          handleSubmit() // Tự động nộp khi hết giờ
+          handleSubmit()
           return 0
         }
         return prev - 1
@@ -47,13 +45,16 @@ export default function QuizTakingPage() {
   const fetchQuizData = async () => {
     setLoading(true)
     try {
-      // Lấy thông tin đề
       const { data: quizData } = await supabase.from('quizzes').select('*').eq('id', quizId).single()
       if (quizData) setQuiz(quizData)
 
-      // Lấy danh sách câu hỏi
-      const { data: questionsData } = await supabase.from('questions').select('*').eq('quiz_id', quizId)
-      if (questionsData) setQuestions(questionsData)
+      const { data: questionsData, error } = await supabase.from('questions').select('*').eq('quiz_id', quizId)
+      if (error) console.error("Lỗi lấy câu hỏi:", error)
+      
+      if (questionsData) {
+        console.log("Dữ liệu câu hỏi từ DB:", questionsData)
+        setQuestions(questionsData)
+      }
     } catch (error) {
       console.error("Lỗi:", error)
     } finally {
@@ -70,20 +71,19 @@ export default function QuizTakingPage() {
     if (isSubmitted) return
     let correctCount = 0
     questions.forEach((q, index) => {
-      if (answers[index] === q.correct_answer) {
+      // So sánh đáp án người dùng chọn với đáp án đúng trong DB
+      const userChoice = answers[index]
+      const correctChoice = q.correct_answer || q.correct || 'A'
+      if (userChoice === correctChoice) {
         correctCount++
       }
     })
     
-    // Tính điểm thang 10
     const finalScore = questions.length > 0 ? (correctCount / questions.length) * 10 : 0
     setScore(parseFloat(finalScore.toFixed(2)))
     setIsSubmitted(true)
-    
-    // (Tùy chọn) Lưu điểm vào DB ở đây sau này
   }
 
-  // Format thời gian hiển thị (MM:SS)
   const formatTime = (seconds: number) => {
     const m = Math.floor(seconds / 60).toString().padStart(2, '0')
     const s = (seconds % 60).toString().padStart(2, '0')
@@ -91,9 +91,8 @@ export default function QuizTakingPage() {
   }
 
   if (loading) return <div className="min-h-screen flex items-center justify-center bg-slate-50"><p className="text-slate-500 text-lg animate-pulse">Đang chuẩn bị đề thi...</p></div>
-  if (!quiz || questions.length === 0) return <div className="min-h-screen flex items-center justify-center bg-slate-50"><p className="text-red-500 text-lg">Không tìm thấy nội dung đề thi!</p></div>
+  if (!quiz || questions.length === 0) return <div className="min-h-screen flex items-center justify-center bg-slate-50"><p className="text-red-500 text-lg">Không tìm thấy nội dung đề thi hoặc đề chưa có câu hỏi!</p></div>
 
-  // GIAO DIỆN KẾT QUẢ SAU KHI NỘP BÀI
   if (isSubmitted) {
     return (
       <div className="min-h-screen bg-slate-50 p-6 md:p-12">
@@ -119,24 +118,25 @@ export default function QuizTakingPage() {
             </Link>
           </div>
 
-          {/* Chi tiết đáp án */}
           <h3 className="text-xl font-bold text-slate-800 mb-6 px-4">Chi tiết bài làm</h3>
           <div className="space-y-6">
             {questions.map((q, idx) => {
-              const isCorrect = answers[idx] === q.correct_answer
+              const correctAns = q.correct_answer || q.correct || 'A'
+              const isCorrect = answers[idx] === correctAns
               const isUnanswered = !answers[idx]
 
               return (
                 <div key={idx} className={`bg-white p-6 rounded-2xl border-2 ${isCorrect ? 'border-emerald-200' : isUnanswered ? 'border-amber-200' : 'border-red-200'}`}>
                   <div className="flex gap-3 mb-4">
                     <span className="font-bold text-slate-400">Câu {idx + 1}:</span>
-                    <p className="font-bold text-slate-800">{q.question_text}</p>
+                    <p className="font-bold text-slate-800">{q.question_text || q.text}</p>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pl-10">
                     {['A', 'B', 'C', 'D'].map(opt => {
-                      const optionText = q[`option_${opt.toLowerCase()}` as keyof typeof q]
+                      const fieldName = `option_${opt.toLowerCase()}`
+                      const optionText = q[fieldName] || q[`opt_${opt.toLowerCase()}`] || q[opt] || ''
                       const isUserChoice = answers[idx] === opt
-                      const isActualCorrect = q.correct_answer === opt
+                      const isActualCorrect = correctAns === opt
 
                       let bgClass = "bg-slate-50 text-slate-600"
                       if (isActualCorrect) bgClass = "bg-emerald-100 text-emerald-700 font-bold border border-emerald-300"
@@ -161,12 +161,10 @@ export default function QuizTakingPage() {
     )
   }
 
-  // GIAO DIỆN ĐANG LÀM BÀI
   const q = questions[currentQuestion]
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
-      {/* Header làm bài thi */}
       <header className="bg-white border-b border-slate-200 sticky top-0 z-10">
         <div className="max-w-5xl mx-auto px-6 h-20 flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -175,12 +173,11 @@ export default function QuizTakingPage() {
             </Link>
             <div>
               <h1 className="font-bold text-slate-800 md:text-lg line-clamp-1">{quiz.title}</h1>
-              <p className="text-xs font-bold text-blue-600">Lớp {quiz.grade_level}</p>
+              <p className="text-xs font-bold text-blue-600">Lớp {quiz.grade_level || 9}</p>
             </div>
           </div>
 
           <div className="flex items-center gap-6">
-            {/* Đồng hồ */}
             <div className={`flex items-center gap-2 font-mono text-xl font-bold px-4 py-2 rounded-xl ${timeLeft < 60 ? 'bg-red-100 text-red-600 animate-pulse' : 'bg-slate-100 text-slate-700'}`}>
               <Clock className="w-5 h-5" />
               {formatTime(timeLeft)}
@@ -196,17 +193,17 @@ export default function QuizTakingPage() {
       </header>
 
       <main className="flex-1 max-w-5xl mx-auto w-full p-6 flex flex-col md:flex-row gap-8 mt-6">
-        {/* Khu vực câu hỏi chính */}
         <div className="flex-1">
           <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-200">
             <h2 className="text-sm font-bold text-blue-600 mb-4 tracking-widest uppercase">Câu {currentQuestion + 1} / {questions.length}</h2>
             <p className="text-2xl font-bold text-slate-800 mb-10 leading-relaxed">
-              {q.question_text}
+              {q.question_text || q.text}
             </p>
 
             <div className="space-y-4">
               {['A', 'B', 'C', 'D'].map(opt => {
-                const optionText = q[`option_${opt.toLowerCase()}` as keyof typeof q]
+                const fieldName = `option_${opt.toLowerCase()}`
+                const optionText = q[fieldName] || q[`opt_${opt.toLowerCase()}`] || q[opt] || ''
                 const isSelected = answers[currentQuestion] === opt
 
                 return (
@@ -231,7 +228,6 @@ export default function QuizTakingPage() {
             </div>
           </div>
 
-          {/* Nút điều hướng */}
           <div className="flex justify-between mt-8">
             <button 
               onClick={() => setCurrentQuestion(prev => Math.max(0, prev - 1))}
@@ -259,7 +255,6 @@ export default function QuizTakingPage() {
           </div>
         </div>
 
-        {/* Sidebar Mini Map (Bản đồ câu hỏi) */}
         <div className="w-full md:w-64 shrink-0">
           <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 sticky top-28">
             <h3 className="font-bold text-slate-800 mb-4">Danh sách câu hỏi</h3>
