@@ -233,43 +233,6 @@ function DashboardContent() {
             </div>
           )}
 
-          {/* TAB MỚI: PHÒNG LUYỆN THI */}
-          {currentTab === 'practice' && (
-            <div className="animate-in fade-in duration-300">
-              <div className="mb-8">
-                <h1 className="text-3xl font-bold text-slate-900 mb-2">Phòng Luyện Thi</h1>
-                <p className="text-slate-500">Khu vực làm bài kiểm tra trắc nghiệm dành cho học sinh</p>
-              </div>
-
-              {loading ? (
-                <p className="text-center py-20 text-slate-500">Đang tải phòng thi...</p>
-              ) : quizzes.length === 0 ? (
-                <div className="bg-white p-10 rounded-3xl border border-slate-200 text-center">
-                  <p className="text-slate-500 mb-4">Chưa có đề thi nào trong hệ thống.</p>
-                  <Link href="/admin/quizzes/new" className="text-blue-600 hover:underline font-medium">Vào Quản lý Đề thi để tạo mới ngay</Link>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {quizzes.map((quiz) => (
-                    <div key={quiz.id} className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm hover:border-blue-300 hover:shadow-md transition duration-300 flex flex-col">
-                      <div className="flex items-center gap-4 mb-4">
-                        <div className="p-4 bg-indigo-50 text-indigo-600 rounded-2xl"><BrainCircuit className="w-8 h-8" /></div>
-                        <div>
-                          <h2 className="text-xl font-bold text-slate-800">{quiz.title}</h2>
-                          <span className="text-xs font-bold px-2 py-1 bg-slate-100 text-slate-600 rounded-md">Lớp {quiz.grade_level}</span>
-                        </div>
-                      </div>
-                      <p className="text-slate-500 mb-6 flex-1 line-clamp-2">{quiz.description}</p>
-                      <Link href={`/practice/${quiz.id}`} className="w-full py-3 bg-slate-900 text-white rounded-xl font-bold flex justify-center items-center gap-2 hover:bg-blue-600 transition">
-                        Vào làm bài <ArrowRight className="w-4 h-4" />
-                      </Link>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-
         </main>
       </div>
     </div>
