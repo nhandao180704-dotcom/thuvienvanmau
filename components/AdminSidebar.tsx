@@ -32,7 +32,6 @@ export default function AdminSidebar() {
       // Sáng lên khi ở tab quizzes
       isActive: pathname === '/admin/dashboard' && tab === 'quizzes',
     },
-    
     {
       label: 'Cài đặt hệ thống',
       href: '/admin/settings',
