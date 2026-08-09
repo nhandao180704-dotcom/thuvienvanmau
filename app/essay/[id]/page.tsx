@@ -111,7 +111,7 @@ export default function EssayDetailPage() {
         <div className="bg-white p-8 rounded-3xl shadow-lg max-w-md w-full text-center border border-slate-100">
           <h1 className="text-2xl font-bold text-slate-800 mb-2">Không tìm thấy bài viết</h1>
           <p className="text-slate-500 mb-6">Bài viết này có thể đã bị xóa hoặc đường dẫn không đúng.</p>
-          <Link href="/library" className="inline-flex items-center justify-center w-full py-3 px-4 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition">
+          <Link href="/" className="inline-flex items-center justify-center w-full py-3 px-4 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition">
             <ArrowLeft className="w-5 h-5 mr-2" /> Về lại trang chủ
           </Link>
         </div>
@@ -126,7 +126,7 @@ export default function EssayDetailPage() {
       
       <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-slate-200 shadow-sm transition-all duration-300">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <Link href="/library" className="group flex items-center gap-2 text-slate-600 hover:text-blue-600 font-semibold transition-colors">
+          <Link href="/" className="group flex items-center gap-2 text-slate-600 hover:text-blue-600 font-semibold transition-colors">
             <div className="p-2 bg-slate-100 group-hover:bg-blue-50 rounded-full transition-colors">
               <ArrowLeft size={18} />
             </div>

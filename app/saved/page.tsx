@@ -57,7 +57,7 @@ export default function SavedEssaysPage() {
       <Navbar />
 
       <main className="max-w-5xl mx-auto px-4 sm:px-6 py-10">
-        <Link href="/library" className="inline-flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-blue-600 transition-colors mb-6 group">
+        <Link href="/" className="inline-flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-blue-600 transition-colors mb-6 group">
           <div className="p-2 bg-white rounded-full shadow-sm group-hover:bg-blue-50 transition-colors">
             <ArrowLeft size={16} />
           </div>
@@ -90,7 +90,7 @@ export default function SavedEssaysPage() {
             <p className="text-slate-500 font-medium max-w-md mx-auto leading-relaxed mb-6">
               Bạn chưa lưu bài viết nào vào thư viện cá nhân. Hãy khám phá và bấm nút "Lưu bài" ở các bài văn hay nhé!
             </p>
-            <Link href="/library" className="inline-flex items-center justify-center px-6 py-3 bg-blue-600 text-white font-bold rounded-xl shadow hover:bg-blue-700 transition">
+            <Link href="/" className="inline-flex items-center justify-center px-6 py-3 bg-blue-600 text-white font-bold rounded-xl shadow hover:bg-blue-700 transition">
               Khám phá thư viện ngay
             </Link>
           </div>

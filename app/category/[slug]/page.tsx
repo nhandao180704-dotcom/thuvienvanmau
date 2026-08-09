@@ -45,7 +45,7 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
 
       <main className="max-w-5xl mx-auto px-4 sm:px-6 py-10">
         {/* Nút quay lại bọc Link chuẩn để không bao giờ bị văng sang Login */}
-        <Link href="/library" className="inline-flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-blue-600 transition-colors mb-8 group">
+        <Link href="/" className="inline-flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-blue-600 transition-colors mb-8 group">
           <div className="p-2 bg-white rounded-full shadow-sm group-hover:bg-blue-50 transition-colors">
             <ArrowLeft size={16} />
           </div>

@@ -56,7 +56,7 @@ export default function ContributePage() {
       <Navbar />
 
       <main className="max-w-3xl mx-auto px-4 sm:px-6 py-10">
-        <Link href="/library" className="inline-flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-teal-600 transition-colors mb-6">
+        <Link href="/" className="inline-flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-teal-600 transition-colors mb-6">
           <ArrowLeft size={16} /> Về lại trang chủ
         </Link>
 

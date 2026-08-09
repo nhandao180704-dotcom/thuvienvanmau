@@ -16,7 +16,7 @@ export default function StudentDashboard() {
         </div>
         <div className="flex items-center gap-6">
           <Link href="/" className="text-slate-500 hover:text-blue-600 font-medium transition">Trang chủ</Link>
-          <Link href="/library" className="text-slate-500 hover:text-blue-600 font-medium transition">Thư viện</Link>
+          <Link href="/" className="text-slate-500 hover:text-blue-600 font-medium transition">Thư viện</Link>
           <div className="h-8 w-px bg-slate-200"></div>
           <div className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition">
             <div className="text-right hidden md:block">
