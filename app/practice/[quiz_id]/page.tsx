@@ -51,10 +51,7 @@ export default function QuizTakingPage() {
       const { data: questionsData, error } = await supabase.from('questions').select('*').eq('quiz_id', quizId)
       if (error) console.error("Lỗi lấy câu hỏi:", error)
       
-      if (questionsData) {
-        console.log("Dữ liệu câu hỏi từ DB:", questionsData)
-        setQuestions(questionsData)
-      }
+      if (questionsData) setQuestions(questionsData)
     } catch (error) {
       console.error("Lỗi:", error)
     } finally {
@@ -71,9 +68,8 @@ export default function QuizTakingPage() {
     if (isSubmitted) return
     let correctCount = 0
     questions.forEach((q, index) => {
-      // So sánh đáp án người dùng chọn với đáp án đúng trong DB
       const userChoice = answers[index]
-      const correctChoice = q.correct_answer || q.correct || 'A'
+      const correctChoice = q.correct_answer || q.correct || q.answer || 'A'
       if (userChoice === correctChoice) {
         correctCount++
       }
@@ -90,8 +86,21 @@ export default function QuizTakingPage() {
     return `${m}:${s}`
   }
 
+  // Hàm tự động lấy nội dung đáp án bất kể tên cột trong DB là gì
+  const getOptionText = (q: any, opt: string) => {
+    const keyLower = opt.toLowerCase()
+    return (
+      q[`option_${keyLower}`] ||
+      q[`opt_${keyLower}`] ||
+      q[`ans_${keyLower}`] ||
+      q[opt] ||
+      q[keyLower] ||
+      `Đáp án ${opt}`
+    )
+  }
+
   if (loading) return <div className="min-h-screen flex items-center justify-center bg-slate-50"><p className="text-slate-500 text-lg animate-pulse">Đang chuẩn bị đề thi...</p></div>
-  if (!quiz || questions.length === 0) return <div className="min-h-screen flex items-center justify-center bg-slate-50"><p className="text-red-500 text-lg">Không tìm thấy nội dung đề thi hoặc đề chưa có câu hỏi!</p></div>
+  if (!quiz || questions.length === 0) return <div className="min-h-screen flex items-center justify-center bg-slate-50"><p className="text-red-500 text-lg">Không tìm thấy nội dung đề thi!</p></div>
 
   if (isSubmitted) {
     return (
@@ -121,7 +130,7 @@ export default function QuizTakingPage() {
           <h3 className="text-xl font-bold text-slate-800 mb-6 px-4">Chi tiết bài làm</h3>
           <div className="space-y-6">
             {questions.map((q, idx) => {
-              const correctAns = q.correct_answer || q.correct || 'A'
+              const correctAns = q.correct_answer || q.correct || q.answer || 'A'
               const isCorrect = answers[idx] === correctAns
               const isUnanswered = !answers[idx]
 
@@ -133,8 +142,7 @@ export default function QuizTakingPage() {
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pl-10">
                     {['A', 'B', 'C', 'D'].map(opt => {
-                      const fieldName = `option_${opt.toLowerCase()}`
-                      const optionText = q[fieldName] || q[`opt_${opt.toLowerCase()}`] || q[opt] || ''
+                      const optionText = getOptionText(q, opt)
                       const isUserChoice = answers[idx] === opt
                       const isActualCorrect = correctAns === opt
 
@@ -202,8 +210,7 @@ export default function QuizTakingPage() {
 
             <div className="space-y-4">
               {['A', 'B', 'C', 'D'].map(opt => {
-                const fieldName = `option_${opt.toLowerCase()}`
-                const optionText = q[fieldName] || q[`opt_${opt.toLowerCase()}`] || q[opt] || ''
+                const optionText = getOptionText(q, opt)
                 const isSelected = answers[currentQuestion] === opt
 
                 return (
