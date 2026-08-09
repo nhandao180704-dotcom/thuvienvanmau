@@ -16,7 +16,6 @@ export default function LibraryPage() {
 
   const TABS = ['Tất cả', 'Lớp 6', 'Lớp 7', 'Lớp 8', 'Lớp 9', 'Ôn thi vào 10']
 
-  // Tải dữ liệu từ Supabase
   useEffect(() => {
     fetchEssays()
   }, [])
@@ -38,22 +37,19 @@ export default function LibraryPage() {
     }
   }
 
-  // Xử lý khi gõ tìm kiếm: Nếu ô input trống, tự động reset trạng thái tìm kiếm lập tức
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value
     setSearchQuery(value)
     if (value.trim() === '') {
-      setSearchTermSubmitted('') // Xóa trắng là reset về giao diện "Bài viết mới nhất" ban đầu ngay lập tức
+      setSearchTermSubmitted('')
     }
   }
 
-  // Xử lý khi bấm nút "Tìm kiếm luôn" hoặc nhấn Enter
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     setSearchTermSubmitted(searchQuery.trim().toLowerCase())
   }
 
-  // Lọc dữ liệu theo Tab khối lớp và từ khóa tìm kiếm
   const filteredEssays = essays.filter(essay => {
     let matchTab = true
     if (activeTab !== 'Tất cả') {
@@ -78,22 +74,24 @@ export default function LibraryPage() {
     <div className="min-h-screen bg-[#F4F7FB] text-slate-800 font-sans pb-20 selection:bg-blue-200">
       <Navbar />
 
-      {/* HERO BANNER HOÀNH TRÁNG */}
+      {/* HERO BANNER HOÀNH TRÁNG KÈM HIỆU ỨNG */}
       <div className="relative bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 overflow-hidden">
         <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-10"></div>
-        <div className="absolute -top-24 -right-24 w-96 h-96 bg-white opacity-10 rounded-full blur-3xl"></div>
+        {/* HIỆU ỨNG 1: Khối cầu phát sáng nhấp nháy (neon-pulse) */}
+        <div className="absolute -top-24 -right-24 w-96 h-96 bg-white opacity-20 rounded-full blur-3xl animate-neon-pulse"></div>
         
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24 relative z-10 text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white/90 text-sm font-semibold mb-6">
-            <Sparkles size={16} className="text-yellow-300" /> Hệ sinh thái học tập toàn diện
+          {/* HIỆU ỨNG 2: Huy hiệu hít thở (breathe) */}
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white/90 text-sm font-semibold mb-6 animate-breathe hover:animate-none cursor-default shadow-lg shadow-white/10">
+            <Sparkles size={16} className="text-yellow-300 animate-pulse" /> Hệ sinh thái học tập toàn diện
           </div>
-          <h1 className="text-4xl md:text-6xl font-extrabold text-white tracking-tight mb-6">
+          
+          <h1 className="text-4xl md:text-6xl font-extrabold text-white tracking-tight mb-6 animate-in slide-in-from-bottom-5 duration-700">
             Khám phá kho tàng <br className="hidden md:block" />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 to-blue-200">Văn Mẫu Xuất Sắc</span>
           </h1>
           
-          {/* THANH TÌM KIẾM CHÍNH (ĐÃ FIX: Xóa chữ là tự động khôi phục giao diện ban đầu) */}
-          <form onSubmit={handleSearchSubmit} className="max-w-2xl mx-auto relative mt-8">
+          <form onSubmit={handleSearchSubmit} className="max-w-2xl mx-auto relative mt-8 animate-in slide-in-from-bottom-8 duration-1000">
             <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
               <Search className="h-6 w-6 text-slate-400" />
             </div>
@@ -104,9 +102,10 @@ export default function LibraryPage() {
               placeholder="Nhập tên bài văn, tác phẩm, thể loại cần tìm..."
               className="w-full pl-14 pr-36 py-4 rounded-full border-2 border-white/20 bg-white/10 backdrop-blur-lg text-white placeholder-white/70 focus:outline-none focus:bg-white focus:text-slate-900 focus:placeholder-slate-400 transition-all text-base md:text-lg shadow-2xl"
             />
+            {/* HIỆU ỨNG 3: Nút tìm kiếm hít thở nhẹ */}
             <button 
               type="submit"
-              className="absolute inset-y-2 right-2 bg-blue-600 hover:bg-blue-700 text-white px-6 rounded-full font-bold transition-all shadow-md active:scale-95"
+              className="absolute inset-y-2 right-2 bg-blue-600 hover:bg-blue-700 text-white px-6 rounded-full font-bold transition-all shadow-[0_0_15px_rgba(37,99,235,0.5)] active:scale-95 animate-breathe hover:animate-none"
             >
               Tìm kiếm
             </button>
@@ -115,13 +114,10 @@ export default function LibraryPage() {
       </div>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-6 md:-mt-8 relative z-20">
-        {/* SỬA ĐOẠN NÀY: Dùng flex-col cho mobile, lg:flex-row cho desktop */}
         <div className="flex flex-col lg:flex-row gap-8">
           
           {/* CỘT TRÁI (Danh sách bài viết) */}
           <div className="flex-1 space-y-6 md:space-y-8 w-full overflow-hidden">
-            
-            {/* Thanh Tabs - Cập nhật để vuốt ngang mượt (scroll-smooth, snap) trên điện thoại */}
             <div className="bg-white p-1.5 md:p-2 rounded-xl md:rounded-2xl shadow-sm border border-slate-200 overflow-x-auto hide-scrollbar touch-pan-x">
               <div className="flex items-center w-max gap-1">
                 {TABS.map((tab) => (
@@ -130,7 +126,7 @@ export default function LibraryPage() {
                     onClick={() => setActiveTab(tab)}
                     className={`px-4 md:px-6 py-2.5 md:py-3 rounded-lg md:rounded-xl text-xs md:text-sm font-bold transition-all whitespace-nowrap ${
                       activeTab === tab
-                        ? 'bg-blue-50 text-blue-700 shadow-sm'
+                        ? 'bg-blue-50 text-blue-700 shadow-sm transform scale-105' // Hiệu ứng phóng to nhẹ khi chọn tab
                         : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'
                     }`}
                   >
@@ -140,10 +136,9 @@ export default function LibraryPage() {
               </div>
             </div>
 
-            {/* TIÊU ĐỀ ĐỘNG: Tự động đổi giữa "Bài viết mới nhất" và "Kết quả tìm kiếm" */}
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-extrabold text-slate-900 flex items-center gap-2">
-                <Flame className="text-orange-500" /> 
+                <Flame className="text-orange-500 animate-pulse" /> 
                 {searchTermSubmitted ? `Kết quả tìm kiếm cho "${searchTermSubmitted}"` : 'Bài viết mới nhất'}
               </h2>
               <span className="text-sm font-medium text-slate-500 bg-white px-3 py-1 rounded-full border border-slate-200 shadow-sm">
@@ -151,7 +146,6 @@ export default function LibraryPage() {
               </span>
             </div>
 
-            {/* LƯỚI THẺ BÀI VIẾT */}
             {loading ? (
               <div className="text-center py-20 bg-white rounded-3xl border border-slate-200">
                 <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
@@ -159,7 +153,7 @@ export default function LibraryPage() {
               </div>
             ) : filteredEssays.length === 0 ? (
               <div className="text-center py-20 bg-white rounded-3xl border border-dashed border-slate-300">
-                <BookOpen size={48} className="mx-auto text-slate-300 mb-4" />
+                <BookOpen size={48} className="mx-auto text-slate-300 mb-4 animate-breathe" />
                 <h3 className="text-xl font-bold text-slate-700 mb-2">Không tìm thấy bài viết phù hợp</h3>
                 <p className="text-slate-500 mb-6">Hãy thử từ khóa khác hoặc chọn chuyên mục khác nhé!</p>
                 <button 
