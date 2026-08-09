@@ -32,13 +32,7 @@ export default function AdminSidebar() {
       // Sáng lên khi ở tab quizzes
       isActive: pathname === '/admin/dashboard' && tab === 'quizzes',
     },
-    {
-      label: 'Phòng luyện thi',
-      href: '/admin/dashboard?tab=practice',
-      icon: BrainCircuit,
-      // Sáng lên khi ở tab practice
-      isActive: pathname === '/admin/dashboard' && tab === 'practice',
-    },
+    
     {
       label: 'Cài đặt hệ thống',
       href: '/admin/settings',
