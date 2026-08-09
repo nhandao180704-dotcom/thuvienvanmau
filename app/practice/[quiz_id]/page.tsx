@@ -91,23 +91,30 @@ export default function QuizTakingPage() {
 
   // Hàm quét toàn diện để tìm ra nội dung đáp án từ DB
   const getOptionText = (q: any, opt: string) => {
-    const keyLower = opt.toLowerCase()
+    if (!q) return `Lựa chọn ${opt}`
+    const keyLower = opt.toLowerCase() // 'a', 'b', 'c', 'd'
     
-    // Thử tìm các key phổ biến
+    // 1. Quét các tên trường phổ biến
     const found = 
       q[`option_${keyLower}`] ||
       q[`opt_${keyLower}`] ||
       q[`ans_${keyLower}`] ||
       q[`answer_${keyLower}`] ||
+      q[`lua_chon_${keyLower}`] ||
       q[opt] ||
       q[keyLower]
 
     if (found) return found
 
-    // Nếu cấu trúc lưu dưới dạng bảng options liên kết hoặc mảng phụ
-    if (q.options && Array.isArray(q.options)) {
-      const match = q.options.find((o: any) => o.key === opt || o.option_key === opt || o.label === opt)
-      if (match) return match.text || match.content || match.option_text
+    // 2. Tự động quét toàn bộ key trong bản ghi nếu có chứa ký tự của đáp án
+    const allKeys = Object.keys(q)
+    for (const k of allKeys) {
+      if (k.toLowerCase().includes(keyLower) && typeof q[k] === 'string' && q[k].trim() !== '') {
+        // Tránh nhầm với nội dung câu hỏi chính
+        if (k !== 'question_text' && k !== 'text') {
+          return q[k]
+        }
+      }
     }
 
     return `Lựa chọn ${opt}`
