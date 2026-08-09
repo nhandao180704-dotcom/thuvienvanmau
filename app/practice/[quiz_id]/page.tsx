@@ -52,9 +52,9 @@ export default function QuizTakingPage() {
       if (error) console.error("Lỗi lấy câu hỏi:", error)
       
       if (questionsData) {
-        console.log("Dữ liệu câu hỏi chi tiết:", questionsData)
-        setQuestions(questionsData)
-      }
+        console.log("CHI TIẾT CÂU HỎI SỐ 1:", questionsData[0])
+      setQuestions(questionsData)
+    }
     } catch (error) {
       console.error("Lỗi:", error)
     } finally {
