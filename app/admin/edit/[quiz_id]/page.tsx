@@ -7,35 +7,33 @@ import AdminSidebar from '@/components/AdminSidebar'
 import AdminHeader from '@/components/AdminHeader'
 import { ArrowLeft, Save } from 'lucide-react'
 
-export default function EditEssayPage() {
+export default function EditQuizPage() {
   const router = useRouter()
   const params = useParams()
-  const id = params.id as string
+  const id = params.quiz_id as string
 
   const [title, setTitle] = useState('')
-  const [content, setContent] = useState('')
-  const [grade, setGrade] = useState('Lớp 6')
-  const [genre, setGenre] = useState('Văn biểu cảm')
+  const [description, setDescription] = useState('')
+  const [gradeLevel, setGradeLevel] = useState('10')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
-    fetchEssay()
+    if (id) fetchQuiz()
   }, [id])
 
-  const fetchEssay = async () => {
+  const fetchQuiz = async () => {
     try {
-      const { data, error } = await supabase.from('essays').select('*').eq('id', id).single()
+      const { data, error } = await supabase.from('quizzes').select('*').eq('id', id).single()
       if (error) throw error
       if (data) {
-        setTitle(data.title)
-        setContent(data.content)
-        setGrade(data.grade)
-        setGenre(data.genre)
+        setTitle(data.title || '')
+        setDescription(data.description || '')
+        setGradeLevel(data.grade_level || '10')
       }
     } catch (err) {
       console.error(err)
-      alert('Không tìm thấy bài viết!')
+      alert('Không tìm thấy đề thi!')
     } finally {
       setLoading(false)
     }
@@ -46,23 +44,23 @@ export default function EditEssayPage() {
     setSaving(true)
     try {
       const { error } = await supabase
-        .from('essays')
-        .update({ title, content, grade, genre })
+        .from('quizzes')
+        .update({ title, description, grade_level: gradeLevel })
         .eq('id', id)
 
       if (error) throw error
-      alert('Cập nhật bài viết thành công!')
-      router.push('/admin/dashboard?tab=essays')
+      alert('Cập nhật đề thi thành công!')
+      router.push('/admin/dashboard?tab=quizzes')
     } catch (err: any) {
       console.error(err)
-      alert(err.message || 'Lỗi khi cập nhật bài viết')
+      alert(err.message || 'Lỗi khi cập nhật đề thi')
     } finally {
       setSaving(false)
     }
   }
 
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center">Đang tải dữ liệu bài viết...</div>
+    return <div className="min-h-screen flex items-center justify-center text-slate-500">Đang tải dữ liệu đề thi...</div>
   }
 
   return (
@@ -76,11 +74,11 @@ export default function EditEssayPage() {
             <ArrowLeft className="w-4 h-4 mr-2" /> Quay lại
           </button>
 
-          <h1 className="text-2xl font-bold text-slate-900 mb-6">Chỉnh Sửa Bài Viết</h1>
+          <h1 className="text-2xl font-bold text-slate-900 mb-6">Chỉnh Sửa Đề Thi</h1>
 
           <form onSubmit={handleUpdate} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Tiêu đề bài viết</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Tên đề thi</label>
               <input
                 type="text"
                 value={title}
@@ -90,41 +88,28 @@ export default function EditEssayPage() {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Khối lớp</label>
-                <select
-                  value={grade}
-                  onChange={e => setGrade(e.target.value)}
-                  className="w-full px-4 py-2 border border-slate-300 rounded-xl outline-none"
-                >
-                  <option value="Lớp 6">Lớp 6</option>
-                  <option value="Lớp 7">Lớp 7</option>
-                  <option value="Lớp 8">Lớp 8</option>
-                  <option value="Lớp 9">Lớp 9</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Thể loại</label>
-                <input
-                  type="text"
-                  value={genre}
-                  onChange={e => setGenre(e.target.value)}
-                  className="w-full px-4 py-2 border border-slate-300 rounded-xl outline-none"
-                  required
-                />
-              </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Dành cho (Khối lớp)</label>
+              <select
+                value={gradeLevel}
+                onChange={e => setGradeLevel(e.target.value)}
+                className="w-full px-4 py-2 border border-slate-300 rounded-xl outline-none"
+              >
+                <option value="6">Lớp 6</option>
+                <option value="7">Lớp 7</option>
+                <option value="8">Lớp 8</option>
+                <option value="9">Lớp 9</option>
+                <option value="10">Lớp 10</option>
+              </select>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Nội dung bài văn</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Mô tả đề thi</label>
               <textarea
-                rows={10}
-                value={content}
-                onChange={e => setContent(e.target.value)}
+                rows={4}
+                value={description}
+                onChange={e => setDescription(e.target.value)}
                 className="w-full px-4 py-2 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-blue-500"
-                required
               />
             </div>
 
