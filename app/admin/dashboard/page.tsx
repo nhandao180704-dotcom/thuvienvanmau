@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { supabase } from '@/lib/supabase-client'
 import AdminSidebar from '@/components/AdminSidebar'
 import AdminHeader from '@/components/AdminHeader'
+import DashboardCharts from '@/components/DashboardCharts'
 import { Plus, Edit, Trash2, BookOpen, Eye, CheckCircle, Clock } from 'lucide-react'
 
 // 1. Tách toàn bộ nội dung cũ thành một component riêng tên là DashboardContent
@@ -122,6 +123,9 @@ function DashboardContent() {
                   <h3 className="text-3xl font-bold text-slate-900">{draftCount}</h3>
                 </div>
               </div>
+
+              <DashboardCharts />
+
             </div>
           )}
 
@@ -135,7 +139,7 @@ function DashboardContent() {
               <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
                 <div className="flex justify-between items-center mb-6">
                   <h2 className="text-xl font-bold text-slate-800">Danh sách Bài Văn ({essays.length})</h2>
-                  <Link href="/admin/new" className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium transition">
+                  <Link href="/admin/dashboard/new" className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium transition">
                     <Plus className="w-4 h-4" /> Thêm bài văn
                   </Link>
                 </div>
