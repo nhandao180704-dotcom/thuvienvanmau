@@ -70,6 +70,7 @@ export default function QuizTakingPage() {
     setAnswers({ ...answers, [currentQuestion]: option })
   }
 
+  // --- HÀM NỘP BÀI ĐÃ ĐƯỢC NÂNG CẤP LƯU LỊCH SỬ ---
   const handleSubmit = () => {
     if (isSubmitted) return
     let correctCount = 0
@@ -82,8 +83,28 @@ export default function QuizTakingPage() {
     })
     
     const finalScore = questions.length > 0 ? (correctCount / questions.length) * 10 : 0
-    setScore(parseFloat(finalScore.toFixed(2)))
+    const roundedScore = parseFloat(finalScore.toFixed(2))
+    
+    setScore(roundedScore)
     setIsSubmitted(true)
+
+    // Lưu kết quả vào bộ nhớ trình duyệt (LocalStorage)
+    try {
+      const historyString = localStorage.getItem('quiz_history')
+      const history = historyString ? JSON.parse(historyString) : {}
+      
+      // Lưu thông tin chi tiết của lần làm bài này
+      history[quizId] = {
+        score: roundedScore,
+        correctAnswers: correctCount,
+        totalQuestions: questions.length,
+        completedAt: new Date().toISOString()
+      }
+      
+      localStorage.setItem('quiz_history', JSON.stringify(history))
+    } catch (error) {
+      console.error('Lỗi khi lưu lịch sử làm bài:', error)
+    }
   }
 
   const formatTime = (seconds: number) => {
@@ -137,8 +158,7 @@ export default function QuizTakingPage() {
               </div>
             </div>
 
-            {/* ĐÃ SỬA LẠI LINK QUAY VỀ PHÒNG LUYỆN THI PUBLIC */}
-            <Link href="/practice" className="inline-block px-8 py-3 bg-slate-900 text-white rounded-xl font-bold hover:bg-blue-600 transition">
+            <Link href="/practice" className="inline-block px-8 py-3 bg-slate-900 text-white rounded-xl font-bold hover:bg-blue-600 transition shadow-md">
               Quay lại Phòng luyện thi
             </Link>
           </div>
@@ -192,8 +212,7 @@ export default function QuizTakingPage() {
       <header className="bg-white border-b border-slate-200 sticky top-0 z-10">
         <div className="max-w-5xl mx-auto px-6 h-20 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            {/* ĐÃ SỬA LẠI LINK QUAY VỀ PHÒNG LUYỆN THI PUBLIC */}
-            <Link href="/practice" className="p-2 hover:bg-slate-100 rounded-lg text-slate-500">
+            <Link href="/practice" className="p-2 hover:bg-slate-100 rounded-lg text-slate-500 transition-colors">
               <ArrowLeft className="w-6 h-6" />
             </Link>
             <div>
@@ -264,7 +283,7 @@ export default function QuizTakingPage() {
             {currentQuestion === questions.length - 1 ? (
                <button 
                onClick={() => { if(window.confirm('Bạn có chắc chắn muốn nộp bài?')) handleSubmit() }}
-               className="px-8 py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl transition md:hidden"
+               className="px-8 py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl transition md:hidden shadow-md"
              >
                Nộp Bài
              </button>
