@@ -153,7 +153,10 @@ export default function LibraryPage() {
       </div>
 
       {/* Phần nền lưới full màn hình phía dưới */}
-      <div className="w-full bg-[url('/grid-pattern.svg')] bg-repeat min-h-screen pb-20">
+      <div 
+        className="w-full min-h-screen pb-20 bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: "url('/bg-van-hoc.jpg')" }}
+      >
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 relative z-30">
           <div className="flex flex-col lg:flex-row gap-10">
             <div className="flex-1 space-y-8 w-full">
