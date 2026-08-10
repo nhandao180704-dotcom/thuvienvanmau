@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase-client'
-import { BrainCircuit, ArrowRight, BookOpen, CheckCircle2, Clock, CalendarDays, RotateCcw, Search, Filter, Eye, History } from 'lucide-react'
+import { BrainCircuit, ArrowRight, BookOpen, CheckCircle2, Clock, CalendarDays, RotateCcw, Search, Filter, History } from 'lucide-react'
 
 export default function PublicPracticeHub() {
   const [quizzes, setQuizzes] = useState<any[]>([])
@@ -57,7 +57,6 @@ export default function PublicPracticeHub() {
             <span className="hidden sm:inline">Thư Viện Văn Mẫu</span>
           </Link>
           
-          {/* --- BỔ SUNG NÚT LỊCH SỬ LÀM BÀI Ở ĐÂY --- */}
           <div className="flex items-center gap-2 md:gap-3">
             <Link href="/practice/history" className="text-sm font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 px-4 py-2.5 rounded-full transition flex items-center gap-2 shadow-sm">
               <History className="w-4 h-4" /> <span className="hidden sm:inline">Lịch sử làm bài</span>
@@ -178,31 +177,25 @@ export default function PublicPracticeHub() {
                     </div>
                   )}
 
-                  <div className="flex gap-3">
+                  {/* THAY ĐỔI LẠI THÀNH NÚT RỘNG FULL TẠI ĐÂY */}
+                  <div className="flex gap-3 mt-auto">
                     {isCompleted ? (
-                      <>
-                        <Link 
-                          href={`/practice/${quiz.id}/review`} 
-                          className="w-1/2 py-3.5 rounded-xl font-bold flex justify-center items-center gap-2 transition-all shadow-sm bg-blue-50 border border-blue-200 text-blue-700 hover:bg-blue-100"
-                        >
-                          Xem lại <Eye className="w-4 h-4" />
-                        </Link>
-                        <Link 
-                          href={`/practice/${quiz.id}`} 
-                          className="w-1/2 py-3.5 rounded-xl font-bold flex justify-center items-center gap-2 transition-all shadow-sm bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
-                        >
-                          Làm lại <RotateCcw className="w-4 h-4" />
-                        </Link>
-                      </>
+                      <Link 
+                        href={`/practice/${quiz.id}`} 
+                        className="w-full py-3.5 rounded-xl font-bold flex justify-center items-center gap-2 transition-all shadow-sm bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
+                      >
+                        Làm lại bài <RotateCcw className="w-4 h-4" />
+                      </Link>
                     ) : (
                       <Link 
                         href={`/practice/${quiz.id}`} 
                         className="w-full py-3.5 rounded-xl font-bold flex justify-center items-center gap-2 transition-all shadow-sm bg-slate-900 text-white hover:bg-blue-600 group-hover:shadow-blue-200"
                       >
-                        Vào làm bài ngay <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                        Vào làm bài <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                       </Link>
                     )}
                   </div>
+
                 </div>
               )
             })}
