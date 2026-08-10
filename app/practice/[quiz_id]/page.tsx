@@ -218,13 +218,13 @@ export default function QuizTakingPage() {
 
           <form onSubmit={handleStartQuiz} className="space-y-5">
             <div>
-              <label className="block text-sm font-bold text-slate-700 mb-2">Họ và tên học sinh <span className="text-red-500">*</span></label>
+              <label className="block text-sm font-bold text-slate-700 mb-2">Họ và tên <span className="text-red-500">*</span></label>
               <div className="relative">
                 <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
                 <input 
                   type="text" 
                   required
-                  placeholder="Nhập họ và tên..."
+                  placeholder="Nhập họ và tên"
                   className="w-full pl-12 pr-4 py-3 rounded-xl border-2 border-slate-200 focus:border-blue-500 focus:ring-0 outline-none transition"
                   value={studentInfo.fullName}
                   onChange={(e) => setStudentInfo({...studentInfo, fullName: e.target.value})}
@@ -237,7 +237,7 @@ export default function QuizTakingPage() {
                 <GraduationCap className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
                 <input 
                   type="text" 
-                  placeholder="Ví dụ: 9A1"
+                  placeholder="Ví dụ: 9A"
                   className="w-full pl-12 pr-4 py-3 rounded-xl border-2 border-slate-200 focus:border-blue-500 focus:ring-0 outline-none transition"
                   value={studentInfo.className}
                   onChange={(e) => setStudentInfo({...studentInfo, className: e.target.value})}
@@ -250,7 +250,7 @@ export default function QuizTakingPage() {
                 <School className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
                 <input 
                   type="text" 
-                  placeholder="Nhập tên trường..."
+                  placeholder="Nhập tên trường"
                   className="w-full pl-12 pr-4 py-3 rounded-xl border-2 border-slate-200 focus:border-blue-500 focus:ring-0 outline-none transition"
                   value={studentInfo.schoolName}
                   onChange={(e) => setStudentInfo({...studentInfo, schoolName: e.target.value})}
