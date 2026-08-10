@@ -3,12 +3,16 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase-client'
-import { BrainCircuit, ArrowRight, BookOpen, CheckCircle2, Clock, CalendarDays, RotateCcw } from 'lucide-react'
+import { BrainCircuit, ArrowRight, BookOpen, CheckCircle2, Clock, CalendarDays, RotateCcw, Search, Filter } from 'lucide-react'
 
 export default function PublicPracticeHub() {
   const [quizzes, setQuizzes] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [quizHistory, setQuizHistory] = useState<Record<string, any>>({})
+
+  // --- THÊM STATE CHO TÌM KIẾM VÀ BỘ LỌC ---
+  const [searchTerm, setSearchText] = useState('')
+  const [selectedGrade, setSelectedGrade] = useState('ALL')
 
   useEffect(() => {
     fetchQuizzes()
@@ -40,6 +44,16 @@ export default function PublicPracticeHub() {
     return date.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) + ' - ' + date.toLocaleDateString('vi-VN')
   }
 
+  // --- LOGIC LỌC ĐỀ THI ---
+  const filteredQuizzes = quizzes.filter((quiz) => {
+    const matchesSearch = quiz.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                          (quiz.description && quiz.description.toLowerCase().includes(searchTerm.toLowerCase()))
+    
+    const matchesGrade = selectedGrade === 'ALL' || String(quiz.grade_level) === String(selectedGrade)
+
+    return matchesSearch && matchesGrade
+  })
+
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
       <header className="bg-white border-b border-slate-200 sticky top-0 z-50">
@@ -64,18 +78,49 @@ export default function PublicPracticeHub() {
           </p>
         </div>
 
+        {/* --- GIAO DIỆN THANH TÌM KIẾM & BỘ LỌC --- */}
+        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm mb-10 flex flex-col sm:flex-row gap-4 justify-between items-center">
+          <div className="relative w-full sm:w-96">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+            <input 
+              type="text" 
+              placeholder="Tìm kiếm đề thi..." 
+              value={searchTerm}
+              onChange={(e) => setSearchText(e.target.value)}
+              className="w-full pl-11 pr-4 py-2.5 rounded-xl border border-slate-200 outline-none focus:border-blue-500 font-medium text-sm transition"
+            />
+          </div>
+
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <Filter className="text-slate-400 w-5 h-5" />
+            <select 
+              value={selectedGrade}
+              onChange={(e) => setSelectedGrade(e.target.value)}
+              className="w-full sm:w-auto px-4 py-2.5 rounded-xl border border-slate-200 outline-none focus:border-blue-500 font-bold text-sm text-slate-700 bg-white transition cursor-pointer"
+            >
+              <option value="ALL">Tất cả các lớp</option>
+              <option value="6">Khối 6</option>
+              <option value="7">Khối 7</option>
+              <option value="8">Khối 8</option>
+              <option value="9">Khối 9</option>
+              <option value="10">Luyện thi vào 10</option>
+            </select>
+          </div>
+        </div>
+
         {loading ? (
           <div className="flex justify-center py-20">
             <div className="w-10 h-10 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
           </div>
-        ) : quizzes.length === 0 ? (
+        ) : filteredQuizzes.length === 0 ? (
           <div className="text-center py-20 bg-white rounded-3xl border border-dashed border-slate-300 shadow-sm">
             <BrainCircuit className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-            <p className="text-slate-500 text-lg font-medium">Hiện tại chưa có đề thi nào được mở.</p>
+            <p className="text-slate-500 text-lg font-medium">Không tìm thấy đề thi phù hợp.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {quizzes.map((quiz) => {
+            {/* --- ĐỔI quizzes.map THÀNH filteredQuizzes.map --- */}
+            {filteredQuizzes.map((quiz) => {
               const history = quizHistory[quiz.id] 
               const isCompleted = !!history
 
@@ -102,12 +147,18 @@ export default function PublicPracticeHub() {
                     <h2 className={`text-xl font-bold line-clamp-2 leading-tight transition-colors ${isCompleted ? 'text-slate-800' : 'text-slate-800 group-hover:text-blue-600'}`}>
                       {quiz.title}
                     </h2>
-                    <span className="inline-block mt-2 text-xs font-bold px-3 py-1 bg-slate-100 text-slate-600 rounded-lg">
-                      Ôn thi vào Lớp {quiz.grade_level}
-                    </span>
+                    {/* --- BỔ SUNG THỜI GIAN LÀM BÀI --- */}
+                    <div className="flex gap-2 mt-2">
+                      <span className="inline-block text-xs font-bold px-3 py-1 bg-slate-100 text-slate-600 rounded-lg">
+                        Lớp {quiz.grade_level || 'Chung'}
+                      </span>
+                      <span className="inline-block text-xs font-bold px-3 py-1 bg-blue-50 text-blue-600 rounded-lg">
+                        ⏱️ {quiz.time_limit || 15} phút
+                      </span>
+                    </div>
                   </div>
                   
-                  <p className="text-slate-500 mb-6 flex-1 line-clamp-2 leading-relaxed text-sm">
+                  <p className="text-slate-500 mb-6 flex-1 line-clamp-2 leading-relaxed text-sm mt-2">
                     {quiz.description || 'Đề thi trắc nghiệm kiểm tra kiến thức và rèn luyện kỹ năng.'}
                   </p>
                   
@@ -139,7 +190,7 @@ export default function PublicPracticeHub() {
                     {isCompleted ? (
                       <>Làm lại bài <RotateCcw className="w-4 h-4" /></>
                     ) : (
-                      <>Vào làm bài ngay <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" /></>
+                      <>Vào làm bài <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" /></>
                     )}
                   </Link>
                 </div>

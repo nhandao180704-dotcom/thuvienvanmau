@@ -23,7 +23,7 @@ export default function QuizTakingPage() {
   const [answers, setAnswers] = useState<Record<number, string>>({})
   const [reviewMarks, setReviewMarks] = useState<Record<number, boolean>>({}) 
   
-  const [timeLeft, setTimeLeft] = useState(15 * 60)
+  const [timeLeft, setTimeLeft] = useState(15 * 60) // Mặc định 15p, sẽ bị ghi đè bởi DB
   const [isSubmitted, setIsSubmitted] = useState(false)
   const [score, setScore] = useState(0)
   
@@ -83,18 +83,37 @@ export default function QuizTakingPage() {
     if (forceSubmit && !isSubmitted) handleSubmit()
   }, [forceSubmit])
 
+  // --- THUẬT TOÁN ĐẢO NGẪU NHIÊN CÂU HỎI ---
+  const shuffleArray = (array: any[]) => {
+    const arr = [...array]
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]]
+    }
+    return arr
+  }
+
   const fetchQuizData = async () => {
     setLoading(true)
     try {
       const { data: quizData } = await supabase.from('quizzes').select('*').eq('id', quizId).single()
-      if (quizData) setQuiz(quizData)
+      if (quizData) {
+        setQuiz(quizData)
+        // Set thời gian làm bài thực tế từ DB
+        if (quizData.time_limit) {
+          setTimeLeft(quizData.time_limit * 60)
+        }
+      }
 
       const { data: questionsData } = await supabase
         .from('questions')
         .select('*, options(*)')
         .eq('quiz_id', quizId)
       
-      if (questionsData) setQuestions(questionsData)
+      if (questionsData) {
+        // Đảo ngẫu nhiên thứ tự câu hỏi trước khi lưu vào state
+        setQuestions(shuffleArray(questionsData))
+      }
     } catch (error) {
       console.error("Lỗi:", error)
     } finally {
@@ -120,7 +139,7 @@ export default function QuizTakingPage() {
     setReviewMarks(prev => ({ ...prev, [currentQuestion]: !prev[currentQuestion] }))
   }
 
-  // --- LOGIC 3: NỘP BÀI VÀ XỬ LÝ LỖI "CHƯA LÀM" ---
+  // --- LOGIC 3: NỘP BÀI VÀ LƯU CHI TIẾT ---
   const handleSubmit = async () => {
     if (isSubmitted || isSubmittingToDB) return
     setIsSubmittingToDB(true)
@@ -134,7 +153,10 @@ export default function QuizTakingPage() {
     
     const finalScore = questions.length > 0 ? (correctCount / questions.length) * 10 : 0
     const roundedScore = parseFloat(finalScore.toFixed(2))
-    const timeTakenInSeconds = 15 * 60 - timeLeft
+    
+    // Tính toán lại thời gian dựa trên giới hạn thực tế
+    const totalTimeAllowed = (quiz?.time_limit || 15) * 60
+    const timeTakenInSeconds = totalTimeAllowed - timeLeft
     
     setScore(roundedScore)
     setIsSubmitted(true)
@@ -142,7 +164,7 @@ export default function QuizTakingPage() {
     try {
       const { data: { session } } = await supabase.auth.getSession()
 
-      // 1. Lưu lên DB
+      // 1. Lưu lên DB cùng với số lần gian lận và chi tiết đáp án
       await supabase.from('quiz_results').insert([
         {
           quiz_id: quizId,
@@ -151,7 +173,9 @@ export default function QuizTakingPage() {
           class_name: studentInfo.className,
           school_name: studentInfo.schoolName,
           score: roundedScore,
-          time_taken: timeTakenInSeconds
+          time_taken: timeTakenInSeconds,
+          cheat_count: cheatCount,
+          answers_detail: answers
         }
       ])
 
@@ -168,7 +192,7 @@ export default function QuizTakingPage() {
         setLeaderboard(leaderboardData)
       }
 
-      // 3. ĐÂY LÀ ĐOẠN FIX LỖI "CHƯA LÀM" - LƯU VÀO TRÌNH DUYỆT
+      // 3. LƯU LỊCH SỬ VÀO TRÌNH DUYỆT
       const historyString = localStorage.getItem('quiz_history')
       const history = historyString ? JSON.parse(historyString) : {}
       
@@ -206,14 +230,14 @@ export default function QuizTakingPage() {
   if (loading) return <div className="min-h-screen flex items-center justify-center bg-slate-50"><p className="text-blue-600 font-bold text-xl animate-pulse">Đang tải đề thi...</p></div>
   if (!quiz || questions.length === 0) return <div className="min-h-screen flex items-center justify-center bg-slate-50"><p className="text-red-500 font-bold text-xl">Không tìm thấy nội dung đề thi!</p></div>
 
-  // --- MÀN HÌNH NHẬP THÔNG TIN ---
+  // --- MÀN HÌNH NHẬP THÔNG TIN TRƯỚC KHI THI ---
   if (!isStarted) {
     return (
       <div className="min-h-screen bg-[#F4F7FB] flex items-center justify-center p-4">
         <div className="bg-white rounded-3xl shadow-xl border border-slate-200 p-8 md:p-12 max-w-lg w-full">
           <div className="text-center mb-8">
             <h1 className="text-2xl md:text-3xl font-black text-slate-800 mb-2">{quiz.title}</h1>
-            <p className="text-slate-500">Vui lòng điền thông tin để bắt đầu làm bài thi</p>
+            <p className="text-slate-500 font-medium">Thời gian: <span className="text-blue-600 font-bold">{quiz.time_limit || 15} phút</span> | Tổng số câu: <span className="text-blue-600 font-bold">{questions.length} câu</span></p>
           </div>
 
           <form onSubmit={handleStartQuiz} className="space-y-5">
