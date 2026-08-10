@@ -43,7 +43,7 @@ export default function PublicPracticeHub() {
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
       <header className="bg-white border-b border-slate-200 sticky top-0 z-50">
-        <div className="container mx-auto px-4 h-16 flex items-center justify-between max-w-6xl">
+        <div className="w-full max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 text-xl font-black text-blue-600">
             <BookOpen className="w-6 h-6" />
             Thư Viện Văn Mẫu
@@ -54,12 +54,12 @@ export default function PublicPracticeHub() {
         </div>
       </header>
 
-      <main className="flex-grow container mx-auto px-4 py-12 max-w-6xl">
-        <div className="text-center mb-12">
+      <main className="flex-grow w-full max-w-6xl mx-auto px-4 py-12">
+        <div className="text-center max-w-3xl mx-auto mb-12">
           <h1 className="text-4xl md:text-5xl font-extrabold text-slate-900 mb-4 tracking-tight">
             Phòng Luyện Thi Trắc Nghiệm
           </h1>
-          <p className="text-lg text-slate-600 max-w-2xl mx-auto">
+          <p className="text-lg text-slate-600">
             Khu vực làm bài kiểm tra, thử sức với các đề thi chuẩn bị cho kì thi vào lớp 10. Hệ thống sẽ tự động lưu lại tiến độ của bạn!
           </p>
         </div>
@@ -76,13 +76,12 @@ export default function PublicPracticeHub() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {quizzes.map((quiz) => {
-              const history = quizHistory[quiz.id] // Kiểm tra xem đề này đã làm chưa
+              const history = quizHistory[quiz.id] 
               const isCompleted = !!history
 
               return (
                 <div key={quiz.id} className={`bg-white p-6 rounded-[2rem] border shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col group ${isCompleted ? 'border-emerald-200' : 'border-slate-200 hover:border-blue-400'}`}>
                   
-                  {/* TRẠNG THÁI (ĐÃ LÀM / CHƯA LÀM) */}
                   <div className="flex justify-between items-start mb-4">
                     <div className={`p-3 rounded-2xl transition-colors duration-300 ${isCompleted ? 'bg-emerald-50 text-emerald-600' : 'bg-indigo-50 text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white'}`}>
                       <BrainCircuit className="w-7 h-7" />
@@ -112,7 +111,6 @@ export default function PublicPracticeHub() {
                     {quiz.description || 'Đề thi trắc nghiệm kiểm tra kiến thức và rèn luyện kỹ năng.'}
                   </p>
                   
-                  {/* KHU VỰC HIỂN THỊ KẾT QUẢ NẾU ĐÃ LÀM */}
                   {isCompleted && (
                     <div className="bg-emerald-50/50 border border-emerald-100 rounded-xl p-4 mb-6 space-y-2">
                       <div className="flex justify-between items-center">
@@ -130,7 +128,6 @@ export default function PublicPracticeHub() {
                     </div>
                   )}
 
-                  {/* NÚT HÀNH ĐỘNG THAY ĐỔI THEO TRẠNG THÁI */}
                   <Link 
                     href={`/practice/${quiz.id}`} 
                     className={`w-full py-3.5 rounded-xl font-bold flex justify-center items-center gap-2 transition-all shadow-sm ${

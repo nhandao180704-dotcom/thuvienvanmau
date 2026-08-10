@@ -73,16 +73,17 @@ export default function SavedEssaysPage() {
     <div className="min-h-screen bg-[#F4F7FB] text-slate-800 font-sans pb-20 selection:bg-blue-200">
       <Navbar />
 
-      <main className="max-w-5xl mx-auto px-4 sm:px-6 py-10">
-        <Link href="/" className="inline-flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-blue-600 transition-colors mb-6 group">
+      {/* Thay đổi: Giới hạn bề ngang tối đa của main content bằng max-w-5xl mx-auto */}
+      <main className="w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 mt-8 space-y-6">
+        <Link href="/" className="inline-flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-blue-600 transition-colors mb-2 group">
           <div className="p-2 bg-white rounded-full shadow-sm group-hover:bg-blue-50 transition-colors">
             <ArrowLeft size={16} />
           </div>
           Về lại trang chủ
         </Link>
 
-        <div className="flex items-center gap-4 mb-8 bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-slate-100">
-          <div className="w-16 h-16 bg-orange-100 text-orange-600 rounded-2xl flex items-center justify-center shadow-inner">
+        <div className="flex items-center gap-4 bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-slate-100">
+          <div className="w-16 h-16 bg-orange-100 text-orange-600 rounded-2xl flex items-center justify-center shadow-inner shrink-0">
             <Bookmark size={32} className="fill-current" />
           </div>
           <div>

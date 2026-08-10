@@ -52,14 +52,12 @@ export default function QuizTakingPage() {
     if (loading || isSubmitted) return
 
     const handleVisibilityChange = () => {
-      // Nếu học sinh chuyển tab hoặc ẩn trình duyệt
       if (document.hidden) {
         setCheatCount(prev => {
           const newCount = prev + 1
           
           alert(`🚨 CẢNH BÁO GIAN LẬN 🚨\nBạn vừa thoát khỏi màn hình làm bài!\nHệ thống đã ghi nhận vi phạm lần thứ ${newCount}.`)
           
-          // Nếu vi phạm 3 lần -> Ép nộp bài ngay lập tức
           if (newCount >= 3) {
             alert("❌ BẠN ĐÃ VI PHẠM QUÁ 3 LẦN. HỆ THỐNG SẼ TỰ ĐỘNG NỘP BÀI!")
             setForceSubmit(true)
@@ -73,7 +71,7 @@ export default function QuizTakingPage() {
     return () => document.removeEventListener("visibilitychange", handleVisibilityChange)
   }, [loading, isSubmitted])
 
-  // --- LOGIC 3: LẮNG NGHE LỆNH ÉP NỘP BÀI (HẾT GIỜ / GIAN LẬN) ---
+  // --- LOGIC 3: LẮNG NGHE LỆNH ÉP NỘP BÀI ---
   useEffect(() => {
     if (forceSubmit && !isSubmitted) {
       handleSubmit()
@@ -125,7 +123,6 @@ export default function QuizTakingPage() {
     setScore(roundedScore)
     setIsSubmitted(true)
 
-    // Lưu lịch sử LocalStorage
     try {
       const historyString = localStorage.getItem('quiz_history')
       const history = historyString ? JSON.parse(historyString) : {}
@@ -174,7 +171,7 @@ export default function QuizTakingPage() {
   if (isSubmitted) {
     return (
       <div className="min-h-screen bg-slate-50 p-6 md:p-12 animate-in fade-in zoom-in duration-500">
-        <div className="max-w-3xl mx-auto">
+        <div className="max-w-4xl mx-auto">
           <div className="bg-white rounded-3xl p-10 text-center shadow-2xl border border-slate-200 mb-8 relative overflow-hidden">
             <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-blue-500 via-emerald-500 to-yellow-500"></div>
             <div className="w-24 h-24 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
@@ -247,7 +244,8 @@ export default function QuizTakingPage() {
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
       <header className="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
-        <div className="max-w-6xl mx-auto px-4 lg:px-6 h-20 flex items-center justify-between">
+        {/* Thay đổi: Cập nhật giới hạn w-full max-w-6xl mx-auto cho Header */}
+        <div className="w-full max-w-6xl mx-auto px-4 lg:px-6 h-20 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <button 
               onClick={() => { if(window.confirm('Bạn sẽ bị hủy kết quả nếu thoát. Bạn có chắc chắn?')) router.push('/practice') }}
@@ -262,7 +260,6 @@ export default function QuizTakingPage() {
           </div>
 
           <div className="flex items-center gap-4">
-            {/* HIỂN THỊ CẢNH BÁO GIAN LẬN (CHỚP ĐỎ) NẾU CÓ */}
             {cheatCount > 0 && (
               <div className="hidden md:flex items-center gap-2 font-bold px-4 py-2 rounded-xl bg-red-100 text-red-600 animate-pulse border border-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]">
                 <ShieldAlert className="w-5 h-5" />
@@ -285,10 +282,11 @@ export default function QuizTakingPage() {
         </div>
       </header>
 
-      <main className="flex-1 max-w-6xl mx-auto w-full p-4 lg:p-6 flex flex-col lg:flex-row gap-6 mt-4">
+      {/* Thay đổi: Bọc phần câu hỏi và danh sách bằng flex-col lg:flex-row và max-w-6xl mx-auto */}
+      <main className="flex-1 w-full max-w-6xl mx-auto p-4 lg:p-6 flex flex-col lg:flex-row gap-6 mt-4">
         
         {/* CỘT TRÁI: CÂU HỎI */}
-        <div className="flex-1">
+        <div className="flex-1 w-full">
           <div className="bg-white p-6 md:p-10 rounded-[2rem] shadow-sm border border-slate-200 transition-all">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-sm font-black text-blue-600 tracking-widest uppercase bg-blue-50 px-4 py-2 rounded-full">
@@ -358,7 +356,6 @@ export default function QuizTakingPage() {
         <div className="w-full lg:w-80 shrink-0">
           <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-200 sticky top-28">
             
-            {/* Hiển thị vi phạm trên Mobile */}
             {cheatCount > 0 && (
               <div className="md:hidden flex items-center justify-center gap-2 font-bold px-4 py-3 mb-6 rounded-xl bg-red-100 text-red-600 animate-pulse border border-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]">
                 <ShieldAlert className="w-5 h-5" />
