@@ -23,7 +23,7 @@ export default function QuizTakingPage() {
   const [answers, setAnswers] = useState<Record<number, string>>({})
   const [reviewMarks, setReviewMarks] = useState<Record<number, boolean>>({}) 
   
-  const [timeLeft, setTimeLeft] = useState(15 * 60) // Mặc định 15p, sẽ bị ghi đè bởi DB
+  const [timeLeft, setTimeLeft] = useState(15 * 60)
   const [isSubmitted, setIsSubmitted] = useState(false)
   const [score, setScore] = useState(0)
   
@@ -83,7 +83,7 @@ export default function QuizTakingPage() {
     if (forceSubmit && !isSubmitted) handleSubmit()
   }, [forceSubmit])
 
-  // --- THUẬT TOÁN ĐẢO NGẪU NHIÊN CÂU HỎI ---
+  // --- THUẬT TOÁN ĐẢO MẢNG CHUNG ---
   const shuffleArray = (array: any[]) => {
     const arr = [...array]
     for (let i = arr.length - 1; i > 0; i--) {
@@ -99,7 +99,6 @@ export default function QuizTakingPage() {
       const { data: quizData } = await supabase.from('quizzes').select('*').eq('id', quizId).single()
       if (quizData) {
         setQuiz(quizData)
-        // Set thời gian làm bài thực tế từ DB
         if (quizData.time_limit) {
           setTimeLeft(quizData.time_limit * 60)
         }
@@ -111,8 +110,37 @@ export default function QuizTakingPage() {
         .eq('quiz_id', quizId)
       
       if (questionsData) {
+        // --- XỬ LÝ ĐẢO ĐÁP ÁN BÊN TRONG TỪNG CÂU HỎI ---
+        const processedQuestions = questionsData.map((q: any) => {
+          if (!q.options || q.options.length === 0) return q;
+
+          // Xác định đáp án đúng gốc
+          const originalCorrectKey = q.correct_answer || 'A';
+          const originalCorrectOption = q.options.find((o: any) => o.option_key === originalCorrectKey || o.key === originalCorrectKey);
+          
+          // Xáo trộn mảng lựa chọn
+          const shuffledOptions = shuffleArray([...q.options]);
+          const newKeys = ['A', 'B', 'C', 'D'];
+          let newCorrectAnswer = originalCorrectKey;
+
+          // Gắn lại key A, B, C, D và cập nhật lại đáp án đúng
+          const newOptions = shuffledOptions.map((opt, index) => {
+             const newKey = newKeys[index] || String.fromCharCode(65 + index);
+             if (originalCorrectOption && opt.id === originalCorrectOption.id) {
+                 newCorrectAnswer = newKey; // Cập nhật sang Key mới
+             }
+             return { ...opt, option_key: newKey, key: newKey };
+          });
+
+          return {
+             ...q,
+             options: newOptions,
+             correct_answer: newCorrectAnswer
+          };
+        });
+
         // Đảo ngẫu nhiên thứ tự câu hỏi trước khi lưu vào state
-        setQuestions(shuffleArray(questionsData))
+        setQuestions(shuffleArray(processedQuestions))
       }
     } catch (error) {
       console.error("Lỗi:", error)
@@ -147,14 +175,12 @@ export default function QuizTakingPage() {
     let correctCount = 0
     questions.forEach((q, index) => {
       const userChoice = answers[index]
-      const correctChoice = q.correct_answer || q.correct || q.answer || 'A'
+      const correctChoice = q.correct_answer || 'A'
       if (userChoice === correctChoice) correctCount++
     })
     
     const finalScore = questions.length > 0 ? (correctCount / questions.length) * 10 : 0
     const roundedScore = parseFloat(finalScore.toFixed(2))
-    
-    // Tính toán lại thời gian dựa trên giới hạn thực tế
     const totalTimeAllowed = (quiz?.time_limit || 15) * 60
     const timeTakenInSeconds = totalTimeAllowed - timeLeft
     
@@ -164,7 +190,6 @@ export default function QuizTakingPage() {
     try {
       const { data: { session } } = await supabase.auth.getSession()
 
-      // 1. Lưu lên DB cùng với số lần gian lận và chi tiết đáp án
       await supabase.from('quiz_results').insert([
         {
           quiz_id: quizId,
@@ -179,7 +204,6 @@ export default function QuizTakingPage() {
         }
       ])
 
-      // 2. Kéo Bảng xếp hạng
       const { data: leaderboardData } = await supabase
         .from('quiz_results')
         .select('display_name, class_name, score, time_taken')
@@ -192,7 +216,6 @@ export default function QuizTakingPage() {
         setLeaderboard(leaderboardData)
       }
 
-      // 3. LƯU LỊCH SỬ VÀO TRÌNH DUYỆT
       const historyString = localStorage.getItem('quiz_history')
       const history = historyString ? JSON.parse(historyString) : {}
       
@@ -320,7 +343,7 @@ export default function QuizTakingPage() {
 
             <div className="space-y-4">
               {questions.map((q, idx) => {
-                const correctAns = q.correct_answer || q.correct || q.answer || 'A'
+                const correctAns = q.correct_answer || 'A'
                 const isCorrect = answers[idx] === correctAns
                 return (
                   <div key={idx} className={`bg-white p-6 rounded-2xl border ${isCorrect ? 'border-emerald-200' : 'border-red-200'}`}>
