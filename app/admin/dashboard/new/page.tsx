@@ -1,18 +1,8 @@
 'use client'
 
-import { useEffect } from 'react'
-import { useRouter } from 'next/navigation'
 import EssayForm from '@/components/EssayForm'
 
 export default function NewEssayPage() {
-  const router = useRouter()
-
-  useEffect(() => {
-    const session = localStorage.getItem('adminSession')
-    if (!session) {
-      router.push('/admin/login')
-    }
-  }, [router])
-
+  // Việc bảo mật khóa trang đã được xử lý tập trung ở app/admin/layout.tsx
   return <EssayForm />
 }

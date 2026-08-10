@@ -55,6 +55,7 @@ export default function LibraryPage() {
       const { data, error } = await supabase
         .from('essays')
         .select('*')
+        .eq('status', 'published')
         .order('created_at', { ascending: false })
 
       if (error) throw error

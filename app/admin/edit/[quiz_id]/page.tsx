@@ -185,7 +185,7 @@ export default function EditQuizPage() {
     <div className="min-h-screen bg-slate-50 flex">
       <AdminSidebar />
       <div className="flex-1 ml-64 flex flex-col">
-        <AdminHeader adminEmail="admin@gmail.com" onSearch={() => {}} onLogout={() => router.push('/admin/login')} />
+        <AdminHeader onSearch={() => {}} />
 
         <main className="flex-1 p-8 overflow-y-auto mt-16 max-w-4xl mx-auto w-full">
           <button onClick={() => router.back()} className="flex items-center text-slate-600 hover:text-slate-900 mb-6 transition">

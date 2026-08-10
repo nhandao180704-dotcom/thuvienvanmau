@@ -1,17 +1,38 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Search, Bell, User, Settings, LogOut, ChevronDown } from 'lucide-react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { supabase } from '@/lib/supabase-client'
 
 interface AdminHeaderProps {
-  adminEmail?: string
   onSearch?: (query: string) => void
-  onLogout?: () => void
 }
 
-export default function AdminHeader({ adminEmail = 'admin@gmail.com', onSearch, onLogout }: AdminHeaderProps) {
+export default function AdminHeader({ onSearch }: AdminHeaderProps) {
   const [showDropdown, setShowDropdown] = useState(false)
+  const [adminEmail, setAdminEmail] = useState('Đang tải...')
+  const router = useRouter()
+
+  useEffect(() => {
+    // Tự động lấy email thật của Admin từ Supabase
+    const fetchAdminInfo = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session?.user?.email) {
+        setAdminEmail(session.user.email)
+      }
+    }
+    fetchAdminInfo()
+  }, [])
+
+  const handleLogout = async () => {
+    setShowDropdown(false)
+    // 1. Đăng xuất an toàn khỏi hệ thống Supabase
+    await supabase.auth.signOut()
+    // 2. Chuyển hướng về trang chủ hoặc trang đăng nhập chung
+    router.push('/login')
+  }
 
   return (
     <header className="fixed top-0 right-0 left-64 h-16 bg-white border-b border-slate-200 shadow-sm z-30">
@@ -43,46 +64,45 @@ export default function AdminHeader({ adminEmail = 'admin@gmail.com', onSearch, 
               onClick={() => setShowDropdown(!showDropdown)}
               className="flex items-center gap-3 hover:bg-slate-50 rounded-lg px-3 py-2 transition-colors"
             >
-              <div className="w-10 h-10 rounded-full bg-linear-to-br from-primary to-blue-600 flex items-center justify-center text-white font-bold">
-                {adminEmail.charAt(0).toUpperCase()}
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white font-bold">
+                {adminEmail !== 'Đang tải...' ? adminEmail.charAt(0).toUpperCase() : 'A'}
               </div>
-              <div className="hidden sm:block">
-                <p className="text-sm font-medium text-foreground">Admin</p>
-                <p className="text-xs text-muted-foreground">{adminEmail}</p>
+              <div className="hidden sm:block text-left">
+                <p className="text-sm font-bold text-slate-800">Quản trị viên</p>
+                <p className="text-xs text-slate-500">{adminEmail}</p>
               </div>
-              <ChevronDown size={16} className={`text-muted-foreground transition-transform ${showDropdown ? 'rotate-180' : ''}`} />
+              <ChevronDown size={16} className={`text-slate-400 transition-transform ${showDropdown ? 'rotate-180' : ''}`} />
             </button>
 
             {/* Dropdown Menu */}
             {showDropdown && (
-              <div className="absolute top-full right-0 mt-2 w-48 bg-white rounded-lg border border-slate-200 shadow-lg z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+              <div className="absolute top-full right-0 mt-2 w-48 bg-white rounded-xl border border-slate-200 shadow-xl z-50 animate-in fade-in slide-in-from-top-2 duration-200 overflow-hidden">
                 <div className="p-2 space-y-1">
                   <Link
                     href="/admin/profile"
-                    className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-sm text-foreground hover:bg-slate-50 transition-colors"
+                    className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm text-slate-700 hover:bg-slate-50 hover:text-blue-600 transition-colors font-medium"
                     onClick={() => setShowDropdown(false)}
                   >
-                    <User size={16} />
-                    <span>Thông tin cá nhân</span>
+                    <User size={18} />
+                    <span>Hồ sơ Admin</span>
                   </Link>
 
                   <Link
                     href="/admin/settings"
-                    className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-sm text-foreground hover:bg-slate-50 transition-colors"
+                    className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm text-slate-700 hover:bg-slate-50 hover:text-blue-600 transition-colors font-medium"
                     onClick={() => setShowDropdown(false)}
                   >
-                    <Settings size={16} />
-                    <span>Cài đặt</span>
+                    <Settings size={18} />
+                    <span>Cài đặt hệ thống</span>
                   </Link>
+                  
+                  <div className="h-px bg-slate-100 my-1"></div>
 
                   <button
-                    onClick={() => {
-                      setShowDropdown(false)
-                      onLogout?.()
-                    }}
-                    className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-sm text-red-600 hover:bg-red-50 transition-colors"
+                    onClick={handleLogout}
+                    className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm text-red-600 hover:bg-red-50 transition-colors font-bold"
                   >
-                    <LogOut size={16} />
+                    <LogOut size={18} />
                     <span>Đăng xuất</span>
                   </button>
                 </div>

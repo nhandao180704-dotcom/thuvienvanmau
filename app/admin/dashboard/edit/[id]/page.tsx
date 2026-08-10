@@ -1,19 +1,11 @@
 'use client'
 
-import { useEffect } from 'react'
-import { useRouter, useParams } from 'next/navigation'
+import { useParams } from 'next/navigation'
 import EssayForm from '@/components/EssayForm'
 
 export default function EditEssayPage() {
-  const router = useRouter()
   const { id } = useParams() as { id: string }
 
-  useEffect(() => {
-    const session = localStorage.getItem('adminSession')
-    if (!session) {
-      router.push('/admin/login')
-    }
-  }, [router])
-
+  // Việc bảo mật và kiểm tra quyền admin đã được xử lý tự động ở app/admin/layout.tsx
   return <EssayForm essayId={id} />
 }

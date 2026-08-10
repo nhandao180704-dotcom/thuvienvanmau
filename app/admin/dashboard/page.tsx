@@ -78,7 +78,7 @@ function DashboardContent() {
       <AdminSidebar />
       
       <div className="flex-1 ml-64 flex flex-col">
-        <AdminHeader adminEmail="admin@gmail.com" onSearch={() => {}} onLogout={() => router.push('/admin/login')} />
+        <AdminHeader onSearch={() => {}} />
 
         <main className="flex-1 p-8 overflow-y-auto mt-16">
 

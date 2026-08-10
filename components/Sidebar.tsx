@@ -14,6 +14,7 @@ export default function Sidebar() {
         const { data } = await supabase
           .from('essays')
           .select('id, title, genre, grade')
+          .eq('status', 'published')
           .order('created_at', { ascending: false })
           .limit(4)
         
