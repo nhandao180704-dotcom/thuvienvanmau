@@ -209,6 +209,9 @@
 }
 
 body {
-  background-image: url('/grid-pattern.svg');
-  background-repeat: repeat;
+  background-image: url('/bg-van-hoc.jpg');
+  background-size: cover;          /* Phủ kín màn hình */
+  background-position: center;     /* Căn giữa ảnh */
+  background-attachment: fixed;    /* Cố định ảnh nền khi cuộn trang */
+  background-repeat: no-repeat;
 }
