@@ -154,7 +154,7 @@ export default function LibraryPage() {
 
       {/* Phần nền lưới full màn hình phía dưới */}
       <div 
-        className="w-full min-h-screen pb-20 bg-cover bg-center bg-no-repeat"
+        className="w-full min-h-screen pb-20 bg-contain bg-center bg-repeat"
         style={{ backgroundImage: "url('/bg-van-hoc.jpg')" }}
       >
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 relative z-30">
