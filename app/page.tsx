@@ -205,22 +205,17 @@ export default function LibraryPage() {
                 ))}
               </div>
             ) : filteredEssays.length === 0 ? (
-            <div 
-              className="flex flex-col items-center justify-center py-24 px-6 rounded-3xl shadow-sm bg-cover bg-center bg-no-repeat"
-              style={{ backgroundImage: "url('/bg-van-hoc.jpg')" }}
-            >
-              <div className="bg-white/90 backdrop-blur-md p-8 rounded-3xl shadow-lg flex flex-col items-center max-w-md w-full text-center">
-                <BookOpen size={64} className="mx-auto text-primary mb-6 animate-bounce" />
-                <h3 className="text-2xl font-bold text-slate-900 mb-2">Không tìm thấy bài viết!</h3>
-                <p className="text-slate-600 mb-8 text-lg">Thử một từ khóa khác xem sao nhé.</p>
+              <div className="flex flex-col items-center justify-center py-24 bg-white/80 backdrop-blur-sm rounded-[2rem] border-2 border-dashed border-slate-300">
+                <BookOpen size={64} className="mx-auto text-slate-300 mb-6 animate-bounce" />
+                <h3 className="text-2xl font-black text-slate-700 mb-2">Không tìm thấy bài viết!</h3>
+                <p className="text-slate-500 mb-8 text-lg">Thử một từ khóa khác xem sao nhé.</p>
                 <button
                   onClick={() => { setSearchQuery(''); setSearchTermSubmitted(''); setActiveTab('Tất cả'); }}
-                  className="px-8 py-4 bg-primary text-white font-bold rounded-2xl shadow-xl hover:bg-primary/90 transition-all hover:scale-105"
+                  className="px-8 py-4 bg-slate-900 text-white font-bold rounded-2xl shadow-xl hover:bg-blue-600 transition-all hover:scale-105"
                 >
                   Tải lại trang
                 </button>
               </div>
-            </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {filteredEssays.map((essay) => (

@@ -207,3 +207,8 @@
 .animate-neon-pulse {
   animation: neonPulse 2s infinite;
 }
+
+body {
+  background-image: url('/grid-pattern.svg');
+  background-repeat: repeat;
+}
