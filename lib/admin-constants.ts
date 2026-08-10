@@ -23,7 +23,7 @@ export function getCategoryTitle(slug: string): string {
     'trac-nghiem-7': 'Trắc Nghiệm Ngữ Văn 7',
     'trac-nghiem-6': 'Trắc Nghiệm Ngữ Văn 6',
     'de-thi-10': 'Đề Thi Mẫu Vào Lớp 10',
-    'bi-kip-10': 'Bí Kíp Đạt Điểm Cao',
+    'bi-kip': 'Bí Kíp Đạt Điểm Cao',
   }
   return map[slug] || `Danh mục: ${slug}`
 }

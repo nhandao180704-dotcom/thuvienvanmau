@@ -30,9 +30,9 @@ export default function Sidebar() {
   }, [])
 
   const examPrepItems = [
-    { id: 1, title: 'Ôn thi vào lớp 10: Phần trắc nghiệm', badge: 'Hot', href: '/practice' },
-    { id: 2, title: 'Đề thi mẫu vào lớp 10 năm 2026', badge: 'Mới', href: '/category/de-thi-10' },
-    { id: 3, title: 'Bí kíp đạt điểm cao Văn vào 10', badge: 'Hay', href: '/category/bi-kip-10' },
+    { id: 1, title: 'Ôn thi trắc nghiệm', badge: 'Hot', href: '/practice' },
+    { id: 2, title: 'Đề thi mẫu vào lớp 10', badge: 'Mới', href: '/category/de-thi-10' },
+    { id: 3, title: 'Bí kíp đạt điểm cao môn Ngữ Văn', badge: 'Hay', href: '/category/bi-kip' },
   ]
 
   return (
@@ -68,15 +68,15 @@ export default function Sidebar() {
         </div>
       </div>
 
-      {/* Khối 2: Góc Ôn Thi Lớp 10 */}
+      {/* Khối 2: Góc Ôn Thi */}
       <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
         <div className="bg-gradient-to-r from-orange-500 to-red-500 p-5 flex items-center gap-3 text-white">
           <div className="p-2 bg-white/20 rounded-lg">
             <BookOpen size={20} />
           </div>
           <div>
-            <h3 className="font-extrabold text-lg tracking-tight">Góc Ôn Thi Lớp 10</h3>
-            <p className="text-xs text-orange-100 font-medium">Dành riêng cho khối 9</p>
+            <h3 className="font-extrabold text-lg tracking-tight">Góc Ôn Thi Ngữ Văn</h3>
+            <p className="text-xs text-orange-100 font-medium">Tự tin bứt phá điểm số Văn 9</p>
           </div>
         </div>
         <div className="p-4 space-y-3">

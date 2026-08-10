@@ -16,7 +16,7 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
       case 'on-thi-10': return { title: 'Góc Ôn Thi Vào Lớp 10', style: 'text-orange-600 bg-orange-100' };
       case 'trac-nghiem-10': return { title: 'Phần Trắc Nghiệm Vào Lớp 10', style: 'text-emerald-600 bg-emerald-100' };
       case 'de-thi-10': return { title: 'Đề Thi Mẫu Vào Lớp 10', style: 'text-blue-600 bg-blue-100' };
-      case 'bi-kip-10': return { title: 'Bí Kíp Đạt Điểm Cao', style: 'text-purple-600 bg-purple-100' };
+      case 'bi-kip': return { title: 'Bí Kíp Đạt Điểm Cao', style: 'text-purple-600 bg-purple-100' };
       default: return { title: `Danh mục: ${currentSlug.replace(/-/g, ' ')}`, style: 'text-slate-600 bg-slate-100' };
     }
   }

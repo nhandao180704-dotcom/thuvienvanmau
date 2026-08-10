@@ -103,7 +103,7 @@ export default function PublicPracticeHub() {
                       {quiz.title}
                     </h2>
                     <span className="inline-block mt-2 text-xs font-bold px-3 py-1 bg-slate-100 text-slate-600 rounded-lg">
-                      Dành cho Lớp {quiz.grade_level}
+                      Ôn thi vào Lớp {quiz.grade_level}
                     </span>
                   </div>
                   

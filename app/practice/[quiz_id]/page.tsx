@@ -329,7 +329,7 @@ export default function QuizTakingPage() {
           <div className="xl:col-span-1">
             <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-200 sticky top-6">
               <h3 className="font-black text-xl text-slate-800 mb-8 flex items-center justify-center gap-2 uppercase tracking-wider">
-                <Trophy className="text-yellow-500 w-6 h-6"/> TOP XUẤT SẮC
+                <Trophy className="text-yellow-500 w-6 h-6"/> BẢNG XẾP HẠNG
               </h3>
               
               {leaderboard.length === 0 ? (
