@@ -134,7 +134,7 @@ export default function LibraryPage() {
                 type="submit"
                 className="absolute right-2 py-3 px-8 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white rounded-full font-bold shadow-lg hover:shadow-blue-500/50 transition-all active:scale-95"
               >
-                Khám phá
+                Tìm kiếm
               </button>
             </div>
           </form>
