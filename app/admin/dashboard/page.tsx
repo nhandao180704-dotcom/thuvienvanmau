@@ -7,10 +7,8 @@ import { supabase } from '@/lib/supabase-client'
 import AdminSidebar from '@/components/AdminSidebar'
 import AdminHeader from '@/components/AdminHeader'
 import DashboardCharts from '@/components/DashboardCharts'
-// Bổ sung thêm BrainCircuit và ArrowRight cho giao diện luyện thi
 import { Plus, Edit, Trash2, BookOpen, Eye, CheckCircle, Clock, Users, BrainCircuit, ArrowRight } from 'lucide-react'
 
-// 1. Tách toàn bộ nội dung cũ thành một component riêng tên là DashboardContent
 function DashboardContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -40,7 +38,6 @@ function DashboardContent() {
     }
   }
 
-  // --- CÁC HÀM XỬ LÝ XÓA DỮ LIỆU ---
   const handleDeleteEssay = async (id: string) => {
     if (!window.confirm('Bạn có chắc chắn muốn xóa bài văn này? Hành động này không thể hoàn tác!')) return;
     
@@ -138,7 +135,8 @@ function DashboardContent() {
               <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
                 <div className="flex justify-between items-center mb-6">
                   <h2 className="text-xl font-bold text-slate-800">Danh sách Bài Văn ({essays.length})</h2>
-                  <Link href="/admin/dashboard/new" className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium transition">
+                  {/* Đã sửa đường dẫn thêm bài văn */}
+                  <Link href="/admin/essays/new" className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium transition">
                     <Plus className="w-4 h-4" /> Thêm bài văn
                   </Link>
                 </div>
@@ -162,7 +160,8 @@ function DashboardContent() {
                           <td className="py-4 text-slate-600">{essay.grade}</td>
                           <td className="py-4 text-slate-600">{essay.genre}</td>
                           <td className="py-4 text-right space-x-4">
-                            <Link href={`/admin/edit/${essay.id}`} className="text-blue-500 hover:text-blue-700">
+                            {/* Đã sửa đường dẫn Edit Bài Văn */}
+                            <Link href={`/admin/essays/edit/${essay.id}`} className="text-blue-500 hover:text-blue-700">
                               <Edit className="w-5 h-5 inline" />
                             </Link>
                             <button onClick={() => handleDeleteEssay(essay.id)} className="text-red-500 hover:text-red-700">
@@ -188,6 +187,7 @@ function DashboardContent() {
               <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
                 <div className="flex justify-between items-center mb-6">
                   <h2 className="text-xl font-bold text-slate-800">Danh sách Đề Thi ({quizzes.length})</h2>
+                  {/* Đã sửa đường dẫn thêm đề thi */}
                   <Link href="/admin/quizzes/new" className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-medium transition shadow-sm">
                     <Plus className="w-4 h-4" /> Tạo đề trắc nghiệm
                   </Link>
@@ -217,7 +217,8 @@ function DashboardContent() {
                           <td className="py-4 text-slate-600">Lớp {quiz.grade_level}</td>
                           <td className="py-4 text-slate-600 truncate max-w-xs pr-4">{quiz.description}</td>
                           <td className="py-4 text-right space-x-4">
-                            <Link href={`/admin/edit/${quiz.id}`} className="text-blue-500 hover:text-blue-700 transition">
+                            {/* Đã sửa đường dẫn Edit Đề Thi */}
+                            <Link href={`/admin/quizzes/edit/${quiz.id}`} className="text-blue-500 hover:text-blue-700 transition">
                               <Edit className="w-5 h-5 inline" />
                             </Link>
                             <button onClick={() => handleDeleteQuiz(quiz.id)} className="text-red-500 hover:text-red-700">
@@ -239,7 +240,6 @@ function DashboardContent() {
   )
 }
 
-// 2. Component chính bọc DashboardContent trong Suspense
 export default function AdminDashboard() {
   return (
     <Suspense fallback={

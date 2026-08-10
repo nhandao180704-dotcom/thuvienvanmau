@@ -45,7 +45,7 @@ export default function EssayDetailPage() {
             .select('*')
             .eq('user_id', session.user.id)
             .eq('essay_id', id)
-            .single()
+            .maybeSingle()
             
           if (savedData) setIsSaved(true)
         }

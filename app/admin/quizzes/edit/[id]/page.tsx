@@ -10,7 +10,7 @@ import { ArrowLeft, Save, HelpCircle, Trash2, Plus, CheckCircle2 } from 'lucide-
 export default function EditQuizPage() {
   const router = useRouter()
   const params = useParams()
-  const id = params.quiz_id as string
+  const id = params.id as string
 
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')

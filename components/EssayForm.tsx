@@ -7,10 +7,10 @@ import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { useToast } from './Toast'
 import dynamic from 'next/dynamic'
-import 'react-quill/dist/quill.snow.css' // Import CSS của giao diện Editor
+import 'react-quill-new/dist/quill.snow.css' // Import CSS của giao diện Editor
 
 // Bắt buộc: Tải React-Quill linh hoạt, tắt SSR để không bị lỗi trên Next.js
-const ReactQuill = dynamic(() => import('react-quill'), { 
+const ReactQuill = dynamic(() => import('react-quill-new'), { 
   ssr: false,
   loading: () => <div className="p-4 border rounded-lg text-slate-400 bg-slate-50 animate-pulse">Đang tải công cụ soạn thảo...</div>
 })

@@ -55,7 +55,7 @@ export function useEssayDetail(essayId: string) {
           .select('*')
           .eq('id', essayId)
           .eq('status', 'published')
-          .single()
+          .maybeSingle()
 
         if (error) throw error
         setEssay(data)

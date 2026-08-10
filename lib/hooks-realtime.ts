@@ -92,7 +92,7 @@ export function useEssayDetailRealtime(essayId: string) {
           .select('*')
           .eq('id', essayId)
           .eq('status', 'published')
-          .single()
+          .maybeSingle()
 
         if (fetchError) throw fetchError
         setEssay(data)
@@ -109,10 +109,12 @@ export function useEssayDetailRealtime(essayId: string) {
               filter: `id=eq.${essayId}`,
             },
             (payload: RealtimePostgresChangesPayload<Essay>) => {
-              if (payload.new.status === 'published') {
-                setEssay(payload.new)
-              } else {
-                setEssay(null)
+              if (payload.eventType === 'UPDATE') {
+                if (payload.new.status === 'published') {
+                  setEssay(payload.new as Essay)
+                } else {
+                  setEssay(null)
+                }
               }
             }
           )
