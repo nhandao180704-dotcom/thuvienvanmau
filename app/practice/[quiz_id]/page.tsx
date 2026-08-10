@@ -17,7 +17,7 @@ export default function QuizTakingPage() {
 
   // --- THÔNG TIN HỌC SINH & TRẠNG THÁI BẮT ĐẦU ---
   const [studentInfo, setStudentInfo] = useState({ fullName: '', className: '', schoolName: '' })
-  const [isStarted, setIsStarted] = useState(false) // Chỉ true khi đã điền form và bấm Bắt đầu
+  const [isStarted, setIsStarted] = useState(false) 
 
   const [currentQuestion, setCurrentQuestion] = useState(0)
   const [answers, setAnswers] = useState<Record<number, string>>({})
@@ -38,7 +38,7 @@ export default function QuizTakingPage() {
     if (quizId) fetchQuizData()
   }, [quizId])
 
-  // --- LOGIC 1: ĐẾM NGƯỢC THỜI GIAN (Chỉ chạy khi isStarted = true) ---
+  // --- LOGIC 1: ĐẾM NGƯỢC THỜI GIAN ---
   useEffect(() => {
     if (!isStarted || loading || isSubmitted || timeLeft <= 0) return
 
@@ -56,7 +56,7 @@ export default function QuizTakingPage() {
     return () => clearInterval(timer)
   }, [isStarted, loading, isSubmitted, timeLeft])
 
-  // --- LOGIC 2: CHỐNG GIAN LẬN (Chỉ kích hoạt khi đang thi) ---
+  // --- LOGIC 2: CHỐNG GIAN LẬN ---
   useEffect(() => {
     if (!isStarted || loading || isSubmitted) return
 
@@ -120,6 +120,7 @@ export default function QuizTakingPage() {
     setReviewMarks(prev => ({ ...prev, [currentQuestion]: !prev[currentQuestion] }))
   }
 
+  // --- LOGIC 3: NỘP BÀI VÀ XỬ LÝ LỖI "CHƯA LÀM" ---
   const handleSubmit = async () => {
     if (isSubmitted || isSubmittingToDB) return
     setIsSubmittingToDB(true)
@@ -141,7 +142,7 @@ export default function QuizTakingPage() {
     try {
       const { data: { session } } = await supabase.auth.getSession()
 
-      // Lưu kết quả vào database cùng với Lớp và Trường
+      // 1. Lưu lên DB
       await supabase.from('quiz_results').insert([
         {
           quiz_id: quizId,
@@ -154,18 +155,31 @@ export default function QuizTakingPage() {
         }
       ])
 
-      // Kéo dữ liệu Bảng Xếp Hạng mới nhất
+      // 2. Kéo Bảng xếp hạng
       const { data: leaderboardData } = await supabase
         .from('quiz_results')
         .select('display_name, class_name, score, time_taken')
         .eq('quiz_id', quizId)
         .order('score', { ascending: false })
         .order('time_taken', { ascending: true })
-        .limit(20) // Lấy top 20
+        .limit(20)
 
       if (leaderboardData) {
         setLeaderboard(leaderboardData)
       }
+
+      // 3. ĐÂY LÀ ĐOẠN FIX LỖI "CHƯA LÀM" - LƯU VÀO TRÌNH DUYỆT
+      const historyString = localStorage.getItem('quiz_history')
+      const history = historyString ? JSON.parse(historyString) : {}
+      
+      history[quizId] = {
+        score: roundedScore,
+        correctAnswers: correctCount,
+        totalQuestions: questions.length,
+        completedAt: new Date().toISOString()
+      }
+      
+      localStorage.setItem('quiz_history', JSON.stringify(history))
 
     } catch (err) {
       console.error("Lỗi khi lưu kết quả:", err)
@@ -192,7 +206,7 @@ export default function QuizTakingPage() {
   if (loading) return <div className="min-h-screen flex items-center justify-center bg-slate-50"><p className="text-blue-600 font-bold text-xl animate-pulse">Đang tải đề thi...</p></div>
   if (!quiz || questions.length === 0) return <div className="min-h-screen flex items-center justify-center bg-slate-50"><p className="text-red-500 font-bold text-xl">Không tìm thấy nội dung đề thi!</p></div>
 
-  // --- MÀN HÌNH NHẬP THÔNG TIN TRƯỚC KHI THI ---
+  // --- MÀN HÌNH NHẬP THÔNG TIN ---
   if (!isStarted) {
     return (
       <div className="min-h-screen bg-[#F4F7FB] flex items-center justify-center p-4">
@@ -267,7 +281,10 @@ export default function QuizTakingPage() {
             <div className="bg-white rounded-3xl p-8 text-center shadow-sm border border-slate-200">
               <Trophy className="w-20 h-20 text-yellow-500 mx-auto mb-4" />
               <h1 className="text-3xl font-black text-slate-800 mb-2">Hoàn thành bài thi!</h1>
-              <p className="text-slate-500 font-medium mb-6">Thí sinh: <span className="text-blue-600">{studentInfo.fullName}</span> {studentInfo.className && `- ${studentInfo.className}`}</p>
+              <p className="text-slate-500 font-medium mb-6">
+                Thí sinh: <span className="text-blue-600 mr-4">{studentInfo.fullName}</span> 
+                {studentInfo.className && <>Lớp: <span className="text-blue-600">{studentInfo.className}</span></>}
+              </p>
               
               <div className="inline-block px-10 py-6 bg-slate-50 rounded-3xl border border-slate-100 mb-6">
                 <p className="text-sm text-slate-500 font-bold mb-2 uppercase tracking-wider">Điểm số của bạn</p>
@@ -308,7 +325,7 @@ export default function QuizTakingPage() {
             </div>
           </div>
 
-          {/* Cột Bảng xếp hạng (Bục vinh quang) */}
+          {/* Cột Bảng xếp hạng */}
           <div className="xl:col-span-1">
             <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-200 sticky top-6">
               <h3 className="font-black text-xl text-slate-800 mb-8 flex items-center justify-center gap-2 uppercase tracking-wider">
@@ -319,15 +336,13 @@ export default function QuizTakingPage() {
                 <p className="text-center text-slate-500 italic py-4">Đang tải bảng xếp hạng...</p>
               ) : (
                 <>
-                  {/* BỤC VINH QUANG TOP 3 */}
                   <div className="flex items-end justify-center gap-2 mb-10 mt-4 px-2">
-                    {/* Hạng 2 (Bên trái) */}
+                    {/* Hạng 2 */}
                     {top3[1] && (
                       <div className="flex flex-col items-center w-1/3 relative group">
-                        <div className="text-center mb-2 px-1">
+                        <div className="text-center mb-6 px-1">
                           <p className="text-xs font-bold text-slate-700 truncate w-full" title={top3[1].display_name}>{top3[1].display_name}</p>
-                          <p className="text-[10px] text-slate-400 truncate">{top3[1].class_name}</p>
-                          <p className="font-black text-slate-800">{top3[1].score}</p>
+                          <p className="font-black text-lg text-slate-800">{top3[1].score}</p>
                         </div>
                         <div className="w-full h-24 bg-gradient-to-t from-slate-200 to-slate-100 rounded-t-xl border-t-4 border-slate-300 relative shadow-inner flex justify-center">
                           <div className="absolute -top-6 bg-white rounded-full p-1 shadow-md border border-slate-200">
@@ -338,13 +353,12 @@ export default function QuizTakingPage() {
                       </div>
                     )}
 
-                    {/* Hạng 1 (Chính giữa) */}
+                    {/* Hạng 1 */}
                     {top3[0] && (
                       <div className="flex flex-col items-center w-1/3 relative z-10 -mx-2">
-                        <div className="text-center mb-2 px-1">
+                        <div className="text-center mb-8 px-1">
                           <p className="text-sm font-black text-yellow-600 truncate w-full" title={top3[0].display_name}>{top3[0].display_name}</p>
-                          <p className="text-[10px] text-slate-500 truncate">{top3[0].class_name}</p>
-                          <p className="font-black text-xl text-slate-800">{top3[0].score}</p>
+                          <p className="font-black text-2xl text-slate-800">{top3[0].score}</p>
                         </div>
                         <div className="w-full h-32 bg-gradient-to-t from-yellow-200 to-yellow-50 rounded-t-xl border-t-4 border-yellow-400 relative shadow-lg flex justify-center">
                           <div className="absolute -top-7 bg-white rounded-full p-1.5 shadow-md border border-yellow-200">
@@ -355,13 +369,12 @@ export default function QuizTakingPage() {
                       </div>
                     )}
 
-                    {/* Hạng 3 (Bên phải) */}
+                    {/* Hạng 3 */}
                     {top3[2] && (
                       <div className="flex flex-col items-center w-1/3 relative">
-                        <div className="text-center mb-2 px-1">
+                        <div className="text-center mb-4 px-1">
                           <p className="text-xs font-bold text-slate-700 truncate w-full" title={top3[2].display_name}>{top3[2].display_name}</p>
-                          <p className="text-[10px] text-slate-400 truncate">{top3[2].class_name}</p>
-                          <p className="font-black text-slate-800">{top3[2].score}</p>
+                          <p className="font-black text-lg text-slate-800">{top3[2].score}</p>
                         </div>
                         <div className="w-full h-20 bg-gradient-to-t from-amber-200/50 to-amber-50 rounded-t-xl border-t-4 border-amber-600/50 relative shadow-inner flex justify-center">
                           <div className="absolute -top-6 bg-white rounded-full p-1 shadow-md border border-amber-100">
@@ -373,7 +386,6 @@ export default function QuizTakingPage() {
                     )}
                   </div>
 
-                  {/* DANH SÁCH TỪ HẠNG 4 TRỞ ĐI */}
                   {restOfLeaderboard.length > 0 && (
                     <div className="space-y-3 mt-6 border-t border-slate-100 pt-6">
                       {restOfLeaderboard.map((user, idx) => (
@@ -409,13 +421,11 @@ export default function QuizTakingPage() {
     )
   }
 
-  // --- 2. GIAO DIỆN ĐANG LÀM BÀI CHÍNH ---
+  // --- 2. GIAO DIỆN ĐANG LÀM BÀI ---
   const q = questions[currentQuestion]
 
   return (
     <div className="min-h-screen bg-[#F4F7FB] flex flex-col pb-24 lg:pb-0">
-      
-      {/* HEADER */}
       <header className="bg-white border-b border-slate-200 sticky top-0 z-50">
         <div className="w-full max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -451,12 +461,9 @@ export default function QuizTakingPage() {
       </header>
 
       <main className="flex-1 w-full max-w-7xl mx-auto p-4 flex gap-6 mt-4">
-        
-        {/* CỘT TRÁI: CÂU HỎI */}
         <div className="flex-1 w-full flex flex-col">
           <div className="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-200 flex-1 relative">
             
-            {/* Checkbox "Xem lại câu này" */}
             <div className="absolute top-6 right-6 z-10">
               <button 
                 onClick={toggleReviewMark}
@@ -476,7 +483,6 @@ export default function QuizTakingPage() {
               {q?.question_text || q?.text}
             </h2>
 
-            {/* Danh sách đáp án */}
             <div className="space-y-4 mt-8">
               {['A', 'B', 'C', 'D'].map(opt => {
                 const optionText = getOptionText(q, opt)
@@ -504,7 +510,6 @@ export default function QuizTakingPage() {
           </div>
         </div>
 
-        {/* CỘT PHẢI: BẢNG CÂU HỎI */}
         <div className="hidden lg:block w-80 shrink-0">
           <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 sticky top-24">
             <h3 className="font-bold text-slate-800 mb-4 text-lg">Danh sách câu hỏi</h3>
@@ -544,10 +549,8 @@ export default function QuizTakingPage() {
         </div>
       </main>
 
-      {/* THANH ĐIỀU HƯỚNG DƯỚI CÙNG */}
       <div className="fixed bottom-0 left-0 w-full bg-white border-t border-slate-200 p-3 lg:p-4 z-40 flex justify-center items-center shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
         <div className="w-full max-w-7xl px-2 flex items-center justify-between lg:justify-center gap-4 md:gap-8">
-          
           <button 
             onClick={() => setShowQuestionList(!showQuestionList)}
             className="lg:hidden w-12 h-12 bg-[#3B5998] text-white rounded-full flex justify-center items-center shadow-md"
@@ -579,7 +582,6 @@ export default function QuizTakingPage() {
         </div>
       </div>
 
-      {/* MOBILE QUESTION LIST MODAL */}
       {showQuestionList && (
         <div className="lg:hidden fixed inset-0 z-50 bg-black/50 flex flex-col justify-end">
           <div className="bg-white rounded-t-3xl p-6 w-full max-h-[70vh] overflow-y-auto">
