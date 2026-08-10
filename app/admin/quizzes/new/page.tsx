@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase-client'
 import AdminSidebar from '@/components/AdminSidebar'
 import AdminHeader from '@/components/AdminHeader'
 import { ToastContainer, useToast } from '@/components/Toast'
-import { Plus, Trash2, ArrowLeft, Save, CheckCircle2 } from 'lucide-react'
+import { Plus, Trash2, ArrowLeft, Save, CheckCircle2, Clock } from 'lucide-react'
 
 interface QuestionInput {
   question_text: string
@@ -22,6 +22,8 @@ function QuizForm() {
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [gradeLevel, setGradeLevel] = useState('10')
+  const [timeLimit, setTimeLimit] = useState(15) // --- BỔ SUNG THỜI GIAN LÀM BÀI MẶC ĐỊNH LÀ 15P ---
+
   const [questions, setQuestions] = useState<QuestionInput[]>([
     {
       question_text: '',
@@ -91,6 +93,11 @@ function QuizForm() {
       showError('Vui lòng nhập tiêu đề đề thi!')
       return
     }
+    
+    if (timeLimit < 1) {
+      showError('Thời gian làm bài phải lớn hơn 0 phút!')
+      return
+    }
 
     for (let i = 0; i < questions.length; i++) {
       if (!questions[i].question_text.trim()) {
@@ -101,10 +108,10 @@ function QuizForm() {
 
     setLoading(true)
     try {
-      // 1. Tạo mới đề thi (quizzes)
+      // 1. Tạo mới đề thi (quizzes) - Đã thêm time_limit
       const { data: quizData, error: quizErr } = await supabase
         .from('quizzes')
-        .insert([{ title, description, grade_level: gradeLevel }])
+        .insert([{ title, description, grade_level: gradeLevel, time_limit: timeLimit }])
         .select()
         .single()
 
@@ -174,7 +181,8 @@ function QuizForm() {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            {/* --- CẬP NHẬT GRID THÀNH 3 CỘT ĐỂ THÊM THỜI GIAN LÀM BÀI --- */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">Dành cho khối lớp</label>
                 <select
@@ -189,6 +197,21 @@ function QuizForm() {
                   <option value="10">Ôn thi vào 10</option>
                 </select>
               </div>
+              
+              <div>
+                <label className="flex items-center gap-1.5 text-sm font-medium text-slate-700 mb-1">
+                  <Clock className="w-4 h-4" /> Thời gian làm bài (Phút)
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  value={timeLimit}
+                  onChange={e => setTimeLimit(parseInt(e.target.value) || 0)}
+                  className="w-full px-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                  required
+                />
+              </div>
+
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">Mô tả ngắn</label>
                 <input

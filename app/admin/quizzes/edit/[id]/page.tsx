@@ -5,7 +5,7 @@ import { useRouter, useParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase-client'
 import AdminSidebar from '@/components/AdminSidebar'
 import AdminHeader from '@/components/AdminHeader'
-import { ArrowLeft, Save, HelpCircle, Trash2, Plus, CheckCircle2 } from 'lucide-react'
+import { ArrowLeft, Save, HelpCircle, Trash2, Plus, CheckCircle2, Clock } from 'lucide-react'
 
 export default function EditQuizPage() {
   const router = useRouter()
@@ -15,6 +15,7 @@ export default function EditQuizPage() {
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [gradeLevel, setGradeLevel] = useState('10')
+  const [timeLimit, setTimeLimit] = useState(15) // --- BỔ SUNG STATE THỜI GIAN LÀM BÀI ---
   const [questions, setQuestions] = useState<any[]>([])
   
   const [loading, setLoading] = useState(true)
@@ -32,6 +33,7 @@ export default function EditQuizPage() {
         setTitle(quizData.title || '')
         setDescription(quizData.description || '')
         setGradeLevel(quizData.grade_level || '10')
+        setTimeLimit(quizData.time_limit || 15) // Lấy thời gian từ DB, mặc định 15
       }
 
       const { data: qData, error: qError } = await supabase
@@ -111,12 +113,18 @@ export default function EditQuizPage() {
   // --- LƯU TOÀN BỘ THAY ĐỔI ---
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    if (timeLimit < 1) {
+      alert('Thời gian làm bài phải lớn hơn 0 phút!')
+      return
+    }
+
     setSaving(true)
     try {
-      // 1. Cập nhật bảng quizzes
+      // 1. Cập nhật bảng quizzes (đã thêm time_limit)
       const { error: quizError } = await supabase
         .from('quizzes')
-        .update({ title, description, grade_level: gradeLevel })
+        .update({ title, description, grade_level: gradeLevel, time_limit: timeLimit })
         .eq('id', id)
 
       if (quizError) throw quizError
@@ -124,7 +132,7 @@ export default function EditQuizPage() {
       // 2. Cập nhật/Thêm mới từng câu hỏi
       for (const q of questions) {
         if (q.isNew) {
-          // THÊM MỚI (INSERT) - Đã bổ sung correct_answer
+          // THÊM MỚI (INSERT) 
           const { data: newQ, error: newQErr } = await supabase
             .from('questions')
             .insert({ 
@@ -145,7 +153,7 @@ export default function EditQuizPage() {
             await supabase.from('options').insert(optionsToInsert)
           }
         } else {
-          // CẬP NHẬT (UPDATE) câu hỏi cũ - Đã bổ sung correct_answer
+          // CẬP NHẬT (UPDATE) câu hỏi cũ 
           await supabase
             .from('questions')
             .update({ 
@@ -201,19 +209,38 @@ export default function EditQuizPage() {
                 <label className="block text-sm font-medium text-slate-700 mb-1">Tên đề thi</label>
                 <input type="text" value={title} onChange={e => setTitle(e.target.value)} className="w-full px-4 py-2 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-blue-500" required />
               </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Dành cho (Khối lớp)</label>
-                <select value={gradeLevel} onChange={e => setGradeLevel(e.target.value)} className="w-full px-4 py-2 border border-slate-300 rounded-xl outline-none">
-                  <option value="6">Lớp 6</option>
-                  <option value="7">Lớp 7</option>
-                  <option value="8">Lớp 8</option>
-                  <option value="9">Lớp 9</option>
-                  <option value="10">Lớp 10</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Mô tả đề thi</label>
-                <textarea rows={3} value={description} onChange={e => setDescription(e.target.value)} className="w-full px-4 py-2 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-blue-500" />
+              
+              {/* --- ĐÃ SỬA THÀNH 3 CỘT VÀ THÊM THỜI GIAN LÀM BÀI --- */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Dành cho (Khối lớp)</label>
+                  <select value={gradeLevel} onChange={e => setGradeLevel(e.target.value)} className="w-full px-4 py-2 border border-slate-300 rounded-xl outline-none">
+                    <option value="6">Lớp 6</option>
+                    <option value="7">Lớp 7</option>
+                    <option value="8">Lớp 8</option>
+                    <option value="9">Lớp 9</option>
+                    <option value="10">Ôn thi vào 10</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label className="flex items-center gap-1.5 text-sm font-medium text-slate-700 mb-1">
+                    <Clock className="w-4 h-4" /> Thời gian làm bài (Phút)
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={timeLimit}
+                    onChange={e => setTimeLimit(parseInt(e.target.value) || 0)}
+                    className="w-full px-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Mô tả đề thi</label>
+                  <input type="text" value={description} onChange={e => setDescription(e.target.value)} placeholder="Mô tả ngắn..." className="w-full px-4 py-2 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-blue-500" />
+                </div>
               </div>
             </div>
 
