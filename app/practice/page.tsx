@@ -3,20 +3,18 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase-client'
-import { BrainCircuit, ArrowRight, BookOpen, CheckCircle2, Clock, CalendarDays, RotateCcw, Search, Filter } from 'lucide-react'
+import { BrainCircuit, ArrowRight, BookOpen, CheckCircle2, Clock, CalendarDays, RotateCcw, Search, Filter, Eye, History } from 'lucide-react'
 
 export default function PublicPracticeHub() {
   const [quizzes, setQuizzes] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [quizHistory, setQuizHistory] = useState<Record<string, any>>({})
 
-  // --- THÊM STATE CHO TÌM KIẾM VÀ BỘ LỌC ---
   const [searchTerm, setSearchText] = useState('')
   const [selectedGrade, setSelectedGrade] = useState('ALL')
 
   useEffect(() => {
     fetchQuizzes()
-    // Lấy lịch sử làm bài từ bộ nhớ trình duyệt (LocalStorage)
     const historyString = localStorage.getItem('quiz_history')
     if (historyString) {
       setQuizHistory(JSON.parse(historyString))
@@ -38,19 +36,15 @@ export default function PublicPracticeHub() {
     }
   }
 
-  // Hàm định dạng ngày giờ VN
   const formatDateTime = (isoString: string) => {
     const date = new Date(isoString)
     return date.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) + ' - ' + date.toLocaleDateString('vi-VN')
   }
 
-  // --- LOGIC LỌC ĐỀ THI ---
   const filteredQuizzes = quizzes.filter((quiz) => {
     const matchesSearch = quiz.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
                           (quiz.description && quiz.description.toLowerCase().includes(searchTerm.toLowerCase()))
-    
     const matchesGrade = selectedGrade === 'ALL' || String(quiz.grade_level) === String(selectedGrade)
-
     return matchesSearch && matchesGrade
   })
 
@@ -60,11 +54,19 @@ export default function PublicPracticeHub() {
         <div className="w-full max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 text-xl font-black text-blue-600">
             <BookOpen className="w-6 h-6" />
-            Thư Viện Văn Mẫu
+            <span className="hidden sm:inline">Thư Viện Văn Mẫu</span>
           </Link>
-          <Link href="/" className="text-sm font-medium text-slate-600 hover:text-blue-600 bg-slate-100 px-4 py-2 rounded-full transition">
-            Quay lại trang chủ
-          </Link>
+          
+          {/* --- BỔ SUNG NÚT LỊCH SỬ LÀM BÀI Ở ĐÂY --- */}
+          <div className="flex items-center gap-2 md:gap-3">
+            <Link href="/practice/history" className="text-sm font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 px-4 py-2.5 rounded-full transition flex items-center gap-2 shadow-sm">
+              <History className="w-4 h-4" /> <span className="hidden sm:inline">Lịch sử làm bài</span>
+            </Link>
+            <Link href="/" className="text-sm font-medium text-slate-600 hover:text-blue-600 bg-slate-100 hover:bg-slate-200 px-4 py-2.5 rounded-full transition">
+              <span className="hidden sm:inline">Trang chủ</span>
+              <span className="sm:hidden">Thoát</span>
+            </Link>
+          </div>
         </div>
       </header>
 
@@ -78,7 +80,6 @@ export default function PublicPracticeHub() {
           </p>
         </div>
 
-        {/* --- GIAO DIỆN THANH TÌM KIẾM & BỘ LỌC --- */}
         <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm mb-10 flex flex-col sm:flex-row gap-4 justify-between items-center">
           <div className="relative w-full sm:w-96">
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
@@ -119,7 +120,6 @@ export default function PublicPracticeHub() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {/* --- ĐỔI quizzes.map THÀNH filteredQuizzes.map --- */}
             {filteredQuizzes.map((quiz) => {
               const history = quizHistory[quiz.id] 
               const isCompleted = !!history
@@ -147,7 +147,6 @@ export default function PublicPracticeHub() {
                     <h2 className={`text-xl font-bold line-clamp-2 leading-tight transition-colors ${isCompleted ? 'text-slate-800' : 'text-slate-800 group-hover:text-blue-600'}`}>
                       {quiz.title}
                     </h2>
-                    {/* --- BỔ SUNG THỜI GIAN LÀM BÀI --- */}
                     <div className="flex gap-2 mt-2">
                       <span className="inline-block text-xs font-bold px-3 py-1 bg-slate-100 text-slate-600 rounded-lg">
                         Lớp {quiz.grade_level || 'Chung'}
@@ -179,20 +178,31 @@ export default function PublicPracticeHub() {
                     </div>
                   )}
 
-                  <Link 
-                    href={`/practice/${quiz.id}`} 
-                    className={`w-full py-3.5 rounded-xl font-bold flex justify-center items-center gap-2 transition-all shadow-sm ${
-                      isCompleted 
-                        ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200' 
-                        : 'bg-slate-900 text-white hover:bg-blue-600 group-hover:shadow-blue-200'
-                    }`}
-                  >
+                  <div className="flex gap-3">
                     {isCompleted ? (
-                      <>Làm lại bài <RotateCcw className="w-4 h-4" /></>
+                      <>
+                        <Link 
+                          href={`/practice/${quiz.id}/review`} 
+                          className="w-1/2 py-3.5 rounded-xl font-bold flex justify-center items-center gap-2 transition-all shadow-sm bg-blue-50 border border-blue-200 text-blue-700 hover:bg-blue-100"
+                        >
+                          Xem lại <Eye className="w-4 h-4" />
+                        </Link>
+                        <Link 
+                          href={`/practice/${quiz.id}`} 
+                          className="w-1/2 py-3.5 rounded-xl font-bold flex justify-center items-center gap-2 transition-all shadow-sm bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
+                        >
+                          Làm lại <RotateCcw className="w-4 h-4" />
+                        </Link>
+                      </>
                     ) : (
-                      <>Vào làm bài <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" /></>
+                      <Link 
+                        href={`/practice/${quiz.id}`} 
+                        className="w-full py-3.5 rounded-xl font-bold flex justify-center items-center gap-2 transition-all shadow-sm bg-slate-900 text-white hover:bg-blue-600 group-hover:shadow-blue-200"
+                      >
+                        Vào làm bài ngay <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                      </Link>
                     )}
-                  </Link>
+                  </div>
                 </div>
               )
             })}
