@@ -83,6 +83,8 @@ export default function PublicPracticeHub() {
           <div className="relative w-full sm:w-96">
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
             <input 
+              id="search-quiz"
+              name="search-quiz"
               type="text" 
               placeholder="Tìm kiếm đề thi..." 
               value={searchTerm}
@@ -94,6 +96,8 @@ export default function PublicPracticeHub() {
           <div className="flex items-center gap-2 w-full sm:w-auto">
             <Filter className="text-slate-400 w-5 h-5" />
             <select 
+              id="grade-filter"
+              name="grade-filter"
               value={selectedGrade}
               onChange={(e) => setSelectedGrade(e.target.value)}
               className="w-full sm:w-auto px-4 py-2.5 rounded-xl border border-slate-200 outline-none focus:border-blue-500 font-bold text-sm text-slate-700 bg-white transition cursor-pointer"
@@ -177,7 +181,6 @@ export default function PublicPracticeHub() {
                     </div>
                   )}
 
-                  {/* THAY ĐỔI LẠI THÀNH NÚT RỘNG FULL TẠI ĐÂY */}
                   <div className="flex gap-3 mt-auto">
                     {isCompleted ? (
                       <Link 
@@ -191,7 +194,7 @@ export default function PublicPracticeHub() {
                         href={`/practice/${quiz.id}`} 
                         className="w-full py-3.5 rounded-xl font-bold flex justify-center items-center gap-2 transition-all shadow-sm bg-slate-900 text-white hover:bg-blue-600 group-hover:shadow-blue-200"
                       >
-                        Vào làm bài <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                        Vào làm bài ngay <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                       </Link>
                     )}
                   </div>
