@@ -8,7 +8,7 @@ export default function VisitorCounter() {
   const [onlineCount, setOnlineCount] = useState(1)
 
   useEffect(() => {
-    const roomOne = supabase.channel('online-users', {
+    const channel = supabase.channel('online-users', {
       config: {
         presence: {
           key: Math.random().toString(),
@@ -16,21 +16,21 @@ export default function VisitorCounter() {
       },
     })
 
-    roomOne
+    // Đăng ký lắng nghe sự kiện TRƯỚC khi gọi subscribe
+    channel
+      .on('presence', { event: 'sync' }, () => {
+        const state = channel.presenceState()
+        const totalOnline = Object.keys(state).length
+        setOnlineCount(totalOnline > 0 ? totalOnline : 1)
+      })
       .subscribe(async (status) => {
         if (status === 'SUBSCRIBED') {
-          await roomOne.track({ online_at: new Date().toISOString() })
+          await channel.track({ online_at: new Date().toISOString() })
         }
       })
 
-    roomOne.on('presence', { event: 'sync' }, () => {
-      const state = roomOne.presenceState()
-      const totalOnline = Object.keys(state).length
-      setOnlineCount(totalOnline > 0 ? totalOnline : 1)
-    })
-
     return () => {
-      supabase.removeChannel(roomOne)
+      supabase.removeChannel(channel)
     }
   }, [])
 
