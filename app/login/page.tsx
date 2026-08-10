@@ -44,6 +44,21 @@ export default function LoginPage() {
     }
   }
 
+  // Hàm xử lý đăng nhập bằng Google
+  const handleGoogleLogin = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/`,
+        },
+      })
+      if (error) throw error
+    } catch (error: any) {
+      setMessage('Lỗi đăng nhập Google: ' + error.message)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-600 via-indigo-700 to-purple-800 flex items-center justify-center p-4">
       {/* Hiệu ứng Vòng tròn trang trí */}
@@ -101,6 +116,23 @@ export default function LoginPage() {
             {isLoading ? <Loader2 className="animate-spin" /> : (isSignUp ? 'Đăng ký ngay' : 'Đăng nhập')}
           </button>
         </form>
+
+        {/* Đường phân cách */}
+        <div className="flex items-center my-6">
+          <div className="flex-1 border-t border-white/10"></div>
+          <span className="px-3 text-white/50 text-sm font-medium">hoặc</span>
+          <div className="flex-1 border-t border-white/10"></div>
+        </div>
+
+        {/* Nút Đăng nhập bằng Google */}
+        <button 
+          type="button" 
+          onClick={handleGoogleLogin}
+          className="w-full flex items-center justify-center gap-3 bg-white text-slate-700 font-bold py-3.5 px-4 rounded-2xl hover:bg-slate-50 transition-colors shadow-sm border border-slate-200"
+        >
+          <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" className="w-5 h-5" />
+          Đăng nhập bằng Google
+        </button>
 
         <div className="mt-6 text-center text-white/60">
           {isSignUp ? 'Đã có tài khoản?' : 'Chưa có tài khoản?'}
