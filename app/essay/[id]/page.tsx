@@ -17,22 +17,39 @@ export default function EssayDetailPage() {
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null)
 
   useEffect(() => {
-    const fetchEssay = async () => {
+    const fetchEssayAndStatus = async () => {
       try {
         setLoading(true)
-        const { data, error } = await supabase
+        
+        // 1. Tải dữ liệu bài viết
+        const { data: essayData, error: essayError } = await supabase
           .from('essays')
           .select('*')
           .eq('id', id)
           .single()
 
-        if (error) throw error
-        setEssay(data)
+        if (essayError) throw essayError
+        setEssay(essayData)
 
+        // 2. Tăng lượt xem
         await supabase
           .from('essays')
-          .update({ views: ((data as any)?.views || 0) + 1 })
+          .update({ views: ((essayData as any)?.views || 0) + 1 })
           .eq('id', id)
+
+        // 3. Kiểm tra xem user đã lưu bài này chưa (nếu đã đăng nhập)
+        const { data: { session } } = await supabase.auth.getSession()
+        if (session) {
+          const { data: savedData } = await supabase
+            .from('saved_essays')
+            .select('*')
+            .eq('user_id', session.user.id)
+            .eq('essay_id', id)
+            .single()
+            
+          if (savedData) setIsSaved(true)
+        }
+
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to fetch essay')
       } finally {
@@ -40,29 +57,56 @@ export default function EssayDetailPage() {
       }
     }
 
-    if (id) fetchEssay()
+    if (id) fetchEssayAndStatus()
   }, [id])
 
-  useEffect(() => {
+  // Hàm xử lý lưu bài viết vào database thật (Supabase)
+  const handleSaveToggle = async () => {
     if (!id) return
-    const savedList = JSON.parse(localStorage.getItem('saved_essays_local') || '[]')
-    setIsSaved(savedList.includes(id))
-  }, [id])
-
-  const handleSaveToggle = () => {
-    if (!id) return
-    let savedList = JSON.parse(localStorage.getItem('saved_essays_local') || '[]')
     
-    if (isSaved) {
-      savedList = savedList.filter((item: string) => item !== id)
-      setIsSaved(false)
-      alert('Đã xóa bài viết khỏi thư viện cá nhân!')
-    } else {
-      savedList.push(id)
-      setIsSaved(true)
-      alert('Đã lưu bài viết vào thư viện cá nhân thành công!')
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) {
+      alert('Bạn cần đăng nhập để lưu bài viết nhé!')
+      return
     }
-    localStorage.setItem('saved_essays_local', JSON.stringify(savedList))
+
+    try {
+      if (isSaved) {
+        // Xóa khỏi danh sách đã lưu
+        await supabase
+          .from('saved_essays')
+          .delete()
+          .eq('user_id', session.user.id)
+          .eq('essay_id', id)
+          
+        setIsSaved(false)
+        alert('Đã xóa bài viết khỏi thư viện cá nhân!')
+      } else {
+        // Thêm vào danh sách đã lưu
+        const { error } = await supabase
+          .from('saved_essays')
+          .insert([{ user_id: session.user.id, essay_id: id }])
+          
+        if (error && error.code === '23505') {
+          alert('Bạn đã lưu bài này rồi!')
+        } else if (!error) {
+          setIsSaved(true)
+          alert('Đã lưu bài viết vào thư viện cá nhân thành công! 🎉')
+        } else {
+          throw error
+        }
+      }
+    } catch (err) {
+      console.error('Lỗi khi lưu bài:', err)
+      alert('Có lỗi xảy ra, không thể xử lý yêu cầu.')
+    }
+  }
+
+  // Tiện ích: Lọc bỏ thẻ HTML (Rich Text) để Copy hoặc Đọc âm thanh không bị dính code <p>, <br>
+  const stripHtml = (html: string) => {
+    const tmp = document.createElement("DIV")
+    tmp.innerHTML = html
+    return tmp.textContent || tmp.innerText || ""
   }
 
   const handleSpeak = () => {
@@ -72,7 +116,10 @@ export default function EssayDetailPage() {
       setIsSpeaking(false)
       return
     }
-    const utterance = new SpeechSynthesisUtterance(essay.content || essay.title)
+    
+    // Đọc phần nội dung đã được làm sạch thẻ HTML
+    const cleanContent = stripHtml(essay.content || essay.title)
+    const utterance = new SpeechSynthesisUtterance(cleanContent)
     utterance.lang = 'vi-VN'
     utterance.rate = 0.95
     utterance.pitch = 1
@@ -86,7 +133,8 @@ export default function EssayDetailPage() {
   const handleCopy = async () => {
     if (!essay) return
     try {
-      await navigator.clipboard.writeText(essay.content || '')
+      // Copy nội dung đã làm sạch thẻ HTML
+      await navigator.clipboard.writeText(stripHtml(essay.content || ''))
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     } catch (err) {
@@ -154,7 +202,7 @@ export default function EssayDetailPage() {
 
             <button
               onClick={handleSaveToggle}
-              className={`flex items-center gap-2 px-3 sm:px-4 py-2 rounded-full border text-sm font-semibold shadow-sm transition-all ${
+              className={`flex items-center gap-2 px-3 sm:px-4 py-2 rounded-full border text-sm font-semibold shadow-sm transition-all z-10 ${
                 isSaved ? 'bg-orange-50 border-orange-200 text-orange-600' : 'bg-white border-slate-200 text-slate-700 hover:border-slate-300'
               }`}
             >
@@ -220,10 +268,11 @@ export default function EssayDetailPage() {
 
         <article className="animate-in fade-in duration-700">
           <div className="bg-white rounded-[2.5rem] p-8 md:p-12 shadow-sm border border-slate-200">
-            <div className="prose prose-lg md:prose-xl max-w-none text-slate-700 leading-[2.2] whitespace-pre-wrap font-serif
-                            first-letter:text-6xl first-letter:font-bold first-letter:text-blue-600 first-letter:mr-3 first-letter:float-left">
-              {essay.content || 'Nội dung bài viết đang được cập nhật...'}
-            </div>
+            {/* Sử dụng dangerouslySetInnerHTML để render các thẻ HTML từ React-Quill */}
+            <div 
+              className="prose prose-lg md:prose-xl max-w-none text-slate-700 leading-[2.2] font-serif"
+              dangerouslySetInnerHTML={{ __html: essay.content || '<p>Nội dung bài viết đang được cập nhật...</p>' }}
+            />
           </div>
         </article>
       </main>

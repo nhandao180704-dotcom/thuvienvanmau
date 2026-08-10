@@ -6,6 +6,14 @@ import { supabase, type Essay } from '@/lib/supabase-client'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { useToast } from './Toast'
+import dynamic from 'next/dynamic'
+import 'react-quill/dist/quill.snow.css' // Import CSS của giao diện Editor
+
+// Bắt buộc: Tải React-Quill linh hoạt, tắt SSR để không bị lỗi trên Next.js
+const ReactQuill = dynamic(() => import('react-quill'), { 
+  ssr: false,
+  loading: () => <div className="p-4 border rounded-lg text-slate-400 bg-slate-50 animate-pulse">Đang tải công cụ soạn thảo...</div>
+})
 
 interface EssayFormProps {
   essayId?: string
@@ -18,6 +26,18 @@ const CATEGORIES = [
   { value: 'văn_nghị_luận', label: 'Văn nghị luận' },
   { value: 'phân_tích_tác_phẩm', label: 'Phân tích tác phẩm' },
 ]
+
+// Cấu hình các nút công cụ cho Editor
+const quillModules = {
+  toolbar: [
+    [{ 'header': [1, 2, 3, false] }],
+    ['bold', 'italic', 'underline', 'strike'], // Chữ đậm, nghiêng, gạch dưới
+    [{ 'list': 'ordered'}, { 'list': 'bullet' }], // Danh sách
+    [{ 'color': [] }, { 'background': [] }], // Màu chữ, màu nền
+    ['link', 'image'], // Chèn link, chèn ảnh
+    ['clean'] // Xóa định dạng
+  ],
+}
 
 export default function EssayForm({ essayId }: EssayFormProps) {
   const router = useRouter()
@@ -81,22 +101,25 @@ export default function EssayForm({ essayId }: EssayFormProps) {
     setSubmitting(true)
 
     try {
-      // Validate required fields
+      // Validate required fields (loại bỏ các thẻ HTML rỗng của Quill để check thật)
+      const cleanContent = formData.content.replace(/<[^>]*>?/gm, '').trim()
+      
       if (!formData.title.trim()) throw new Error('Tiêu đề không được bỏ trống')
       if (!formData.author.trim()) throw new Error('Tác giả không được bỏ trống')
-      if (!formData.content.trim()) throw new Error('Nội dung không được bỏ trống')
+      if (!cleanContent) throw new Error('Nội dung không được bỏ trống')
 
       const essayData = {
         title: formData.title.trim(),
         class_level: formData.class_level,
         category: formData.category,
         author: formData.author.trim(),
-        content: formData.content.trim(),
+        content: formData.content, // Giữ nguyên thẻ HTML
         outline_intro: formData.outline_intro.trim() || null,
         outline_body: formData.outline_body.trim() || null,
         outline_conclusion: formData.outline_conclusion.trim() || null,
         status: formData.status,
-        views: 0,
+        // Chỉ set views = 0 nếu là tạo mới
+        ...(essayId ? {} : { views: 0 })
       }
 
       if (essayId) {
@@ -227,23 +250,25 @@ export default function EssayForm({ essayId }: EssayFormProps) {
             />
           </div>
 
-          {/* Content */}
+          {/* Content (Thay bằng React-Quill) */}
           <div>
             <label className="block text-sm font-medium text-foreground mb-2">
               Nội dung <span className="text-red-500">*</span>
             </label>
-            <textarea
-              value={formData.content}
-              onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-              className="w-full px-4 py-2 rounded-lg border border-border focus:outline-none focus:ring-2 focus:ring-primary font-mono text-sm"
-              placeholder="Nhập nội dung bài văn"
-              rows={12}
-              required
-            />
+            <div className="bg-white rounded-lg">
+              <ReactQuill 
+                theme="snow" 
+                value={formData.content} 
+                onChange={(content) => setFormData({ ...formData, content })} 
+                modules={quillModules}
+                className="h-[400px] mb-12" // Giữ chiều cao và thêm margin dưới để tránh che mất thanh công cụ
+                placeholder="Viết nội dung bài văn mẫu tại đây..."
+              />
+            </div>
           </div>
 
           {/* Outline */}
-          <div className="space-y-4">
+          <div className="space-y-4 pt-4 border-t border-slate-100">
             <h3 className="text-lg font-semibold text-foreground">Dàn ý (Tùy chọn)</h3>
 
             <div>
@@ -292,18 +317,18 @@ export default function EssayForm({ essayId }: EssayFormProps) {
           </div>
 
           {/* Submit */}
-          <div className="flex gap-4 pt-6">
+          <div className="flex gap-4 pt-6 pb-20">
             <button
               type="submit"
               disabled={submitting}
-              className="flex-1 px-6 py-3 rounded-lg bg-primary text-white font-medium hover:bg-primary/90 disabled:bg-primary/60 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+              className="flex-1 px-6 py-3 rounded-lg bg-primary text-white font-medium hover:bg-primary/90 disabled:bg-primary/60 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2 shadow-sm"
             >
               {submitting && <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>}
-              {submitting ? 'Đang lưu...' : essayId ? 'Cập nhật' : 'Tạo bài'}
+              {submitting ? 'Đang lưu...' : essayId ? 'Cập nhật' : 'Xuất bản bài viết'}
             </button>
             <Link
               href="/admin/dashboard"
-              className="flex-1 px-6 py-3 rounded-lg border border-border text-foreground font-medium hover:bg-secondary transition-colors text-center"
+              className="flex-1 px-6 py-3 rounded-lg border border-border text-foreground font-medium hover:bg-slate-50 transition-colors text-center"
             >
               Hủy
             </Link>

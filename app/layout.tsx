@@ -5,8 +5,15 @@ import { AuthProvider } from '@/lib/auth-context'
 import { ToastContainer } from '@/components/Toast'
 import './globals.css'
 
-const geistSans = Geist({ subsets: ['latin'] })
-const geistMono = Geist_Mono({ subsets: ['latin'] })
+const geistSans = Geist({ 
+  subsets: ['latin'],
+  variable: '--font-geist-sans',
+})
+
+const geistMono = Geist_Mono({ 
+  subsets: ['latin'],
+  variable: '--font-geist-mono',
+})
 
 export const metadata: Metadata = {
   title: 'Thư Viện Văn Mẫu THCS - Kho Bài Văn Lớp 6, 7, 8, 9',
@@ -14,15 +21,15 @@ export const metadata: Metadata = {
   generator: 'v0.app',
   keywords: 'bài văn THCS, văn mẫu, lớp 6, lớp 7, lớp 8, lớp 9, văn nghị luận, văn tự sự, văn biểu cảm',
   
-  // --- BẮT ĐẦU PHẦN THÊM MỚI CHO PWA ---
+  // --- CẤU HÌNH PWA (Progressive Web App) ---
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
     title: 'Văn Mẫu',
   },
-  // --- KẾT THÚC PHẦN THÊM MỚI ---
-
+  
+  // --- CẤU HÌNH ICON ---
   icons: {
     icon: [
       {
@@ -47,7 +54,7 @@ export const viewport: Viewport = {
   themeColor: '#0066CC',
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 1,
+  maximumScale: 5, // Đổi thành 5 để người dùng có thể zoom to chữ khi đọc trên điện thoại
   userScalable: true,
 }
 
@@ -62,7 +69,11 @@ export default function RootLayout({
         <AuthProvider>
           {children}
         </AuthProvider>
+        
+        {/* Hiển thị thông báo (Thêm vào danh sách, Lỗi đăng nhập,...) */}
         <ToastContainer />
+        
+        {/* Chỉ chạy theo dõi phân tích khi đã đưa lên mạng */}
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
     </html>
