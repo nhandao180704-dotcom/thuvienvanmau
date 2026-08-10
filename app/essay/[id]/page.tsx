@@ -109,6 +109,7 @@ export default function EssayDetailPage() {
     return tmp.textContent || tmp.innerText || ""
   }
 
+  // ĐÃ CẬP NHẬT: Tối ưu chọn giọng Tiếng Việt chuẩn và chỉnh tốc độ đọc truyền cảm hơn
   const handleSpeak = () => {
     if (!essay) return
     if (isSpeaking) {
@@ -117,23 +118,35 @@ export default function EssayDetailPage() {
       return
     }
     
-    // Đọc phần nội dung đã được làm sạch thẻ HTML
-    const cleanContent = stripHtml(essay.content || essay.title)
-    const utterance = new SpeechSynthesisUtterance(cleanContent)
-    utterance.lang = 'vi-VN'
-    utterance.rate = 0.95
-    utterance.pitch = 1
-    utterance.onend = () => setIsSpeaking(false)
-    utterance.onerror = () => setIsSpeaking(false)
-    utteranceRef.current = utterance
-    window.speechSynthesis.speak(utterance)
-    setIsSpeaking(true)
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel()
+
+      const cleanContent = stripHtml(essay.content || essay.title)
+      const utterance = new SpeechSynthesisUtterance(cleanContent)
+      
+      // Lọc ưu tiên giọng đọc Tiếng Việt có sẵn trong trình duyệt/thiết bị
+      const voices = window.speechSynthesis.getVoices()
+      const viVoice = voices.find(v => v.lang === 'vi-VN' || v.lang.toLowerCase().includes('vi'))
+      if (viVoice) {
+        utterance.voice = viVoice
+      }
+
+      utterance.lang = 'vi-VN'
+      utterance.rate = 0.9    // Giảm tốc độ đọc chậm rãi hơn để nghe văn hay và rõ ràng hơn
+      utterance.pitch = 1.0   // Cao độ tự nhiên chuẩn
+
+      utterance.onend = () => setIsSpeaking(false)
+      utterance.onerror = () => setIsSpeaking(false)
+      
+      utteranceRef.current = utterance
+      window.speechSynthesis.speak(utterance)
+      setIsSpeaking(true)
+    }
   }
 
   const handleCopy = async () => {
     if (!essay) return
     try {
-      // Copy nội dung đã làm sạch thẻ HTML
       await navigator.clipboard.writeText(stripHtml(essay.content || ''))
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
@@ -268,7 +281,6 @@ export default function EssayDetailPage() {
 
         <article className="animate-in fade-in duration-700">
           <div className="bg-white rounded-[2.5rem] p-8 md:p-12 shadow-sm border border-slate-200">
-            {/* Sử dụng dangerouslySetInnerHTML để render các thẻ HTML từ React-Quill */}
             <div 
               className="prose prose-lg md:prose-xl max-w-none text-slate-700 leading-[2.2] font-serif"
               dangerouslySetInnerHTML={{ __html: essay.content || '<p>Nội dung bài viết đang được cập nhật...</p>' }}
