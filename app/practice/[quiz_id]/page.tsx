@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase-client'
-import { Clock, ArrowLeft, CheckCircle, XCircle, Trophy, ShieldAlert, Edit, Menu, Flag, CheckSquare, Square } from 'lucide-react'
+import { Clock, ArrowLeft, CheckCircle, XCircle, Trophy, ShieldAlert, Edit, Menu, CheckSquare, Square, Medal, User, GraduationCap, School } from 'lucide-react'
 
 export default function QuizTakingPage() {
   const params = useParams()
@@ -14,6 +14,10 @@ export default function QuizTakingPage() {
   const [quiz, setQuiz] = useState<any>(null)
   const [questions, setQuestions] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+
+  // --- THÔNG TIN HỌC SINH & TRẠNG THÁI BẮT ĐẦU ---
+  const [studentInfo, setStudentInfo] = useState({ fullName: '', className: '', schoolName: '' })
+  const [isStarted, setIsStarted] = useState(false) // Chỉ true khi đã điền form và bấm Bắt đầu
 
   const [currentQuestion, setCurrentQuestion] = useState(0)
   const [answers, setAnswers] = useState<Record<number, string>>({})
@@ -27,7 +31,6 @@ export default function QuizTakingPage() {
   const [forceSubmit, setForceSubmit] = useState(false)
   const [showQuestionList, setShowQuestionList] = useState(false)
 
-  // Lưu trữ dữ liệu bảng xếp hạng thật từ DB
   const [leaderboard, setLeaderboard] = useState<any[]>([])
   const [isSubmittingToDB, setIsSubmittingToDB] = useState(false)
 
@@ -35,9 +38,9 @@ export default function QuizTakingPage() {
     if (quizId) fetchQuizData()
   }, [quizId])
 
-  // --- LOGIC 1: ĐẾM NGƯỢC THỜI GIAN ---
+  // --- LOGIC 1: ĐẾM NGƯỢC THỜI GIAN (Chỉ chạy khi isStarted = true) ---
   useEffect(() => {
-    if (loading || isSubmitted || timeLeft <= 0) return
+    if (!isStarted || loading || isSubmitted || timeLeft <= 0) return
 
     const timer = setInterval(() => {
       setTimeLeft((prev) => {
@@ -51,11 +54,11 @@ export default function QuizTakingPage() {
     }, 1000)
 
     return () => clearInterval(timer)
-  }, [loading, isSubmitted, timeLeft])
+  }, [isStarted, loading, isSubmitted, timeLeft])
 
-  // --- LOGIC 2: CHỐNG GIAN LẬN (ANTI-CHEAT) ---
+  // --- LOGIC 2: CHỐNG GIAN LẬN (Chỉ kích hoạt khi đang thi) ---
   useEffect(() => {
-    if (loading || isSubmitted) return
+    if (!isStarted || loading || isSubmitted) return
 
     const handleVisibilityChange = () => {
       if (document.hidden) {
@@ -74,7 +77,7 @@ export default function QuizTakingPage() {
 
     document.addEventListener("visibilitychange", handleVisibilityChange)
     return () => document.removeEventListener("visibilitychange", handleVisibilityChange)
-  }, [loading, isSubmitted])
+  }, [isStarted, loading, isSubmitted])
 
   useEffect(() => {
     if (forceSubmit && !isSubmitted) handleSubmit()
@@ -99,6 +102,15 @@ export default function QuizTakingPage() {
     }
   }
 
+  const handleStartQuiz = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!studentInfo.fullName.trim()) {
+      alert('Vui lòng nhập Họ và tên để bắt đầu thi!')
+      return
+    }
+    setIsStarted(true)
+  }
+
   const handleSelectAnswer = (option: string) => {
     if (isSubmitted) return
     setAnswers({ ...answers, [currentQuestion]: option })
@@ -108,7 +120,6 @@ export default function QuizTakingPage() {
     setReviewMarks(prev => ({ ...prev, [currentQuestion]: !prev[currentQuestion] }))
   }
 
-  // --- LOGIC 3: XỬ LÝ NỘP BÀI VÀ GHI DỮ LIỆU LÊN BẢNG XẾP HẠNG THẬT ---
   const handleSubmit = async () => {
     if (isSubmitted || isSubmittingToDB) return
     setIsSubmittingToDB(true)
@@ -128,56 +139,33 @@ export default function QuizTakingPage() {
     setIsSubmitted(true)
 
     try {
-      // 1. Kiểm tra User đã đăng nhập chưa
       const { data: { session } } = await supabase.auth.getSession()
-      let displayName = session?.user?.email?.split('@')[0] 
-      
-      // Nếu chưa đăng nhập, yêu cầu nhập tên để vinh danh
-      if (!displayName) {
-        const userInput = prompt("Tuyệt vời! Hãy nhập tên của bạn để ghi danh lên Bảng Xếp Hạng nhé:", "Học sinh ẩn danh")
-        displayName = userInput || "Học sinh ẩn danh"
-      }
 
-      // 2. Lưu kết quả vào database
+      // Lưu kết quả vào database cùng với Lớp và Trường
       await supabase.from('quiz_results').insert([
         {
           quiz_id: quizId,
           user_id: session?.user?.id || null,
-          display_name: displayName,
+          display_name: studentInfo.fullName,
+          class_name: studentInfo.className,
+          school_name: studentInfo.schoolName,
           score: roundedScore,
           time_taken: timeTakenInSeconds
         }
       ])
 
-      // 3. Kéo dữ liệu Top 5 Bảng Xếp Hạng mới nhất từ DB
+      // Kéo dữ liệu Bảng Xếp Hạng mới nhất
       const { data: leaderboardData } = await supabase
         .from('quiz_results')
-        .select('display_name, score, time_taken')
+        .select('display_name, class_name, score, time_taken')
         .eq('quiz_id', quizId)
-        .order('score', { ascending: false }) // Ưu tiên điểm cao
-        .order('time_taken', { ascending: true }) // Sau đó ưu tiên làm nhanh
-        .limit(5)
+        .order('score', { ascending: false })
+        .order('time_taken', { ascending: true })
+        .limit(20) // Lấy top 20
 
       if (leaderboardData) {
-        setLeaderboard(
-          leaderboardData.map(item => ({
-            name: item.display_name,
-            score: item.score,
-            time: formatTime(item.time_taken)
-          }))
-        )
+        setLeaderboard(leaderboardData)
       }
-
-      // 4. Lưu local storage cho Lịch sử
-      const historyString = localStorage.getItem('quiz_history')
-      const history = historyString ? JSON.parse(historyString) : {}
-      history[quizId] = {
-        score: roundedScore,
-        correctAnswers: correctCount,
-        totalQuestions: questions.length,
-        completedAt: new Date().toISOString()
-      }
-      localStorage.setItem('quiz_history', JSON.stringify(history))
 
     } catch (err) {
       console.error("Lỗi khi lưu kết quả:", err)
@@ -204,21 +192,85 @@ export default function QuizTakingPage() {
   if (loading) return <div className="min-h-screen flex items-center justify-center bg-slate-50"><p className="text-blue-600 font-bold text-xl animate-pulse">Đang tải đề thi...</p></div>
   if (!quiz || questions.length === 0) return <div className="min-h-screen flex items-center justify-center bg-slate-50"><p className="text-red-500 font-bold text-xl">Không tìm thấy nội dung đề thi!</p></div>
 
-  // --- 1. GIAO DIỆN HOÀN THÀNH BÀI THI & BẢNG XẾP HẠNG ---
+  // --- MÀN HÌNH NHẬP THÔNG TIN TRƯỚC KHI THI ---
+  if (!isStarted) {
+    return (
+      <div className="min-h-screen bg-[#F4F7FB] flex items-center justify-center p-4">
+        <div className="bg-white rounded-3xl shadow-xl border border-slate-200 p-8 md:p-12 max-w-lg w-full">
+          <div className="text-center mb-8">
+            <h1 className="text-2xl md:text-3xl font-black text-slate-800 mb-2">{quiz.title}</h1>
+            <p className="text-slate-500">Vui lòng điền thông tin để bắt đầu làm bài thi</p>
+          </div>
+
+          <form onSubmit={handleStartQuiz} className="space-y-5">
+            <div>
+              <label className="block text-sm font-bold text-slate-700 mb-2">Họ và tên học sinh <span className="text-red-500">*</span></label>
+              <div className="relative">
+                <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                <input 
+                  type="text" 
+                  required
+                  placeholder="Nhập họ và tên..."
+                  className="w-full pl-12 pr-4 py-3 rounded-xl border-2 border-slate-200 focus:border-blue-500 focus:ring-0 outline-none transition"
+                  value={studentInfo.fullName}
+                  onChange={(e) => setStudentInfo({...studentInfo, fullName: e.target.value})}
+                />
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-bold text-slate-700 mb-2">Lớp (Không bắt buộc)</label>
+              <div className="relative">
+                <GraduationCap className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                <input 
+                  type="text" 
+                  placeholder="Ví dụ: 9A1"
+                  className="w-full pl-12 pr-4 py-3 rounded-xl border-2 border-slate-200 focus:border-blue-500 focus:ring-0 outline-none transition"
+                  value={studentInfo.className}
+                  onChange={(e) => setStudentInfo({...studentInfo, className: e.target.value})}
+                />
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-bold text-slate-700 mb-2">Trường (Không bắt buộc)</label>
+              <div className="relative">
+                <School className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                <input 
+                  type="text" 
+                  placeholder="Nhập tên trường..."
+                  className="w-full pl-12 pr-4 py-3 rounded-xl border-2 border-slate-200 focus:border-blue-500 focus:ring-0 outline-none transition"
+                  value={studentInfo.schoolName}
+                  onChange={(e) => setStudentInfo({...studentInfo, schoolName: e.target.value})}
+                />
+              </div>
+            </div>
+
+            <button type="submit" className="w-full mt-6 bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl shadow-lg shadow-blue-600/30 transition-all hover:-translate-y-1">
+              BẮT ĐẦU LÀM BÀI
+            </button>
+          </form>
+        </div>
+      </div>
+    )
+  }
+
+  // --- 1. GIAO DIỆN HOÀN THÀNH BÀI THI & BẢNG XẾP HẠNG PODIUM ---
   if (isSubmitted) {
+    const top3 = leaderboard.slice(0, 3)
+    const restOfLeaderboard = leaderboard.slice(3)
+
     return (
       <div className="min-h-screen bg-slate-50 p-4 md:p-8">
-        <div className="max-w-6xl mx-auto grid grid-cols-1 xl:grid-cols-3 gap-8">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 xl:grid-cols-3 gap-8">
           
           {/* Cột Chi tiết kết quả */}
           <div className="xl:col-span-2 space-y-6">
-            <div className="bg-white rounded-2xl p-8 text-center shadow-sm border border-slate-200">
-              <Trophy className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
+            <div className="bg-white rounded-3xl p-8 text-center shadow-sm border border-slate-200">
+              <Trophy className="w-20 h-20 text-yellow-500 mx-auto mb-4" />
               <h1 className="text-3xl font-black text-slate-800 mb-2">Hoàn thành bài thi!</h1>
-              <p className="text-slate-500 mb-6">{quiz.title}</p>
+              <p className="text-slate-500 font-medium mb-6">Thí sinh: <span className="text-blue-600">{studentInfo.fullName}</span> {studentInfo.className && `- ${studentInfo.className}`}</p>
               
-              <div className="inline-block p-6 bg-slate-50 rounded-2xl border border-slate-100 mb-6">
-                <p className="text-sm text-slate-500 font-bold mb-2 uppercase">Điểm số</p>
+              <div className="inline-block px-10 py-6 bg-slate-50 rounded-3xl border border-slate-100 mb-6">
+                <p className="text-sm text-slate-500 font-bold mb-2 uppercase tracking-wider">Điểm số của bạn</p>
                 <p className={`text-6xl font-black ${score >= 8 ? 'text-emerald-500' : score >= 5 ? 'text-blue-500' : 'text-red-500'}`}>
                   {score}<span className="text-2xl text-slate-400">/10</span>
                 </p>
@@ -256,40 +308,97 @@ export default function QuizTakingPage() {
             </div>
           </div>
 
-          {/* Cột Bảng xếp hạng Lấy Data thật */}
+          {/* Cột Bảng xếp hạng (Bục vinh quang) */}
           <div className="xl:col-span-1">
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 sticky top-6">
-              <h3 className="font-black text-lg text-slate-800 mb-6 flex items-center justify-between">
-                <span className="flex items-center gap-2"><Trophy className="text-yellow-500 w-5 h-5"/> TOP XUẤT SẮC</span>
+            <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-200 sticky top-6">
+              <h3 className="font-black text-xl text-slate-800 mb-8 flex items-center justify-center gap-2 uppercase tracking-wider">
+                <Trophy className="text-yellow-500 w-6 h-6"/> TOP XUẤT SẮC
               </h3>
               
               {leaderboard.length === 0 ? (
                 <p className="text-center text-slate-500 italic py-4">Đang tải bảng xếp hạng...</p>
               ) : (
-                <div className="space-y-4">
-                  {leaderboard.map((user, idx) => (
-                    <div key={idx} className="flex items-center justify-between p-3 rounded-xl border bg-slate-50 border-slate-100 relative overflow-hidden">
-                      {/* Màu nền highlight cho top 1, 2, 3 */}
-                      {idx === 0 && <div className="absolute left-0 top-0 bottom-0 w-1 bg-yellow-400"></div>}
-                      {idx === 1 && <div className="absolute left-0 top-0 bottom-0 w-1 bg-slate-300"></div>}
-                      {idx === 2 && <div className="absolute left-0 top-0 bottom-0 w-1 bg-amber-600"></div>}
-
-                      <div className="flex items-center gap-3">
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${idx === 0 ? 'bg-yellow-100 text-yellow-600' : idx === 1 ? 'bg-slate-200 text-slate-600' : idx === 2 ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-400'}`}>
-                          {idx + 1}
+                <>
+                  {/* BỤC VINH QUANG TOP 3 */}
+                  <div className="flex items-end justify-center gap-2 mb-10 mt-4 px-2">
+                    {/* Hạng 2 (Bên trái) */}
+                    {top3[1] && (
+                      <div className="flex flex-col items-center w-1/3 relative group">
+                        <div className="text-center mb-2 px-1">
+                          <p className="text-xs font-bold text-slate-700 truncate w-full" title={top3[1].display_name}>{top3[1].display_name}</p>
+                          <p className="text-[10px] text-slate-400 truncate">{top3[1].class_name}</p>
+                          <p className="font-black text-slate-800">{top3[1].score}</p>
                         </div>
-                        <div>
-                          <p className="font-bold text-sm text-slate-700 max-w-[120px] truncate" title={user.name}>{user.name}</p>
-                          <p className="text-xs text-slate-500 flex items-center gap-1"><Clock size={12}/> {user.time}</p>
+                        <div className="w-full h-24 bg-gradient-to-t from-slate-200 to-slate-100 rounded-t-xl border-t-4 border-slate-300 relative shadow-inner flex justify-center">
+                          <div className="absolute -top-6 bg-white rounded-full p-1 shadow-md border border-slate-200">
+                            <Medal className="w-8 h-8 text-slate-400 fill-slate-200" />
+                          </div>
+                          <span className="mt-8 text-3xl font-black text-slate-300 opacity-50">2</span>
                         </div>
                       </div>
-                      <div className="font-black text-emerald-600 text-lg">{user.score}</div>
+                    )}
+
+                    {/* Hạng 1 (Chính giữa) */}
+                    {top3[0] && (
+                      <div className="flex flex-col items-center w-1/3 relative z-10 -mx-2">
+                        <div className="text-center mb-2 px-1">
+                          <p className="text-sm font-black text-yellow-600 truncate w-full" title={top3[0].display_name}>{top3[0].display_name}</p>
+                          <p className="text-[10px] text-slate-500 truncate">{top3[0].class_name}</p>
+                          <p className="font-black text-xl text-slate-800">{top3[0].score}</p>
+                        </div>
+                        <div className="w-full h-32 bg-gradient-to-t from-yellow-200 to-yellow-50 rounded-t-xl border-t-4 border-yellow-400 relative shadow-lg flex justify-center">
+                          <div className="absolute -top-7 bg-white rounded-full p-1.5 shadow-md border border-yellow-200">
+                            <Medal className="w-10 h-10 text-yellow-500 fill-yellow-300" />
+                          </div>
+                          <span className="mt-10 text-4xl font-black text-yellow-500 opacity-40">1</span>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Hạng 3 (Bên phải) */}
+                    {top3[2] && (
+                      <div className="flex flex-col items-center w-1/3 relative">
+                        <div className="text-center mb-2 px-1">
+                          <p className="text-xs font-bold text-slate-700 truncate w-full" title={top3[2].display_name}>{top3[2].display_name}</p>
+                          <p className="text-[10px] text-slate-400 truncate">{top3[2].class_name}</p>
+                          <p className="font-black text-slate-800">{top3[2].score}</p>
+                        </div>
+                        <div className="w-full h-20 bg-gradient-to-t from-amber-200/50 to-amber-50 rounded-t-xl border-t-4 border-amber-600/50 relative shadow-inner flex justify-center">
+                          <div className="absolute -top-6 bg-white rounded-full p-1 shadow-md border border-amber-100">
+                            <Medal className="w-8 h-8 text-amber-600 fill-amber-200" />
+                          </div>
+                          <span className="mt-6 text-2xl font-black text-amber-600/40 opacity-50">3</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* DANH SÁCH TỪ HẠNG 4 TRỞ ĐI */}
+                  {restOfLeaderboard.length > 0 && (
+                    <div className="space-y-3 mt-6 border-t border-slate-100 pt-6">
+                      {restOfLeaderboard.map((user, idx) => (
+                        <div key={idx} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100 hover:border-blue-200 transition">
+                          <div className="flex items-center gap-3">
+                            <div className="w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs bg-slate-200 text-slate-600">
+                              {idx + 4}
+                            </div>
+                            <div className="flex flex-col">
+                              <p className="font-bold text-sm text-slate-700 max-w-[140px] truncate" title={user.display_name}>{user.display_name}</p>
+                              <div className="flex items-center gap-2 text-[10px] text-slate-400">
+                                {user.class_name && <span>{user.class_name}</span>}
+                                <span className="flex items-center gap-0.5"><Clock size={10}/> {formatTime(user.time_taken)}</span>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="font-black text-slate-700">{user.score}</div>
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
+                  )}
+                </>
               )}
               
-              <Link href="/practice" className="mt-8 block w-full py-3 text-center bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition">
+              <Link href="/practice" className="mt-8 block w-full py-4 text-center bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition shadow-lg shadow-slate-900/20">
                 Về phòng luyện thi
               </Link>
             </div>
@@ -300,20 +409,23 @@ export default function QuizTakingPage() {
     )
   }
 
-  // --- 2. GIAO DIỆN ĐANG LÀM BÀI ---
+  // --- 2. GIAO DIỆN ĐANG LÀM BÀI CHÍNH ---
   const q = questions[currentQuestion]
 
   return (
     <div className="min-h-screen bg-[#F4F7FB] flex flex-col pb-24 lg:pb-0">
       
-      {/* HEADER: Chứa Timer xanh dương và Nút nộp bài xanh lá */}
+      {/* HEADER */}
       <header className="bg-white border-b border-slate-200 sticky top-0 z-50">
         <div className="w-full max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <button onClick={() => { if(window.confirm('Thoát sẽ mất kết quả?')) router.push('/practice') }} className="text-slate-500 hover:text-slate-800">
               <ArrowLeft size={24} />
             </button>
-            <h1 className="font-bold text-slate-800 hidden md:block line-clamp-1">{quiz.title}</h1>
+            <div>
+              <h1 className="font-bold text-slate-800 hidden md:block line-clamp-1">{quiz.title}</h1>
+              <span className="text-xs font-semibold text-blue-600 hidden md:inline-block">Thí sinh: {studentInfo.fullName}</span>
+            </div>
           </div>
 
           <div className="flex items-center gap-3">
@@ -392,7 +504,7 @@ export default function QuizTakingPage() {
           </div>
         </div>
 
-        {/* CỘT PHẢI: BẢNG CÂU HỎI (MÁY TÍNH) */}
+        {/* CỘT PHẢI: BẢNG CÂU HỎI */}
         <div className="hidden lg:block w-80 shrink-0">
           <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 sticky top-24">
             <h3 className="font-bold text-slate-800 mb-4 text-lg">Danh sách câu hỏi</h3>
@@ -416,7 +528,7 @@ export default function QuizTakingPage() {
                   >
                     {idx + 1}
                     {needsReview && (
-                      <span className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 bg-red-500 rounded-full border-2 border-white"></span>
+                      <span className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 bg-red-500 rounded-full border-2 border-white shadow-sm"></span>
                     )}
                   </button>
                 )
@@ -430,7 +542,6 @@ export default function QuizTakingPage() {
             </div>
           </div>
         </div>
-
       </main>
 
       {/* THANH ĐIỀU HƯỚNG DƯỚI CÙNG */}
@@ -496,7 +607,7 @@ export default function QuizTakingPage() {
                     }`}
                   >
                     {idx + 1}
-                    {needsReview && <span className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 bg-red-500 rounded-full border-2 border-white"></span>}
+                    {needsReview && <span className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 bg-red-500 rounded-full border-2 border-white shadow-sm"></span>}
                   </button>
                 )
               })}
