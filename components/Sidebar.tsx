@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Star, Zap, BookOpen, ChevronRight, TrendingUp, Trophy, ArrowRight } from 'lucide-react'
 import { supabase } from '@/lib/supabase-client'
+import VisitorCounter from '@/components/VisitorCounter'
 
 export default function Sidebar() {
   const [hotEssays, setHotEssays] = useState<any[]>([])
@@ -28,7 +29,6 @@ export default function Sidebar() {
     fetchHotEssays()
   }, [])
 
-  // ĐÃ CẬP NHẬT: Đổi href của mục Trắc nghiệm thành '/practice'
   const examPrepItems = [
     { id: 1, title: 'Ôn thi vào lớp 10: Phần trắc nghiệm', badge: 'Hot', href: '/practice' },
     { id: 2, title: 'Đề thi mẫu vào lớp 10 năm 2026', badge: 'Mới', href: '/category/de-thi-10' },
@@ -38,7 +38,7 @@ export default function Sidebar() {
   return (
     <aside className="space-y-6">
       
-      {/* Khối 1: Hot Tuần Này (Đã kết nối dữ liệu thật từ DB) */}
+      {/* Khối 1: Hot Tuần Này */}
       <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
         <div className="bg-slate-900 p-5 flex items-center gap-3 text-white">
           <div className="p-2 bg-white/10 rounded-lg">
@@ -136,6 +136,9 @@ export default function Sidebar() {
           </Link>
         </div>
       </div>
+
+      {/* Khối 5: Thống kê truy cập thời gian thực (Nằm ở cuối Sidebar) */}
+      <VisitorCounter />
       
     </aside>
   )
