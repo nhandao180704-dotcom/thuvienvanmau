@@ -32,8 +32,7 @@ export default function LoginPage() {
         
         // Phân quyền: Nếu là admin thì đẩy vào dashboard, học sinh thì về trang chủ
         if (email === 'admin@thuvien.edu.vn') {
-          // --- SỬA ĐƯỜNG DẪN Ở ĐÂY TỪ /admin/dashboard THÀNH /admin ---
-          router.push('/admin')
+          router.push('/admin/dashboard') 
         } else {
           router.push('/')
         }
