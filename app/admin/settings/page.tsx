@@ -97,7 +97,7 @@ export default function AdminSettingsPage() {
       <AdminSidebar />
       <AdminHeader onSearch={() => {}} />
 
-      <main className="fixed top-16 right-0 left-64 bottom-0 overflow-y-auto">
+      <main className="fixed top-16 right-0 left-0 md:left-64 bottom-0 overflow-y-auto">
         <div className="p-8 max-w-2xl">
           {/* Header */}
           <div className="flex items-center gap-4 mb-8">

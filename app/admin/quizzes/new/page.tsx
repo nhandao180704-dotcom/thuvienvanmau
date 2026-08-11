@@ -157,7 +157,7 @@ function QuizForm() {
       <AdminSidebar />
       <AdminHeader onSearch={() => {}} />
 
-      <main className="fixed top-16 right-0 left-64 bottom-0 overflow-y-auto p-8 max-w-5xl mx-auto">
+      <main className="fixed top-16 right-0 left-0 md:left-64 bottom-0 overflow-y-auto p-8 max-w-5xl mx-auto">
         <button
           onClick={() => router.back()}
           className="flex items-center text-slate-600 hover:text-slate-900 mb-6 transition"
