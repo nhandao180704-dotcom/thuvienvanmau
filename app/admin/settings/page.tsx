@@ -94,8 +94,8 @@ export default function AdminSettingsPage() {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <AdminSidebar onLogout={handleLogout} />
-      <AdminHeader adminEmail={user?.email} onLogout={handleLogout} />
+      <AdminSidebar />
+      <AdminHeader onSearch={() => {}} />
 
       <main className="fixed top-16 right-0 left-64 bottom-0 overflow-y-auto">
         <div className="p-8 max-w-2xl">
