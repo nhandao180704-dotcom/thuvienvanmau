@@ -399,14 +399,14 @@ export default function QuizTakingPage() {
               <p className="text-center text-slate-400 py-8">Chưa có lịch sử làm bài.</p>
             ) : (
               <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse min-w-[500px]">
+                <table className="w-full text-left border-collapse min-w-[550px]">
                   <thead>
                     <tr className="border-b border-slate-100 text-slate-400 text-xs uppercase tracking-wider">
-                      <th className="py-3 px-3 font-bold">Hạng</th>
+                      <th className="py-3 px-3 font-bold w-16">Hạng</th>
                       <th className="py-3 px-3 font-bold">Họ và tên</th>
-                      <th className="py-3 px-3 font-bold">Lớp</th>
-                      <th className="py-3 px-3 font-bold">Trường</th>
-                      <th className="py-3 px-3 font-bold text-right">Điểm số</th>
+                      <th className="py-3 px-3 font-bold w-20">Lớp</th>
+                      <th className="py-3 px-3 font-bold w-32">Trường</th>
+                      <th className="py-3 px-3 font-bold text-right w-28">Điểm số</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-50 text-sm font-medium text-slate-700">
@@ -418,8 +418,11 @@ export default function QuizTakingPage() {
                         <td className="py-4 px-3 font-bold text-slate-800">{user.display_name}</td>
                         <td className="py-4 px-3 text-slate-500 whitespace-nowrap">{user.class_name || '—'}</td>
                         <td className="py-4 px-3 text-slate-500 truncate max-w-[120px]">{user.school_name || '—'}</td>
-                        <td className="py-4 px-3 text-right whitespace-nowrap font-black text-emerald-600 bg-emerald-50/30 rounded-xl">
-                          {user.score.toString().replace('.', ',')} / 10
+                        <td className="py-4 px-3 text-right whitespace-nowrap">
+                          {/* Ép khung điểm số đủ rộng và hiển thị trọn vẹn trên 1 hàng ngang */}
+                          <div className="inline-flex items-center justify-center px-3 py-1.5 bg-emerald-50 text-emerald-700 font-black rounded-xl border border-emerald-200 min-w-[85px]">
+                            {user.score.toString().replace('.', ',')} / 10
+                          </div>
                         </td>
                       </tr>
                     ))}
