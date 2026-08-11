@@ -26,16 +26,31 @@ export default function ReviewQuizPage() {
       const storedHistory = localStorage.getItem('quizHistory') || localStorage.getItem('quiz_history');
       
       if (storedHistory) {
-        const historyArray = JSON.parse(storedHistory)
-        const attempt = historyArray.find((h: any) => h.id === currentId || h.quiz_id === currentId)
+        const parsedData = JSON.parse(storedHistory)
+        let attempt = null;
+
+        // BẢO VỆ CHỐNG CRASH: Kiểm tra xem dữ liệu là Mảng hay Object
+        if (Array.isArray(parsedData)) {
+          // Nếu là mảng chuẩn -> dùng .find()
+          attempt = parsedData.find((h: any) => h.id === currentId || h.quiz_id === currentId)
+        } else if (parsedData && typeof parsedData === 'object') {
+          // Nếu lỡ lưu thành Object -> Kiểm tra trực tiếp ID
+          if (parsedData.id === currentId || parsedData.quiz_id === currentId) {
+            attempt = parsedData;
+          }
+        }
         
         if (attempt) {
           setHistoryData(attempt)
+        } else {
+          setErrorMsg('Bài thi này không tồn tại trong bộ nhớ.')
         }
+      } else {
+        setErrorMsg('Bạn chưa có lịch sử làm bài nào.')
       }
     } catch (error) {
       console.error("Lỗi khi đọc dữ liệu lịch sử:", error)
-      setErrorMsg('Có lỗi xảy ra khi tải dữ liệu.')
+      setErrorMsg('Dữ liệu lịch sử bị lỗi định dạng.')
     } finally {
       setLoading(false)
     }
