@@ -158,7 +158,6 @@ export default function QuizTakingPage() {
     setReviewMarks(prev => ({ ...prev, [currentQuestion]: !prev[currentQuestion] }))
   }
 
-  // --- LOGIC NỘP BÀI ĐÃ ĐƯỢC CẬP NHẬT (LƯU DẠNG MẢNG ĐỂ CỘNG DỒN LỊCH SỬ) ---
   const handleSubmit = async () => {
     if (isSubmitted || isSubmittingToDB) return
     setIsSubmittingToDB(true)
@@ -220,7 +219,6 @@ export default function QuizTakingPage() {
         setLeaderboard(leaderboardData)
       }
 
-      // Đọc lịch sử hiện tại ra để xử lý
       const historyString = localStorage.getItem('quiz_history')
       let historyArray = []
       
@@ -230,7 +228,6 @@ export default function QuizTakingPage() {
           if (Array.isArray(parsedData)) {
             historyArray = parsedData
           } else if (typeof parsedData === 'object') {
-            // Tự động bảo tồn các bài thi cũ bằng cách chuyển Object thành Mảng
             historyArray = Object.keys(parsedData).map(key => ({
                quiz_id: key,
                ...parsedData[key]
@@ -240,9 +237,8 @@ export default function QuizTakingPage() {
       }
       
       const now = new Date()
-      const attemptId = now.getTime().toString() // Mã định danh riêng biệt cho bài thi này
+      const attemptId = now.getTime().toString()
       
-      // Thêm bài thi mới vào danh sách
       historyArray.push({
         id: attemptId,
         quiz_id: quizId,
@@ -257,7 +253,6 @@ export default function QuizTakingPage() {
         questions: reviewQuestions 
       })
       
-      // Lưu lại mảng mới cập nhật vào bộ nhớ
       localStorage.setItem('quiz_history', JSON.stringify(historyArray))
 
     } catch (err) {
@@ -364,8 +359,9 @@ export default function QuizTakingPage() {
               
               <div className="inline-block px-10 py-6 bg-slate-50 rounded-3xl border border-slate-100 mb-6">
                 <p className="text-sm text-slate-500 font-bold mb-2 uppercase tracking-wider">Điểm số của bạn</p>
+                {/* Điểm số thay đổi */}
                 <p className={`text-6xl font-black ${score >= 8 ? 'text-emerald-500' : score >= 5 ? 'text-blue-500' : 'text-red-500'}`}>
-                  {score}<span className="text-2xl text-slate-400">/10</span>
+                  {score.toString().replace('.', ',')}<span className="text-2xl text-slate-400">/10</span>
                 </p>
               </div>
             </div>
@@ -373,24 +369,57 @@ export default function QuizTakingPage() {
             <div className="space-y-4">
               {questions.map((q, idx) => {
                 const correctAns = q.correct_answer || 'A'
-                const isCorrect = answers[idx] === correctAns
+                const isUserChoice = answers[idx] !== undefined && answers[idx] !== '';
+                const isCorrect = isUserChoice && (answers[idx] === correctAns);
+
+                // Bo tròn border-3xl và nét dày hơn
+                let cardBorderColor = "border-2 border-slate-200 bg-white";
+                if (!isUserChoice) {
+                  cardBorderColor = "border-2 border-red-400 bg-white"; 
+                } else if (isCorrect) {
+                  cardBorderColor = "border-2 border-green-400 bg-white"; 
+                } else {
+                  cardBorderColor = "border-2 border-red-400 bg-white"; 
+                }
+
                 return (
-                  <div key={idx} className={`bg-white p-6 rounded-2xl border ${isCorrect ? 'border-emerald-200' : 'border-red-200'}`}>
-                    <p className="font-bold text-slate-800 mb-4"><span className="text-slate-400 mr-2">Câu {idx + 1}:</span>{q.question_text || q.text}</p>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div key={idx} className={`rounded-3xl p-6 md:p-8 ${cardBorderColor} shadow-sm transition-all`}>
+                    <h3 className="text-base md:text-lg font-bold text-slate-600 mb-6">
+                      Câu {idx + 1}: <span className="text-slate-900">{q.question_text || q.text}</span>
+                    </h3>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {['A', 'B', 'C', 'D'].map(opt => {
                         const optionText = getOptionText(q, opt)
                         const isActualCorrect = correctAns === opt
-                        const isUserChoice = answers[idx] === opt
-                        let bgClass = "bg-slate-50 text-slate-600 border-slate-200"
-                        if (isActualCorrect) bgClass = "bg-emerald-100 text-emerald-800 border-emerald-400 font-bold"
-                        else if (isUserChoice) bgClass = "bg-red-100 text-red-800 border-red-400 font-bold"
+                        const isThisUserChoice = answers[idx] === opt
+                        
+                        // Cập nhật bo góc rounded-2xl và nét viền border-2 như trang xem lại
+                        let optionClass = "border-2 border-slate-200 bg-white text-slate-600";
+                        let IconElement = null;
+
+                        if (isActualCorrect) {
+                          optionClass = "border-2 border-green-500 bg-white text-green-600 font-bold";
+                          IconElement = <CheckCircle className="text-green-500" size={24} strokeWidth={2.5} />;
+                        } else if (isThisUserChoice && !isActualCorrect) {
+                          optionClass = "border-2 border-red-500 bg-red-50 text-red-600 font-bold";
+                          IconElement = <XCircle className="text-red-500" size={24} strokeWidth={2.5} />;
+                        }
 
                         return (
-                          <div key={opt} className={`p-3 rounded-lg border flex items-center justify-between ${bgClass}`}>
-                            <span><strong className="mr-2">{opt}.</strong> {optionText}</span>
-                            {isActualCorrect && <CheckCircle className="w-5 h-5 text-emerald-600" />}
-                            {isUserChoice && !isActualCorrect && <XCircle className="w-5 h-5 text-red-600" />}
+                          <div 
+                            key={opt} 
+                            className={`flex items-center justify-between p-4 rounded-2xl transition-all ${optionClass}`}
+                          >
+                            <div>
+                              <span className={`font-bold mr-2 ${isActualCorrect || isThisUserChoice ? '' : 'text-slate-800'}`}>
+                                {opt}.
+                              </span> 
+                              <span className={isActualCorrect || isThisUserChoice ? 'font-bold' : ''}>
+                                {optionText}
+                              </span>
+                            </div>
+                            {IconElement}
                           </div>
                         )
                       })}

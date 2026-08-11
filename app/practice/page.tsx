@@ -17,7 +17,24 @@ export default function PublicPracticeHub() {
     fetchQuizzes()
     const historyString = localStorage.getItem('quiz_history')
     if (historyString) {
-      setQuizHistory(JSON.parse(historyString))
+      try {
+        const parsedData = JSON.parse(historyString)
+        let formattedHistory: Record<string, any> = {}
+
+        if (Array.isArray(parsedData)) {
+          // Lấy lịch sử mới nhất của mỗi bài thi
+          parsedData.forEach(attempt => {
+            const currentRecord = formattedHistory[attempt.quiz_id]
+            if (!currentRecord || new Date(attempt.completedAt) > new Date(currentRecord.completedAt)) {
+              formattedHistory[attempt.quiz_id] = attempt
+            }
+          })
+        } else if (typeof parsedData === 'object') {
+          formattedHistory = parsedData
+        }
+        
+        setQuizHistory(formattedHistory)
+      } catch(e) {}
     }
   }, [])
 
@@ -168,7 +185,7 @@ export default function PublicPracticeHub() {
                     <div className="bg-emerald-50/50 border border-emerald-100 rounded-xl p-4 mb-6 space-y-2">
                       <div className="flex justify-between items-center">
                         <span className="text-sm font-medium text-slate-600">Điểm số:</span>
-                        <span className="text-lg font-black text-emerald-600">{history.score} <span className="text-sm text-emerald-400">/ 10</span></span>
+                        <span className="text-lg font-black text-emerald-600">{history.score.toString().replace('.', ',')}</span>
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="text-sm font-medium text-slate-600">Câu đúng:</span>
