@@ -144,12 +144,6 @@ export default function GlobalHistoryPage() {
                             >
                                 <Eye className="w-4 h-4" /> Xem lại
                             </Link>
-                            <Link 
-                                href={`/practice/${item.quizId}`}
-                                className="flex items-center justify-center gap-2 px-4 py-2 bg-slate-900 text-white hover:bg-slate-800 font-bold text-sm rounded-xl transition shadow-sm"
-                            >
-                                <RotateCcw className="w-4 h-4" /> Làm lại
-                            </Link>
                         </div>
                     </div>
                 </div>
