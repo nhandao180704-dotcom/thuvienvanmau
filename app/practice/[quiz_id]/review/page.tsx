@@ -6,7 +6,6 @@ import { ArrowLeft, CheckCircle2, XCircle, Clock, Calendar } from 'lucide-react'
 
 export default function ReviewQuizPage() {
   const router = useRouter()
-  // Sử dụng useParams để tránh lỗi crash "This page couldn't load" của Next.js
   const params = useParams() 
   
   const [historyData, setHistoryData] = useState<any>(null)
@@ -29,13 +28,17 @@ export default function ReviewQuizPage() {
         const parsedData = JSON.parse(storedHistory)
         let attempt = null;
 
-        // BẢO VỆ CHỐNG CRASH: Kiểm tra xem dữ liệu là Mảng hay Object
+        // KIỂM TRA ĐA ĐỊNH DẠNG TRONG BỘ NHỚ
         if (Array.isArray(parsedData)) {
-          // Nếu là mảng chuẩn -> dùng .find()
+          // Dạng 1: Dữ liệu là Mảng (Array)
           attempt = parsedData.find((h: any) => h.id === currentId || h.quiz_id === currentId)
         } else if (parsedData && typeof parsedData === 'object') {
-          // Nếu lỡ lưu thành Object -> Kiểm tra trực tiếp ID
-          if (parsedData.id === currentId || parsedData.quiz_id === currentId) {
+          // Dạng 2: Dữ liệu là Object có Key là ID (Cách hệ thống của bạn đang lưu)
+          if (parsedData[currentId as string]) {
+            attempt = parsedData[currentId as string];
+          } 
+          // Dạng 3: Bản thân object đó chính là bài thi
+          else if (parsedData.id === currentId || parsedData.quiz_id === currentId) {
             attempt = parsedData;
           }
         }
@@ -61,14 +64,15 @@ export default function ReviewQuizPage() {
   if (errorMsg || !historyData) {
     return (
       <div className="min-h-screen bg-slate-50 p-4 flex flex-col items-center justify-center">
-        <p className="text-slate-500 mb-4">{errorMsg || 'Không tìm thấy dữ liệu bài làm này.'}</p>
-        <button onClick={() => router.back()} className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium">
+        <p className="text-slate-500 mb-4">{errorMsg}</p>
+        <button onClick={() => router.back()} className="px-6 py-2 bg-slate-900 text-white rounded-lg font-medium shadow-sm hover:bg-slate-800 transition">
           Quay lại lịch sử
         </button>
       </div>
     )
   }
 
+  // Khai báo an toàn để đảm bảo luôn lấy được dữ liệu dù biến tên gì
   const questions = historyData.questions || historyData.results || historyData.answers || [];
   const score = historyData.score ?? historyData.correctAnswers ?? 0;
   const totalQuestions = historyData.total_questions ?? historyData.total ?? questions.length ?? 0;
@@ -81,7 +85,7 @@ export default function ReviewQuizPage() {
       <div className="max-w-4xl mx-auto space-y-6">
         <button
           onClick={() => router.back()}
-          className="flex items-center gap-2 text-slate-600 hover:text-blue-600 transition-colors font-medium mb-2"
+          className="flex items-center gap-2 text-slate-600 hover:text-slate-900 transition-colors font-medium mb-2"
         >
           <ArrowLeft size={20} />
           Về Lịch sử làm bài
@@ -95,77 +99,79 @@ export default function ReviewQuizPage() {
               <span className="flex items-center gap-1"><Clock size={16}/> {time}</span>
             </div>
           </div>
-          <div className="text-center bg-blue-50 px-6 py-3 rounded-xl border border-blue-100">
-            <p className="text-sm text-blue-600 font-medium mb-1">Điểm số</p>
-            <p className="text-3xl font-black text-blue-700">
-              {score} <span className="text-lg font-medium text-blue-400">/ {totalQuestions}</span>
+          <div className="text-center bg-slate-50 px-6 py-3 rounded-xl border border-slate-200">
+            <p className="text-sm text-slate-600 font-medium mb-1">Điểm số</p>
+            <p className="text-3xl font-black text-slate-800">
+              {score} <span className="text-lg font-medium text-slate-400">/ {totalQuestions}</span>
             </p>
           </div>
         </div>
 
         <div className="space-y-6 mt-8">
-          {Array.isArray(questions) && questions.map((q: any, index: number) => {
-            const correctAnswer = q.correct_answer ?? q.correctAnswer;
-            const userAnswer = q.user_answer ?? q.userAnswer;
-            const options = Array.isArray(q.options) ? q.options : (Array.isArray(q.answers) ? q.answers : []);
+          {Array.isArray(questions) && questions.length > 0 ? (
+            questions.map((q: any, index: number) => {
+              const correctAnswer = q.correct_answer ?? q.correctAnswer;
+              const userAnswer = q.user_answer ?? q.userAnswer;
+              const options = Array.isArray(q.options) ? q.options : (Array.isArray(q.answers) ? q.answers : []);
 
-            const isUserChoice = userAnswer !== undefined && userAnswer !== null && userAnswer !== '';
-            const isCorrect = isUserChoice && (userAnswer === correctAnswer);
+              const isUserChoice = userAnswer !== undefined && userAnswer !== null && userAnswer !== '';
+              const isCorrect = isUserChoice && (userAnswer === correctAnswer);
 
-            // --- ĐÃ NÂNG CẤP ĐỘ ĐẬM LÊN BORDER-4 (GẤP ĐÔI BORDER-2) ---
-            let cardBorderColor = "border border-slate-200 bg-white";
-            if (!isUserChoice) {
-              // 1. Câu chưa làm: Viền đỏ đậm
-              cardBorderColor = "border-4 border-red-500 bg-red-50/10 shadow-sm"; 
-            } else if (isCorrect) {
-              // 2. Câu chọn đúng: Viền xanh đậm
-              cardBorderColor = "border-4 border-green-500 bg-green-50/10 shadow-sm"; 
-            } else {
-              // 3. Câu chọn sai: Viền đỏ nhạt như cũ
-              cardBorderColor = "border border-red-200 bg-red-50/20"; 
-            }
+              // Cài đặt viền câu hỏi
+              let cardBorderColor = "border border-slate-200 bg-white";
+              if (!isUserChoice) {
+                cardBorderColor = "border-4 border-red-500 bg-red-50/10 shadow-sm"; 
+              } else if (isCorrect) {
+                cardBorderColor = "border-4 border-green-500 bg-green-50/10 shadow-sm"; 
+              } else {
+                cardBorderColor = "border border-red-200 bg-red-50/20"; 
+              }
 
-            return (
-              <div key={index} className={`rounded-2xl p-6 ${cardBorderColor} transition-all`}>
-                <h3 className="text-lg font-bold text-slate-800 mb-6">
-                  Câu {index + 1}: <span className="text-slate-700 font-medium">{q.question_text ?? q.question}</span>
-                </h3>
+              return (
+                <div key={index} className={`rounded-2xl p-6 ${cardBorderColor} transition-all`}>
+                  <h3 className="text-lg font-bold text-slate-800 mb-6">
+                    Câu {index + 1}: <span className="text-slate-700 font-medium">{q.question_text ?? q.question}</span>
+                  </h3>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {options.map((opt: string, optIndex: number) => {
-                    const letters = ['A', 'B', 'C', 'D'];
-                    const isThisOptionCorrect = correctAnswer === opt || correctAnswer === optIndex;
-                    const isThisOptionUserChoice = userAnswer === opt || userAnswer === optIndex;
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {options.map((opt: string, optIndex: number) => {
+                      const letters = ['A', 'B', 'C', 'D'];
+                      const isThisOptionCorrect = correctAnswer === opt || correctAnswer === optIndex;
+                      const isThisOptionUserChoice = userAnswer === opt || userAnswer === optIndex;
 
-                    let optionClass = "border border-slate-200 bg-white text-slate-700";
-                    let IconElement = null;
+                      let optionClass = "border border-slate-200 bg-white text-slate-700";
+                      let IconElement = null;
 
-                    if (isThisOptionCorrect) {
-                      // Bổ sung font-bold để chữ đáp án đậm lên
-                      optionClass = "border-2 border-green-500 bg-green-100 text-green-900 font-bold";
-                      IconElement = <CheckCircle2 className="text-green-600" size={20} />;
-                    } else if (isThisOptionUserChoice && !isThisOptionCorrect) {
-                      optionClass = "border-2 border-red-400 bg-red-100 text-red-900 font-bold";
-                      IconElement = <XCircle className="text-red-600" size={20} />;
-                    }
+                      if (isThisOptionCorrect) {
+                        optionClass = "border-2 border-green-500 bg-green-100 text-green-900 font-bold";
+                        IconElement = <CheckCircle2 className="text-green-600" size={20} />;
+                      } else if (isThisOptionUserChoice && !isThisOptionCorrect) {
+                        optionClass = "border-2 border-red-400 bg-red-100 text-red-900 font-bold";
+                        IconElement = <XCircle className="text-red-600" size={20} />;
+                      }
 
-                    return (
-                      <div 
-                        key={optIndex} 
-                        className={`flex items-center justify-between p-4 rounded-xl transition-all ${optionClass}`}
-                      >
-                        <div>
-                          <span className="font-bold mr-2">{letters[optIndex]}.</span> 
-                          <span>{opt}</span>
+                      return (
+                        <div 
+                          key={optIndex} 
+                          className={`flex items-center justify-between p-4 rounded-xl transition-all ${optionClass}`}
+                        >
+                          <div>
+                            <span className="font-bold mr-2">{letters[optIndex]}.</span> 
+                            <span>{opt}</span>
+                          </div>
+                          {IconElement}
                         </div>
-                        {IconElement}
-                      </div>
-                    )
-                  })}
+                      )
+                    })}
+                  </div>
                 </div>
-              </div>
-            )
-          })}
+              )
+            })
+          ) : (
+            <div className="p-6 bg-slate-50 text-slate-600 rounded-2xl border border-slate-200 text-center">
+              <p>Bài thi này chỉ có dữ liệu điểm số, chưa có chi tiết câu hỏi.</p>
+            </div>
+          )}
         </div>
       </div>
     </div>
