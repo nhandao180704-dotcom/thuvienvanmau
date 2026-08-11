@@ -74,7 +74,7 @@ function DashboardContent() {
     <div className="min-h-screen bg-slate-50 flex">
       <AdminSidebar />
       
-      <div className="flex-1 ml-64 flex flex-col">
+      <div className="flex-1 ml-0 md:ml-64 flex flex-col">
         <AdminHeader onSearch={() => {}} />
 
         <main className="flex-1 p-8 overflow-y-auto mt-16">

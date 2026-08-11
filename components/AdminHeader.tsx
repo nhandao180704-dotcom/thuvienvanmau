@@ -36,7 +36,7 @@ export default function AdminHeader({ onSearch }: AdminHeaderProps) {
 
   return (
     <header className="fixed top-0 right-0 left-0 md:left-64 h-16 bg-white border-b border-slate-200 shadow-sm z-30">
-      <div className="h-full px-6 flex items-center justify-between gap-6">
+      <div className="h-full pl-16 pr-6 md:px-6 flex items-center justify-between gap-6">
         {/* Search Bar */}
         <div className="flex-1 max-w-xs">
           <div className="relative">
