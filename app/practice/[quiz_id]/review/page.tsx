@@ -67,45 +67,27 @@ export default function ReviewQuizPage() {
     )
   }
 
-  // --- XỬ LÝ DỮ LIỆU AN TOÀN ---
-  const questions = historyData.questions || historyData.results || historyData.answers || [];
-  const score = historyData.score ?? historyData.correctAnswers ?? 0;
+  const questions = historyData.questions || [];
+  const score = historyData.score ?? 0;
   
-  // Tránh lỗi hiển thị 5/0
-  const calculatedTotal = historyData.total_questions || historyData.total || questions.length || 0;
+  const calculatedTotal = historyData.totalQuestions || historyData.total_questions || questions.length || 0;
   const totalQuestions = calculatedTotal === 0 ? score : calculatedTotal; 
   
-  const title = historyData.title || historyData.quiz_title || 'Chi tiết bài làm';
+  const title = historyData.title || 'Chi tiết bài làm';
 
-  // --- ĐỊNH DẠNG NGÀY / GIỜ / THỜI GIAN LÀM BÀI ---
-  let displayDate = 'Không rõ';
-  let displayTime = 'Không rõ';
+  let displayDate = historyData.date || 'Không rõ';
+  let displayTime = historyData.time || 'Không rõ';
   
-  // Nếu có trường ngày tháng rõ ràng
-  if (historyData.date || historyData.created_at) {
-    const rawDate = historyData.date || historyData.created_at;
-    try {
-      // Cố gắng phân tích nếu là chuỗi ISO
-      const d = new Date(rawDate);
-      if (!isNaN(d.getTime())) {
-        displayDate = `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')}/${d.getFullYear()}`;
-        displayTime = `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
+  let duration = 'Không xác định';
+  if (historyData.durationMinutes !== undefined && historyData.durationSeconds !== undefined) {
+      if (historyData.durationMinutes > 0) {
+          duration = `${historyData.durationMinutes} phút ${historyData.durationSeconds} giây`;
       } else {
-        // Nếu chỉ là chuỗi text thường (ví dụ: "11/8/2026")
-        displayDate = rawDate;
+          duration = `${historyData.durationSeconds} giây`;
       }
-    } catch {
-      displayDate = rawDate;
-    }
+  } else if (historyData.duration) {
+      duration = `${historyData.duration} phút`;
   }
-
-  // Ưu tiên trường giờ cụ thể nếu có
-  if (historyData.time) {
-    displayTime = historyData.time;
-  }
-
-  // Xử lý thời gian làm bài (nếu lúc thi bạn có lưu biến duration)
-  const duration = historyData.duration ? `${historyData.duration} phút` : 'Không xác định';
 
   return (
     <div className="min-h-screen bg-slate-50 p-4 md:p-8">
@@ -118,7 +100,6 @@ export default function ReviewQuizPage() {
           Về Lịch sử làm bài
         </button>
 
-        {/* THÔNG TIN TỔNG QUAN (Đã thiết kế lại theo yêu cầu) */}
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 md:p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
           <div className="space-y-4 flex-1">
             <h1 className="text-2xl font-bold text-slate-800">{title}</h1>
@@ -149,64 +130,62 @@ export default function ReviewQuizPage() {
           </div>
         </div>
 
-        {/* CHI TIẾT CÂU HỎI */}
         <div className="space-y-6 mt-8">
           {Array.isArray(questions) && questions.length > 0 ? (
             questions.map((q: any, index: number) => {
-              const correctAnswer = q.correct_answer ?? q.correctAnswer;
-              const userAnswer = q.user_answer ?? q.userAnswer;
-              const options = Array.isArray(q.options) ? q.options : (Array.isArray(q.answers) ? q.answers : []);
-
-              const isUserChoice = userAnswer !== undefined && userAnswer !== null && userAnswer !== '';
+              const correctAnswer = q.correct_answer || 'A';
+              const userAnswer = q.user_answer || '';
+              
+              const isUserChoice = userAnswer !== '';
               const isCorrect = isUserChoice && (userAnswer === correctAnswer);
 
-              // TÙY CHỈNH NÉT VIỀN ĐẬM (border-2) CHUẨN ẢNH THIẾT KẾ
               let cardBorderColor = "border border-slate-200 bg-white";
               if (!isUserChoice) {
-                // Câu chưa làm hoặc chọn sai: Viền màu đỏ rõ nét
                 cardBorderColor = "border-2 border-red-300 bg-white"; 
               } else if (isCorrect) {
-                // Câu chọn đúng: Viền màu xanh rõ nét
                 cardBorderColor = "border-2 border-green-300 bg-white"; 
               } else {
-                // Câu chọn sai: Viền màu đỏ rõ nét
                 cardBorderColor = "border-2 border-red-300 bg-white"; 
               }
 
               return (
                 <div key={index} className={`rounded-2xl p-6 ${cardBorderColor} shadow-sm transition-all`}>
                   <h3 className="text-base md:text-lg font-bold text-slate-500 mb-6">
-                    Câu {index + 1}: <span className="text-slate-800">{q.question_text ?? q.question}</span>
+                    Câu {index + 1}: <span className="text-slate-800">{q.question_text}</span>
                   </h3>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {options.map((opt: string, optIndex: number) => {
-                      const letters = ['A', 'B', 'C', 'D'];
-                      const isThisOptionCorrect = correctAnswer === opt || correctAnswer === optIndex;
-                      const isThisOptionUserChoice = userAnswer === opt || userAnswer === optIndex;
+                    {/* BẢO ĐẢM AN TOÀN KHI HIỂN THỊ ĐÁP ÁN ĐỂ KHÔNG BỊ LỖI REACT #31 */}
+                    {q.options?.map((opt: any, optIndex: number) => {
+                      const currentKey = opt?.key || ['A', 'B', 'C', 'D'][optIndex];
+                      
+                      let optionText = String(opt);
+                      if (opt && typeof opt === 'object') {
+                        optionText = opt.text !== undefined ? String(opt.text) : `Lựa chọn ${currentKey}`;
+                      }
 
-                      // Tùy chỉnh màu sắc đáp án y hệt ảnh thiết kế
+                      const isThisOptionCorrect = correctAnswer === currentKey;
+                      const isThisOptionUserChoice = userAnswer === currentKey;
+
                       let optionClass = "border border-slate-200 bg-white text-slate-600";
                       let IconElement = null;
 
                       if (isThisOptionCorrect) {
-                        // Khung đáp án đúng (Xanh lá)
                         optionClass = "border-2 border-green-500 bg-green-50 text-green-700 font-bold";
                         IconElement = <CheckCircle2 className="text-green-600" size={20} strokeWidth={2.5} />;
                       } else if (isThisOptionUserChoice && !isThisOptionCorrect) {
-                        // Khung đáp án sai mà User chọn (Đỏ)
                         optionClass = "border-2 border-red-400 bg-red-50 text-red-700 font-bold";
                         IconElement = <XCircle className="text-red-500" size={20} strokeWidth={2.5} />;
                       }
 
                       return (
                         <div 
-                          key={optIndex} 
+                          key={currentKey} 
                           className={`flex items-center justify-between p-4 rounded-xl transition-all ${optionClass}`}
                         >
                           <div>
-                            <span className="font-bold mr-2 text-slate-800">{letters[optIndex]}.</span> 
-                            <span className={isThisOptionCorrect || isThisOptionUserChoice ? 'font-bold' : ''}>{opt}</span>
+                            <span className="font-bold mr-2 text-slate-800">{currentKey}.</span> 
+                            <span className={isThisOptionCorrect || isThisOptionUserChoice ? 'font-bold' : ''}>{optionText}</span>
                           </div>
                           {IconElement}
                         </div>
