@@ -167,16 +167,27 @@ export default function QuizTakingPage() {
     setReviewMarks(prev => ({ ...prev, [currentQuestion]: !prev[currentQuestion] }))
   }
 
-  // --- LOGIC 3: NỘP BÀI VÀ LƯU CHI TIẾT ---
+  // --- LOGIC 3: NỘP BÀI VÀ LƯU CHI TIẾT ĐÃ ĐƯỢC CẬP NHẬT ---
   const handleSubmit = async () => {
     if (isSubmitted || isSubmittingToDB) return
     setIsSubmittingToDB(true)
 
     let correctCount = 0
-    questions.forEach((q, index) => {
-      const userChoice = answers[index]
+    // Tạo mảng chi tiết câu hỏi để lưu vào localStorage cho trang Review
+    const reviewQuestions = questions.map((q, index) => {
+      const userChoice = answers[index] || ''
       const correctChoice = q.correct_answer || 'A'
-      if (userChoice === correctChoice) correctCount++
+      
+      if (userChoice === correctChoice) {
+          correctCount++
+      }
+
+      return {
+          question_text: q.question_text || q.text,
+          options: q.options.map((opt: any) => opt.option_text || opt.text || opt.content || opt.value),
+          correct_answer: correctChoice,
+          user_answer: userChoice
+      }
     })
     
     const finalScore = questions.length > 0 ? (correctCount / questions.length) * 10 : 0
@@ -216,14 +227,20 @@ export default function QuizTakingPage() {
         setLeaderboard(leaderboardData)
       }
 
+      // --- CẬP NHẬT LƯU LỊCH SỬ CHI TIẾT ---
       const historyString = localStorage.getItem('quiz_history')
       const history = historyString ? JSON.parse(historyString) : {}
       
+      const now = new Date()
       history[quizId] = {
         score: roundedScore,
         correctAnswers: correctCount,
         totalQuestions: questions.length,
-        completedAt: new Date().toISOString()
+        completedAt: now.toISOString(),
+        date: now.toLocaleDateString('vi-VN'),
+        time: now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
+        duration: Math.floor(timeTakenInSeconds / 60), // Lấy phút
+        questions: reviewQuestions // Đã thêm mảng chi tiết câu hỏi
       }
       
       localStorage.setItem('quiz_history', JSON.stringify(history))

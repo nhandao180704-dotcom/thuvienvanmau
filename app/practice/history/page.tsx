@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, Clock, CalendarDays, Eye, History, Trash2, BookOpen, RotateCcw } from 'lucide-react'
+import { ArrowLeft, Clock, CalendarDays, Eye, History, Trash2, BookOpen } from 'lucide-react'
 import { supabase } from '@/lib/supabase-client'
 
 export default function GlobalHistoryPage() {
@@ -46,7 +46,12 @@ export default function GlobalHistoryPage() {
       })
 
       // Sắp xếp lịch sử: Bài mới làm sẽ nằm trên cùng
-      combined.sort((a, b) => new Date(b.completedAt).getTime() - new Date(a.completedAt).getTime())
+      combined.sort((a, b) => {
+          // Xử lý an toàn trường hợp ngày tháng
+          const dateA = a.completedAt ? new Date(a.completedAt).getTime() : 0;
+          const dateB = b.completedAt ? new Date(b.completedAt).getTime() : 0;
+          return dateB - dateA;
+      })
       setHistoryList(combined)
     } catch (error) {
       console.error(error)
@@ -62,9 +67,15 @@ export default function GlobalHistoryPage() {
     }
   }
 
-  const formatDateTime = (isoString: string) => {
-    const date = new Date(isoString)
-    return date.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) + ' - ' + date.toLocaleDateString('vi-VN')
+  const formatDateTime = (isoString?: string) => {
+    if (!isoString) return 'Không rõ thời gian';
+    try {
+        const date = new Date(isoString)
+        if(isNaN(date.getTime())) return 'Thời gian không hợp lệ';
+        return date.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) + ' - ' + date.toLocaleDateString('vi-VN')
+    } catch {
+        return 'Lỗi định dạng';
+    }
   }
 
   return (
@@ -125,7 +136,7 @@ export default function GlobalHistoryPage() {
                         </div>
                         <h2 className="text-lg font-bold text-slate-900 mb-1">{item.title}</h2>
                         <p className="text-sm text-slate-500 font-medium">
-                            Bạn đã trả lời đúng <strong className="text-slate-800">{item.correctAnswers}</strong> trên tổng số <strong className="text-slate-800">{item.totalQuestions}</strong> câu hỏi.
+                            Bạn đã trả lời đúng <strong className="text-slate-800">{item.correctAnswers ?? 0}</strong> trên tổng số <strong className="text-slate-800">{item.totalQuestions ?? 0}</strong> câu hỏi.
                         </p>
                     </div>
 
@@ -133,7 +144,7 @@ export default function GlobalHistoryPage() {
                         <div className="text-center">
                             <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Điểm số</p>
                             <p className={`text-3xl font-black ${item.score >= 8 ? 'text-emerald-500' : item.score >= 5 ? 'text-blue-500' : 'text-red-500'}`}>
-                                {item.score}
+                                {item.score ?? 0}
                             </p>
                         </div>
                         
