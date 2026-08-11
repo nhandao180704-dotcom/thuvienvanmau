@@ -70,9 +70,6 @@ export default function ReviewQuizPage() {
   const questions = historyData.questions || [];
   const score = historyData.score ?? 0;
   
-  const calculatedTotal = historyData.totalQuestions || historyData.total_questions || questions.length || 0;
-  const totalQuestions = calculatedTotal === 0 ? score : calculatedTotal; 
-  
   const title = historyData.title || 'Chi tiết bài làm';
 
   let displayDate = historyData.date || 'Không rõ';
@@ -100,7 +97,7 @@ export default function ReviewQuizPage() {
           Về Lịch sử làm bài
         </button>
 
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 md:p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+        <div className="bg-white rounded-3xl shadow-sm border border-slate-200 p-6 md:p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
           <div className="space-y-4 flex-1">
             <h1 className="text-2xl font-bold text-slate-800">{title}</h1>
             
@@ -112,20 +109,21 @@ export default function ReviewQuizPage() {
               <div className="hidden md:block w-px h-4 bg-slate-300"></div>
               <div className="flex items-center gap-2">
                 <Clock size={18} className="text-amber-500" />
-                <span>Lúc: <strong>{displayTime}</strong></span>
+                <span>Nộp bài lúc: <strong>{displayTime}</strong></span>
               </div>
               <div className="hidden md:block w-px h-4 bg-slate-300"></div>
               <div className="flex items-center gap-2">
                 <Timer size={18} className="text-emerald-500" />
-                <span>Thời gian thi: <strong>{duration}</strong></span>
+                <span>Thời gian làm bài: <strong>{duration}</strong></span>
               </div>
             </div>
           </div>
 
-          <div className="text-center bg-white px-8 py-4 rounded-xl border-2 border-slate-100 shadow-sm min-w-[140px]">
-            <p className="text-sm text-slate-500 font-bold mb-1 uppercase tracking-wider">Điểm số</p>
-            <p className="text-4xl font-black text-slate-800">
-              {score} <span className="text-xl font-bold text-slate-400">/ {totalQuestions}</span>
+          <div className="text-center bg-white px-10 py-5 rounded-2xl border-2 border-slate-100 shadow-sm min-w-[140px]">
+            <p className="text-sm text-slate-500 font-bold mb-2 uppercase tracking-wider">Điểm số</p>
+            {/* Điểm số hiển thị to, in đậm, đổi dấu chấm thành phẩy, bỏ tổng số câu */}
+            <p className="text-5xl font-black text-[#1e293b]">
+              {score.toString().replace('.', ',')}
             </p>
           </div>
         </div>
@@ -139,19 +137,20 @@ export default function ReviewQuizPage() {
               const isUserChoice = userAnswer !== '';
               const isCorrect = isUserChoice && (userAnswer === correctAnswer);
 
-              let cardBorderColor = "border border-slate-200 bg-white";
+              // Cập nhật viền câu hỏi: border-2 đậm hơn và bo góc rounded-3xl
+              let cardBorderColor = "border-2 border-slate-200 bg-white";
               if (!isUserChoice) {
-                cardBorderColor = "border-2 border-red-300 bg-white"; 
+                cardBorderColor = "border-2 border-red-400 bg-white"; 
               } else if (isCorrect) {
-                cardBorderColor = "border-2 border-green-300 bg-white"; 
+                cardBorderColor = "border-2 border-green-400 bg-white"; 
               } else {
-                cardBorderColor = "border-2 border-red-300 bg-white"; 
+                cardBorderColor = "border-2 border-red-400 bg-white"; 
               }
 
               return (
-                <div key={index} className={`rounded-2xl p-6 ${cardBorderColor} shadow-sm transition-all`}>
-                  <h3 className="text-base md:text-lg font-bold text-slate-500 mb-6">
-                    Câu {index + 1}: <span className="text-slate-800">{q.question_text}</span>
+                <div key={index} className={`rounded-3xl p-6 md:p-8 ${cardBorderColor} shadow-sm transition-all`}>
+                  <h3 className="text-base md:text-lg font-bold text-slate-600 mb-6">
+                    Câu {index + 1}: <span className="text-slate-900">{q.question_text}</span>
                   </h3>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -167,25 +166,30 @@ export default function ReviewQuizPage() {
                       const isThisOptionCorrect = correctAnswer === currentKey;
                       const isThisOptionUserChoice = userAnswer === currentKey;
 
-                      let optionClass = "border border-slate-200 bg-white text-slate-600";
+                      // Cập nhật viền đáp án: border-2 đậm hơn, bo góc rounded-2xl, tinh chỉnh màu sắc
+                      let optionClass = "border-2 border-slate-200 bg-white text-slate-600";
                       let IconElement = null;
 
                       if (isThisOptionCorrect) {
-                        optionClass = "border-2 border-green-500 bg-green-50 text-green-700 font-bold";
-                        IconElement = <CheckCircle2 className="text-green-600" size={20} strokeWidth={2.5} />;
+                        optionClass = "border-2 border-green-500 bg-white text-green-600 font-bold";
+                        IconElement = <CheckCircle2 className="text-green-500" size={24} strokeWidth={2.5} />;
                       } else if (isThisOptionUserChoice && !isThisOptionCorrect) {
-                        optionClass = "border-2 border-red-400 bg-red-50 text-red-700 font-bold";
-                        IconElement = <XCircle className="text-red-500" size={20} strokeWidth={2.5} />;
+                        optionClass = "border-2 border-red-500 bg-red-50 text-red-600 font-bold";
+                        IconElement = <XCircle className="text-red-500" size={24} strokeWidth={2.5} />;
                       }
 
                       return (
                         <div 
                           key={currentKey} 
-                          className={`flex items-center justify-between p-4 rounded-xl transition-all ${optionClass}`}
+                          className={`flex items-center justify-between p-4 rounded-2xl transition-all ${optionClass}`}
                         >
                           <div>
-                            <span className="font-bold mr-2 text-slate-800">{currentKey}.</span> 
-                            <span className={isThisOptionCorrect || isThisOptionUserChoice ? 'font-bold' : ''}>{optionText}</span>
+                            <span className={`font-bold mr-2 ${isThisOptionCorrect || isThisOptionUserChoice ? '' : 'text-slate-800'}`}>
+                              {currentKey}.
+                            </span> 
+                            <span className={isThisOptionCorrect || isThisOptionUserChoice ? 'font-bold' : ''}>
+                              {optionText}
+                            </span>
                           </div>
                           {IconElement}
                         </div>
@@ -196,7 +200,7 @@ export default function ReviewQuizPage() {
               )
             })
           ) : (
-            <div className="p-8 bg-white text-slate-500 rounded-2xl border border-slate-200 text-center shadow-sm">
+            <div className="p-8 bg-white text-slate-500 rounded-3xl border-2 border-slate-200 text-center shadow-sm">
               <p>Bài thi này chỉ có dữ liệu điểm số, chưa có chi tiết câu hỏi.</p>
             </div>
           )}
