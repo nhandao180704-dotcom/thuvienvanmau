@@ -21,30 +21,43 @@ export default function LoginPage() {
 
     try {
       if (isSignUp) {
-        // Đăng ký tài khoản mới cho học sinh
         const { error } = await supabase.auth.signUp({ email, password })
         if (error) throw error
         setMessage('Đăng ký thành công! Hãy kiểm tra email để xác nhận.')
         setIsLoading(false)
       } else {
-        // Đăng nhập
-        const { error } = await supabase.auth.signInWithPassword({ 
+        // 1. Đăng nhập qua Supabase
+        const { data, error } = await supabase.auth.signInWithPassword({ 
           email: email.trim(), 
           password 
         })
         
         if (error) throw error
         
-        // --- VŨ KHÍ TRỊ LỖI SAFARI / iPHONE ---
-        // 1. Đợi 800 mili-giây để iOS chắc chắn đã lưu Cookie vào bộ nhớ máy
-        await new Promise(resolve => setTimeout(resolve, 800))
-        
-        // 2. DÙNG HARD NAVIGATION (window.location.href) THAY VÌ router.push
-        // Điều này ép trình duyệt tải lại trang và mang theo Cookie đi qua cổng bảo vệ
-        if (email.trim() === 'admin@thuvien.edu.vn') {
-          window.location.href = '/admin/dashboard'
-        } else {
-          window.location.href = '/'
+        if (data?.session) {
+          // --- FIX TRIỆT ĐỂ: CẤP THẺ BÀI CHO ADMIN ---
+          const userEmail = email.trim()
+          
+          if (userEmail === 'admin@thuvien.edu.vn') {
+            const adminData = JSON.stringify({ email: userEmail, role: 'admin' })
+            
+            // Lưu vào LocalStorage (cho các trang Client như Settings đọc)
+            localStorage.setItem('adminSession', adminData)
+            
+            // Lưu vào Cookie (Cho Bức tường bảo vệ Middleware đọc)
+            // Hạn sử dụng 1 năm (31536000 giây)
+            document.cookie = `adminSession=${encodeURIComponent(adminData)}; path=/; max-age=31536000; SameSite=Lax`
+            document.cookie = `admin_token=${data.session.access_token}; path=/; max-age=31536000; SameSite=Lax`
+            
+            // Đợi 1 chút để trình duyệt điện thoại kịp ghi Cookie
+            await new Promise(resolve => setTimeout(resolve, 500))
+            
+            // Dùng window.location.replace để chuyển trang thẳng tay
+            window.location.replace('/admin/dashboard')
+          } else {
+            await new Promise(resolve => setTimeout(resolve, 500))
+            window.location.replace('/')
+          }
         }
       }
     } catch (error: any) {
@@ -53,7 +66,6 @@ export default function LoginPage() {
     }
   }
 
-  // Hàm xử lý đăng nhập bằng Google
   const handleGoogleLogin = async () => {
     try {
       const { error } = await supabase.auth.signInWithOAuth({
