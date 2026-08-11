@@ -173,9 +173,11 @@ export default function QuizTakingPage() {
     setIsSubmittingToDB(true)
 
     let correctCount = 0
-    // Tạo mảng chi tiết câu hỏi để lưu vào localStorage cho trang Review
+    // Cấu trúc lại mảng câu hỏi để lưu xuống LocalStorage
     const reviewQuestions = questions.map((q, index) => {
-      const userChoice = answers[index] || ''
+      // Đáp án người dùng chọn (A, B, C, D)
+      const userChoice = answers[index] || '' 
+      // Đáp án đúng của câu hỏi
       const correctChoice = q.correct_answer || 'A'
       
       if (userChoice === correctChoice) {
@@ -184,7 +186,11 @@ export default function QuizTakingPage() {
 
       return {
           question_text: q.question_text || q.text,
-          options: q.options.map((opt: any) => opt.option_text || opt.text || opt.content || opt.value),
+          // Đóng gói danh sách đáp án với key (A,B,C,D) tương ứng
+          options: ['A', 'B', 'C', 'D'].map((key) => {
+              const optText = getOptionText(q, key);
+              return { key: key, text: optText }
+          }),
           correct_answer: correctChoice,
           user_answer: userChoice
       }
@@ -192,8 +198,10 @@ export default function QuizTakingPage() {
     
     const finalScore = questions.length > 0 ? (correctCount / questions.length) * 10 : 0
     const roundedScore = parseFloat(finalScore.toFixed(2))
+    
+    // Tính toán thời gian
     const totalTimeAllowed = (quiz?.time_limit || 15) * 60
-    const timeTakenInSeconds = totalTimeAllowed - timeLeft
+    const timeTakenInSeconds = totalTimeAllowed - timeLeft // Tổng thời gian đã dùng (giây)
     
     setScore(roundedScore)
     setIsSubmitted(true)
@@ -227,7 +235,7 @@ export default function QuizTakingPage() {
         setLeaderboard(leaderboardData)
       }
 
-      // --- CẬP NHẬT LƯU LỊCH SỬ CHI TIẾT ---
+      // --- LƯU LỊCH SỬ LOCAL ---
       const historyString = localStorage.getItem('quiz_history')
       const history = historyString ? JSON.parse(historyString) : {}
       
@@ -239,8 +247,10 @@ export default function QuizTakingPage() {
         completedAt: now.toISOString(),
         date: now.toLocaleDateString('vi-VN'),
         time: now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
-        duration: Math.floor(timeTakenInSeconds / 60), // Lấy phút
-        questions: reviewQuestions // Đã thêm mảng chi tiết câu hỏi
+        // Tính toán số phút và số giây đã dùng
+        durationMinutes: Math.floor(timeTakenInSeconds / 60),
+        durationSeconds: timeTakenInSeconds % 60,
+        questions: reviewQuestions 
       }
       
       localStorage.setItem('quiz_history', JSON.stringify(history))

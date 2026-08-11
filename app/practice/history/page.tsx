@@ -29,7 +29,6 @@ export default function GlobalHistoryPage() {
     }
 
     try {
-      // Gọi lên DB để lấy tên của các đề thi dựa trên ID
       const { data: quizzes } = await supabase
         .from('quizzes')
         .select('id, title, grade_level')
@@ -45,9 +44,7 @@ export default function GlobalHistoryPage() {
         }
       })
 
-      // Sắp xếp lịch sử: Bài mới làm sẽ nằm trên cùng
       combined.sort((a, b) => {
-          // Xử lý an toàn trường hợp ngày tháng
           const dateA = a.completedAt ? new Date(a.completedAt).getTime() : 0;
           const dateB = b.completedAt ? new Date(b.completedAt).getTime() : 0;
           return dateB - dateA;
@@ -67,15 +64,23 @@ export default function GlobalHistoryPage() {
     }
   }
 
-  const formatDateTime = (isoString?: string) => {
-    if (!isoString) return 'Không rõ thời gian';
-    try {
-        const date = new Date(isoString)
-        if(isNaN(date.getTime())) return 'Thời gian không hợp lệ';
-        return date.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) + ' - ' + date.toLocaleDateString('vi-VN')
-    } catch {
-        return 'Lỗi định dạng';
+  const formatDateTime = (item: any) => {
+    // Nếu có dữ liệu ngày/giờ chi tiết từ bản sửa mới
+    if (item.time && item.date) {
+        return `${item.time} - ${item.date}`;
     }
+    // Nếu là dữ liệu cũ dùng ISO String
+    if (item.completedAt) {
+      try {
+          const date = new Date(item.completedAt)
+          if(!isNaN(date.getTime())) {
+            return date.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) + ' - ' + date.toLocaleDateString('vi-VN')
+          }
+      } catch {
+          return 'Không rõ thời gian';
+      }
+    }
+    return 'Không rõ thời gian';
   }
 
   return (
@@ -131,7 +136,7 @@ export default function GlobalHistoryPage() {
                                 Lớp {item.gradeLevel}
                             </span>
                             <span className="flex items-center gap-1 text-xs font-medium text-slate-400">
-                                <CalendarDays className="w-3.5 h-3.5" /> {formatDateTime(item.completedAt)}
+                                <CalendarDays className="w-3.5 h-3.5" /> {formatDateTime(item)}
                             </span>
                         </div>
                         <h2 className="text-lg font-bold text-slate-900 mb-1">{item.title}</h2>
