@@ -25,33 +25,30 @@ export default function LoginPage() {
         const { error } = await supabase.auth.signUp({ email, password })
         if (error) throw error
         setMessage('Đăng ký thành công! Hãy kiểm tra email để xác nhận.')
+        setIsLoading(false)
       } else {
         // Đăng nhập
-        // --- SỬA LẠI CÁCH GỌI SUPABASE ĐỂ TƯƠNG THÍCH MOBILE ---
-        const { data, error } = await supabase.auth.signInWithPassword({ 
-          email: email.trim(), // Xóa khoảng trắng thừa nếu có
+        const { error } = await supabase.auth.signInWithPassword({ 
+          email: email.trim(), 
           password 
         })
         
         if (error) throw error
         
-        // Kiểm tra chắc chắn đã có session trước khi chuyển hướng
-        if (data?.session) {
-          router.refresh()
-          await new Promise(resolve => setTimeout(resolve, 500))
-          
-          if (email === 'admin@thuvien.edu.vn') {
-            router.push('/admin/dashboard') 
-          } else {
-            router.push('/')
-          }
+        // --- VŨ KHÍ TRỊ LỖI SAFARI / iPHONE ---
+        // 1. Đợi 800 mili-giây để iOS chắc chắn đã lưu Cookie vào bộ nhớ máy
+        await new Promise(resolve => setTimeout(resolve, 800))
+        
+        // 2. DÙNG HARD NAVIGATION (window.location.href) THAY VÌ router.push
+        // Điều này ép trình duyệt tải lại trang và mang theo Cookie đi qua cổng bảo vệ
+        if (email.trim() === 'admin@thuvien.edu.vn') {
+          window.location.href = '/admin/dashboard'
         } else {
-            throw new Error('Không thể tạo phiên đăng nhập. Vui lòng thử lại.')
+          window.location.href = '/'
         }
       }
     } catch (error: any) {
       setMessage(error.message || 'Có lỗi xảy ra, vui lòng kiểm tra lại thông tin!')
-    } finally {
       setIsLoading(false)
     }
   }
@@ -149,6 +146,7 @@ export default function LoginPage() {
         <div className="mt-6 text-center text-white/60">
           {isSignUp ? 'Đã có tài khoản?' : 'Chưa có tài khoản?'}
           <button 
+            type="button"
             onClick={() => { setIsSignUp(!isSignUp); setMessage(''); }}
             className="ml-2 text-white font-bold hover:underline"
           >
