@@ -27,19 +27,26 @@ export default function LoginPage() {
         setMessage('Đăng ký thành công! Hãy kiểm tra email để xác nhận.')
       } else {
         // Đăng nhập
-        const { error } = await supabase.auth.signInWithPassword({ email, password })
+        // --- SỬA LẠI CÁCH GỌI SUPABASE ĐỂ TƯƠNG THÍCH MOBILE ---
+        const { data, error } = await supabase.auth.signInWithPassword({ 
+          email: email.trim(), // Xóa khoảng trắng thừa nếu có
+          password 
+        })
+        
         if (error) throw error
         
-        // --- FIX LỖI CHO ĐIỆN THOẠI SAFARI ---
-        // Làm mới bộ nhớ trình duyệt và đợi 0.5 giây để điện thoại kịp lưu Cookie
-        router.refresh()
-        await new Promise(resolve => setTimeout(resolve, 500))
-        
-        // Phân quyền: Nếu là admin thì đẩy vào dashboard, học sinh thì về trang chủ
-        if (email === 'admin@thuvien.edu.vn') {
-          router.push('/admin/dashboard') 
+        // Kiểm tra chắc chắn đã có session trước khi chuyển hướng
+        if (data?.session) {
+          router.refresh()
+          await new Promise(resolve => setTimeout(resolve, 500))
+          
+          if (email === 'admin@thuvien.edu.vn') {
+            router.push('/admin/dashboard') 
+          } else {
+            router.push('/')
+          }
         } else {
-          router.push('/')
+            throw new Error('Không thể tạo phiên đăng nhập. Vui lòng thử lại.')
         }
       }
     } catch (error: any) {
