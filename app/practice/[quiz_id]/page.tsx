@@ -676,7 +676,7 @@ export default function QuizTakingPage() {
               disabled={currentQuestion === questions.length - 1}
               className="px-6 md:px-8 py-3 bg-[#3B5998] text-white rounded-full font-bold text-base md:text-lg shadow-md hover:bg-blue-800 transition disabled:opacity-50"
             >
-              Câu tiếp theo
+              Câu sau
             </button>
           </div>
         </div>

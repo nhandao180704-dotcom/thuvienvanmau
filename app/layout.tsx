@@ -54,8 +54,9 @@ export const viewport: Viewport = {
   themeColor: '#0066CC',
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 5, // Đổi thành 5 để người dùng có thể zoom to chữ khi đọc trên điện thoại
-  userScalable: true,
+  maximumScale: 1, // Ép về 1 để chống zoom lộn xộn khi chạm đúp trên điện thoại
+  userScalable: false, // Tắt chế độ zoom của web để tạo cảm giác App thật
+  viewportFit: 'cover', // Giúp giao diện hiển thị tràn viền an toàn, không đè lên thanh điều hướng
 }
 
 export default function RootLayout({
