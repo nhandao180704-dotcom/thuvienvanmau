@@ -1,49 +1,59 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useParams } from 'next/navigation'
 import { ArrowLeft, CheckCircle2, XCircle, Clock, Calendar } from 'lucide-react'
 
-export default function ReviewQuizPage({ params }: { params: { id?: string, quiz_id?: string } }) {
+export default function ReviewQuizPage() {
   const router = useRouter()
+  // Sử dụng useParams để tránh lỗi crash "This page couldn't load" của Next.js
+  const params = useParams() 
+  
   const [historyData, setHistoryData] = useState<any>(null)
   const [loading, setLoading] = useState(true)
-
-  // Tự động nhận diện tên thư mục là [id] hay [quiz_id]
-  const currentId = params.id || params.quiz_id;
+  const [errorMsg, setErrorMsg] = useState('')
 
   useEffect(() => {
-    // Quét tìm dữ liệu trong localStorage
-    const storedHistory = localStorage.getItem('quizHistory') || localStorage.getItem('quiz_history');
-    
-    if (storedHistory) {
-      const historyArray = JSON.parse(storedHistory)
-      // Tìm bài làm có ID khớp với URL
-      const attempt = historyArray.find((h: any) => h.id === currentId || h.quiz_id === currentId)
+    try {
+      const currentId = params?.id || params?.quiz_id;
       
-      if (attempt) {
-        setHistoryData(attempt)
+      if (!currentId) {
+         setErrorMsg('Không tìm thấy ID bài thi.')
+         setLoading(false)
+         return
       }
+
+      const storedHistory = localStorage.getItem('quizHistory') || localStorage.getItem('quiz_history');
+      
+      if (storedHistory) {
+        const historyArray = JSON.parse(storedHistory)
+        const attempt = historyArray.find((h: any) => h.id === currentId || h.quiz_id === currentId)
+        
+        if (attempt) {
+          setHistoryData(attempt)
+        }
+      }
+    } catch (error) {
+      console.error("Lỗi khi đọc dữ liệu lịch sử:", error)
+      setErrorMsg('Có lỗi xảy ra khi tải dữ liệu.')
+    } finally {
+      setLoading(false)
     }
-    setLoading(false)
-  }, [currentId])
+  }, [params])
 
-  if (loading) {
-    return <div className="min-h-screen flex items-center justify-center text-slate-500">Đang tải dữ liệu...</div>
-  }
-
-  if (!historyData) {
+  if (loading) return <div className="min-h-screen flex items-center justify-center text-slate-500">Đang tải dữ liệu...</div>
+  
+  if (errorMsg || !historyData) {
     return (
       <div className="min-h-screen bg-slate-50 p-4 flex flex-col items-center justify-center">
-        <p className="text-slate-500 mb-4">Không tìm thấy dữ liệu bài làm này.</p>
-        <button onClick={() => router.back()} className="px-4 py-2 bg-blue-600 text-white rounded-lg">
+        <p className="text-slate-500 mb-4">{errorMsg || 'Không tìm thấy dữ liệu bài làm này.'}</p>
+        <button onClick={() => router.back()} className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium">
           Quay lại lịch sử
         </button>
       </div>
     )
   }
 
-  // Tương thích với nhiều cách đặt tên biến khác nhau trong bộ nhớ
   const questions = historyData.questions || historyData.results || historyData.answers || [];
   const score = historyData.score ?? historyData.correctAnswers ?? 0;
   const totalQuestions = historyData.total_questions ?? historyData.total ?? questions.length ?? 0;
@@ -54,8 +64,6 @@ export default function ReviewQuizPage({ params }: { params: { id?: string, quiz
   return (
     <div className="min-h-screen bg-slate-50 p-4 md:p-8">
       <div className="max-w-4xl mx-auto space-y-6">
-        
-        {/* Nút Quay lại */}
         <button
           onClick={() => router.back()}
           className="flex items-center gap-2 text-slate-600 hover:text-blue-600 transition-colors font-medium mb-2"
@@ -64,7 +72,6 @@ export default function ReviewQuizPage({ params }: { params: { id?: string, quiz
           Về Lịch sử làm bài
         </button>
 
-        {/* Thông tin tổng quan bài làm */}
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 md:p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
             <h1 className="text-2xl font-bold text-slate-800 mb-2">{title}</h1>
@@ -81,39 +88,30 @@ export default function ReviewQuizPage({ params }: { params: { id?: string, quiz
           </div>
         </div>
 
-        {/* Cảnh báo nếu lịch sử cũ không lưu câu hỏi */}
-        {questions.length === 0 && (
-          <div className="p-6 bg-amber-50 text-amber-800 rounded-2xl border border-amber-200">
-            <p><strong>Lưu ý:</strong> Dữ liệu lịch sử cũ của bài thi này chỉ lưu điểm số, không lưu chi tiết câu hỏi. Xin hãy làm bài thi mới để xem được chi tiết tính năng này.</p>
-          </div>
-        )}
-
-        {/* Danh sách câu hỏi và đáp án */}
         <div className="space-y-6 mt-8">
-          {questions.map((q: any, index: number) => {
+          {Array.isArray(questions) && questions.map((q: any, index: number) => {
             const correctAnswer = q.correct_answer ?? q.correctAnswer;
             const userAnswer = q.user_answer ?? q.userAnswer;
-            const options = q.options ?? q.answers ?? [];
+            const options = Array.isArray(q.options) ? q.options : (Array.isArray(q.answers) ? q.answers : []);
 
-            // Kiểm tra trạng thái làm bài
             const isUserChoice = userAnswer !== undefined && userAnswer !== null && userAnswer !== '';
             const isCorrect = isUserChoice && (userAnswer === correctAnswer);
 
-            // LOGIC XỬ LÝ VIỀN (Đúng chuẩn yêu cầu)
-            let cardBorderColor = "border-slate-200 bg-white";
+            // --- ĐÃ NÂNG CẤP ĐỘ ĐẬM LÊN BORDER-4 (GẤP ĐÔI BORDER-2) ---
+            let cardBorderColor = "border border-slate-200 bg-white";
             if (!isUserChoice) {
-              // 1. Câu chưa làm -> Viền đỏ đậm (border-2)
-              cardBorderColor = "border-2 border-red-500 bg-red-50/10"; 
+              // 1. Câu chưa làm: Viền đỏ đậm
+              cardBorderColor = "border-4 border-red-500 bg-red-50/10 shadow-sm"; 
             } else if (isCorrect) {
-              // 2. Câu chọn đúng -> Viền xanh đậm (border-2)
-              cardBorderColor = "border-2 border-green-500 bg-green-50/10"; 
+              // 2. Câu chọn đúng: Viền xanh đậm
+              cardBorderColor = "border-4 border-green-500 bg-green-50/10 shadow-sm"; 
             } else {
-              // 3. Câu chọn sai -> Viền đỏ nhạt, nền đỏ nhạt
+              // 3. Câu chọn sai: Viền đỏ nhạt như cũ
               cardBorderColor = "border border-red-200 bg-red-50/20"; 
             }
 
             return (
-              <div key={index} className={`rounded-2xl p-6 ${cardBorderColor} transition-colors`}>
+              <div key={index} className={`rounded-2xl p-6 ${cardBorderColor} transition-all`}>
                 <h3 className="text-lg font-bold text-slate-800 mb-6">
                   Câu {index + 1}: <span className="text-slate-700 font-medium">{q.question_text ?? q.question}</span>
                 </h3>
@@ -121,27 +119,25 @@ export default function ReviewQuizPage({ params }: { params: { id?: string, quiz
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {options.map((opt: string, optIndex: number) => {
                     const letters = ['A', 'B', 'C', 'D'];
-                    
                     const isThisOptionCorrect = correctAnswer === opt || correctAnswer === optIndex;
                     const isThisOptionUserChoice = userAnswer === opt || userAnswer === optIndex;
 
-                    let optionClass = "border-slate-200 bg-white text-slate-700";
+                    let optionClass = "border border-slate-200 bg-white text-slate-700";
                     let IconElement = null;
 
                     if (isThisOptionCorrect) {
-                      // Đáp án đúng CỦA CÂU HỎI -> luôn hiện xanh (kể cả khi chưa làm)
-                      optionClass = "border-green-500 bg-green-100 text-green-900 font-medium";
+                      // Bổ sung font-bold để chữ đáp án đậm lên
+                      optionClass = "border-2 border-green-500 bg-green-100 text-green-900 font-bold";
                       IconElement = <CheckCircle2 className="text-green-600" size={20} />;
                     } else if (isThisOptionUserChoice && !isThisOptionCorrect) {
-                      // Đáp án người dùng chọn sai -> hiện đỏ
-                      optionClass = "border-red-400 bg-red-100 text-red-900 font-medium";
+                      optionClass = "border-2 border-red-400 bg-red-100 text-red-900 font-bold";
                       IconElement = <XCircle className="text-red-600" size={20} />;
                     }
 
                     return (
                       <div 
                         key={optIndex} 
-                        className={`flex items-center justify-between p-4 rounded-xl border-2 transition-all ${optionClass}`}
+                        className={`flex items-center justify-between p-4 rounded-xl transition-all ${optionClass}`}
                       >
                         <div>
                           <span className="font-bold mr-2">{letters[optIndex]}.</span> 
@@ -156,7 +152,6 @@ export default function ReviewQuizPage({ params }: { params: { id?: string, quiz
             )
           })}
         </div>
-        
       </div>
     </div>
   )
