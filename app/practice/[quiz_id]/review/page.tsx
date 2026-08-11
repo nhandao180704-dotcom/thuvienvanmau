@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
-import { ArrowLeft, CheckCircle2, XCircle, Clock, Calendar } from 'lucide-react'
+import { ArrowLeft, CheckCircle2, XCircle, Clock, Calendar, Timer } from 'lucide-react'
 
 export default function ReviewQuizPage() {
   const router = useRouter()
@@ -28,17 +28,12 @@ export default function ReviewQuizPage() {
         const parsedData = JSON.parse(storedHistory)
         let attempt = null;
 
-        // KIỂM TRA ĐA ĐỊNH DẠNG TRONG BỘ NHỚ
         if (Array.isArray(parsedData)) {
-          // Dạng 1: Dữ liệu là Mảng (Array)
           attempt = parsedData.find((h: any) => h.id === currentId || h.quiz_id === currentId)
         } else if (parsedData && typeof parsedData === 'object') {
-          // Dạng 2: Dữ liệu là Object có Key là ID (Cách hệ thống của bạn đang lưu)
           if (parsedData[currentId as string]) {
             attempt = parsedData[currentId as string];
-          } 
-          // Dạng 3: Bản thân object đó chính là bài thi
-          else if (parsedData.id === currentId || parsedData.quiz_id === currentId) {
+          } else if (parsedData.id === currentId || parsedData.quiz_id === currentId) {
             attempt = parsedData;
           }
         }
@@ -72,13 +67,45 @@ export default function ReviewQuizPage() {
     )
   }
 
-  // Khai báo an toàn để đảm bảo luôn lấy được dữ liệu dù biến tên gì
+  // --- XỬ LÝ DỮ LIỆU AN TOÀN ---
   const questions = historyData.questions || historyData.results || historyData.answers || [];
   const score = historyData.score ?? historyData.correctAnswers ?? 0;
-  const totalQuestions = historyData.total_questions ?? historyData.total ?? questions.length ?? 0;
-  const title = historyData.title ?? historyData.quiz_title ?? 'Chi tiết bài làm';
-  const date = historyData.date ?? historyData.created_at ?? 'Hôm nay';
-  const time = historyData.time ?? '--:--';
+  
+  // Tránh lỗi hiển thị 5/0
+  const calculatedTotal = historyData.total_questions || historyData.total || questions.length || 0;
+  const totalQuestions = calculatedTotal === 0 ? score : calculatedTotal; 
+  
+  const title = historyData.title || historyData.quiz_title || 'Chi tiết bài làm';
+
+  // --- ĐỊNH DẠNG NGÀY / GIỜ / THỜI GIAN LÀM BÀI ---
+  let displayDate = 'Không rõ';
+  let displayTime = 'Không rõ';
+  
+  // Nếu có trường ngày tháng rõ ràng
+  if (historyData.date || historyData.created_at) {
+    const rawDate = historyData.date || historyData.created_at;
+    try {
+      // Cố gắng phân tích nếu là chuỗi ISO
+      const d = new Date(rawDate);
+      if (!isNaN(d.getTime())) {
+        displayDate = `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')}/${d.getFullYear()}`;
+        displayTime = `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
+      } else {
+        // Nếu chỉ là chuỗi text thường (ví dụ: "11/8/2026")
+        displayDate = rawDate;
+      }
+    } catch {
+      displayDate = rawDate;
+    }
+  }
+
+  // Ưu tiên trường giờ cụ thể nếu có
+  if (historyData.time) {
+    displayTime = historyData.time;
+  }
+
+  // Xử lý thời gian làm bài (nếu lúc thi bạn có lưu biến duration)
+  const duration = historyData.duration ? `${historyData.duration} phút` : 'Không xác định';
 
   return (
     <div className="min-h-screen bg-slate-50 p-4 md:p-8">
@@ -91,22 +118,38 @@ export default function ReviewQuizPage() {
           Về Lịch sử làm bài
         </button>
 
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 md:p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-slate-800 mb-2">{title}</h1>
-            <div className="flex items-center gap-4 text-sm text-slate-500">
-              <span className="flex items-center gap-1"><Calendar size={16}/> {date}</span>
-              <span className="flex items-center gap-1"><Clock size={16}/> {time}</span>
+        {/* THÔNG TIN TỔNG QUAN (Đã thiết kế lại theo yêu cầu) */}
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 md:p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+          <div className="space-y-4 flex-1">
+            <h1 className="text-2xl font-bold text-slate-800">{title}</h1>
+            
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-3 text-sm text-slate-600 bg-slate-50 p-4 rounded-xl border border-slate-100 w-full">
+              <div className="flex items-center gap-2">
+                <Calendar size={18} className="text-blue-500" />
+                <span>Ngày làm: <strong>{displayDate}</strong></span>
+              </div>
+              <div className="hidden md:block w-px h-4 bg-slate-300"></div>
+              <div className="flex items-center gap-2">
+                <Clock size={18} className="text-amber-500" />
+                <span>Lúc: <strong>{displayTime}</strong></span>
+              </div>
+              <div className="hidden md:block w-px h-4 bg-slate-300"></div>
+              <div className="flex items-center gap-2">
+                <Timer size={18} className="text-emerald-500" />
+                <span>Thời gian thi: <strong>{duration}</strong></span>
+              </div>
             </div>
           </div>
-          <div className="text-center bg-slate-50 px-6 py-3 rounded-xl border border-slate-200">
-            <p className="text-sm text-slate-600 font-medium mb-1">Điểm số</p>
-            <p className="text-3xl font-black text-slate-800">
-              {score} <span className="text-lg font-medium text-slate-400">/ {totalQuestions}</span>
+
+          <div className="text-center bg-white px-8 py-4 rounded-xl border-2 border-slate-100 shadow-sm min-w-[140px]">
+            <p className="text-sm text-slate-500 font-bold mb-1 uppercase tracking-wider">Điểm số</p>
+            <p className="text-4xl font-black text-slate-800">
+              {score} <span className="text-xl font-bold text-slate-400">/ {totalQuestions}</span>
             </p>
           </div>
         </div>
 
+        {/* CHI TIẾT CÂU HỎI */}
         <div className="space-y-6 mt-8">
           {Array.isArray(questions) && questions.length > 0 ? (
             questions.map((q: any, index: number) => {
@@ -117,20 +160,23 @@ export default function ReviewQuizPage() {
               const isUserChoice = userAnswer !== undefined && userAnswer !== null && userAnswer !== '';
               const isCorrect = isUserChoice && (userAnswer === correctAnswer);
 
-              // Cài đặt viền câu hỏi
+              // TÙY CHỈNH NÉT VIỀN ĐẬM (border-2) CHUẨN ẢNH THIẾT KẾ
               let cardBorderColor = "border border-slate-200 bg-white";
               if (!isUserChoice) {
-                cardBorderColor = "border-4 border-red-500 bg-red-50/10 shadow-sm"; 
+                // Câu chưa làm hoặc chọn sai: Viền màu đỏ rõ nét
+                cardBorderColor = "border-2 border-red-300 bg-white"; 
               } else if (isCorrect) {
-                cardBorderColor = "border-4 border-green-500 bg-green-50/10 shadow-sm"; 
+                // Câu chọn đúng: Viền màu xanh rõ nét
+                cardBorderColor = "border-2 border-green-300 bg-white"; 
               } else {
-                cardBorderColor = "border border-red-200 bg-red-50/20"; 
+                // Câu chọn sai: Viền màu đỏ rõ nét
+                cardBorderColor = "border-2 border-red-300 bg-white"; 
               }
 
               return (
-                <div key={index} className={`rounded-2xl p-6 ${cardBorderColor} transition-all`}>
-                  <h3 className="text-lg font-bold text-slate-800 mb-6">
-                    Câu {index + 1}: <span className="text-slate-700 font-medium">{q.question_text ?? q.question}</span>
+                <div key={index} className={`rounded-2xl p-6 ${cardBorderColor} shadow-sm transition-all`}>
+                  <h3 className="text-base md:text-lg font-bold text-slate-500 mb-6">
+                    Câu {index + 1}: <span className="text-slate-800">{q.question_text ?? q.question}</span>
                   </h3>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -139,15 +185,18 @@ export default function ReviewQuizPage() {
                       const isThisOptionCorrect = correctAnswer === opt || correctAnswer === optIndex;
                       const isThisOptionUserChoice = userAnswer === opt || userAnswer === optIndex;
 
-                      let optionClass = "border border-slate-200 bg-white text-slate-700";
+                      // Tùy chỉnh màu sắc đáp án y hệt ảnh thiết kế
+                      let optionClass = "border border-slate-200 bg-white text-slate-600";
                       let IconElement = null;
 
                       if (isThisOptionCorrect) {
-                        optionClass = "border-2 border-green-500 bg-green-100 text-green-900 font-bold";
-                        IconElement = <CheckCircle2 className="text-green-600" size={20} />;
+                        // Khung đáp án đúng (Xanh lá)
+                        optionClass = "border-2 border-green-500 bg-green-50 text-green-700 font-bold";
+                        IconElement = <CheckCircle2 className="text-green-600" size={20} strokeWidth={2.5} />;
                       } else if (isThisOptionUserChoice && !isThisOptionCorrect) {
-                        optionClass = "border-2 border-red-400 bg-red-100 text-red-900 font-bold";
-                        IconElement = <XCircle className="text-red-600" size={20} />;
+                        // Khung đáp án sai mà User chọn (Đỏ)
+                        optionClass = "border-2 border-red-400 bg-red-50 text-red-700 font-bold";
+                        IconElement = <XCircle className="text-red-500" size={20} strokeWidth={2.5} />;
                       }
 
                       return (
@@ -156,8 +205,8 @@ export default function ReviewQuizPage() {
                           className={`flex items-center justify-between p-4 rounded-xl transition-all ${optionClass}`}
                         >
                           <div>
-                            <span className="font-bold mr-2">{letters[optIndex]}.</span> 
-                            <span>{opt}</span>
+                            <span className="font-bold mr-2 text-slate-800">{letters[optIndex]}.</span> 
+                            <span className={isThisOptionCorrect || isThisOptionUserChoice ? 'font-bold' : ''}>{opt}</span>
                           </div>
                           {IconElement}
                         </div>
@@ -168,7 +217,7 @@ export default function ReviewQuizPage() {
               )
             })
           ) : (
-            <div className="p-6 bg-slate-50 text-slate-600 rounded-2xl border border-slate-200 text-center">
+            <div className="p-8 bg-white text-slate-500 rounded-2xl border border-slate-200 text-center shadow-sm">
               <p>Bài thi này chỉ có dữ liệu điểm số, chưa có chi tiết câu hỏi.</p>
             </div>
           )}
