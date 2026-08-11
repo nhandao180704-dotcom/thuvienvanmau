@@ -27,7 +27,7 @@ export default function AdminSettingsPage() {
   useEffect(() => {
     const session = localStorage.getItem('adminSession')
     if (!session) {
-      router.push('/admin/login')
+      router.push('/login')
       return
     }
     
@@ -35,7 +35,7 @@ export default function AdminSettingsPage() {
       const admin = JSON.parse(session)
       setUser({ email: admin.email })
     } catch (err) {
-      router.push('/admin/login')
+      router.push('/login')
     }
   }, [router])
 
@@ -43,7 +43,7 @@ export default function AdminSettingsPage() {
     localStorage.removeItem('adminSession')
     document.cookie = 'adminSession=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC; SameSite=Lax'
     document.cookie = 'admin_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC; SameSite=Lax'
-    router.push('/admin/login')
+    router.push('/login')
   }
 
   const handleSaveSettings = async (e: React.FormEvent) => {

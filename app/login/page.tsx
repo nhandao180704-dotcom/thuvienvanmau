@@ -30,6 +30,11 @@ export default function LoginPage() {
         const { error } = await supabase.auth.signInWithPassword({ email, password })
         if (error) throw error
         
+        // --- FIX LỖI CHO ĐIỆN THOẠI SAFARI ---
+        // Làm mới bộ nhớ trình duyệt và đợi 0.5 giây để điện thoại kịp lưu Cookie
+        router.refresh()
+        await new Promise(resolve => setTimeout(resolve, 500))
+        
         // Phân quyền: Nếu là admin thì đẩy vào dashboard, học sinh thì về trang chủ
         if (email === 'admin@thuvien.edu.vn') {
           router.push('/admin/dashboard') 
