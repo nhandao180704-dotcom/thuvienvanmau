@@ -20,35 +20,53 @@ export default function GlobalHistoryPage() {
       return
     }
 
-    const parsedHistory = JSON.parse(historyString)
-    const quizIds = Object.keys(parsedHistory)
+    let parsedHistory = []
+    
+    // An toàn chuyển đổi dữ liệu
+    try {
+      const parsed = JSON.parse(historyString)
+      if (Array.isArray(parsed)) {
+        parsedHistory = parsed
+      } else if (typeof parsed === 'object') {
+        // Tự động giải cứu các bản ghi Object cũ
+        parsedHistory = Object.keys(parsed).map(key => ({ quiz_id: key, ...parsed[key] }))
+      }
+    } catch(e) {
+      console.error("Lỗi parse lịch sử:", e)
+    }
 
-    if (quizIds.length === 0) {
+    if (parsedHistory.length === 0) {
       setLoading(false)
       return
     }
 
     try {
+      // Quét tìm danh sách ID để nạp từ database 1 lần
+      const uniqueQuizIds = Array.from(new Set(parsedHistory.map(h => h.quiz_id)))
+      
       const { data: quizzes } = await supabase
         .from('quizzes')
         .select('id, title, grade_level')
-        .in('id', quizIds)
+        .in('id', uniqueQuizIds)
 
-      const combined = quizIds.map(id => {
-        const quizInfo = quizzes?.find(q => q.id === id) || { title: 'Đề thi đã bị xóa', grade_level: '?' }
+      const combined = parsedHistory.map(attempt => {
+        const quizInfo = quizzes?.find(q => q.id === attempt.quiz_id) || { title: 'Đề thi đã bị xóa', grade_level: '?' }
         return {
-          quizId: id,
+          ...attempt,
           title: quizInfo.title,
           gradeLevel: quizInfo.grade_level,
-          ...parsedHistory[id]
+          // Gắn ID lần làm bài riêng biệt, nếu bài cũ ko có id thì dự phòng bằng mã quiz
+          attemptId: attempt.id || attempt.quiz_id 
         }
       })
 
+      // Sắp xếp bài mới nhất lên trên
       combined.sort((a, b) => {
           const dateA = a.completedAt ? new Date(a.completedAt).getTime() : 0;
           const dateB = b.completedAt ? new Date(b.completedAt).getTime() : 0;
           return dateB - dateA;
       })
+      
       setHistoryList(combined)
     } catch (error) {
       console.error(error)
@@ -65,11 +83,9 @@ export default function GlobalHistoryPage() {
   }
 
   const formatDateTime = (item: any) => {
-    // Nếu có dữ liệu ngày/giờ chi tiết từ bản sửa mới
     if (item.time && item.date) {
         return `${item.time} - ${item.date}`;
     }
-    // Nếu là dữ liệu cũ dùng ISO String
     if (item.completedAt) {
       try {
           const date = new Date(item.completedAt)
@@ -154,8 +170,9 @@ export default function GlobalHistoryPage() {
                         </div>
                         
                         <div className="flex flex-col gap-2">
+                            {/* Nút Xem lại được truyền thêm mã định danh bài làm ?attempt=xxx */}
                             <Link 
-                                href={`/practice/${item.quizId}/review`}
+                                href={`/practice/${item.quiz_id || item.quizId}/review?attempt=${item.attemptId || ''}`}
                                 className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-50 text-blue-700 hover:bg-blue-100 font-bold text-sm rounded-xl transition border border-blue-200"
                             >
                                 <Eye className="w-4 h-4" /> Xem lại

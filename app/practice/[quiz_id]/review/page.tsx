@@ -1,13 +1,17 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter, useParams } from 'next/navigation'
+import { useRouter, useParams, useSearchParams } from 'next/navigation'
 import { ArrowLeft, CheckCircle2, XCircle, Clock, Calendar, Timer } from 'lucide-react'
 
 export default function ReviewQuizPage() {
   const router = useRouter()
   const params = useParams() 
   
+  // Đón ID được truyền từ màn Lịch sử vào
+  const searchParams = useSearchParams()
+  const attemptId = searchParams.get('attempt')
+
   const [historyData, setHistoryData] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [errorMsg, setErrorMsg] = useState('')
@@ -28,9 +32,18 @@ export default function ReviewQuizPage() {
         const parsedData = JSON.parse(storedHistory)
         let attempt = null;
 
+        // Nếu dữ liệu dạng mảng (nhiều bài làm)
         if (Array.isArray(parsedData)) {
-          attempt = parsedData.find((h: any) => h.id === currentId || h.quiz_id === currentId)
-        } else if (parsedData && typeof parsedData === 'object') {
+          if (attemptId) {
+             // Tìm đích danh lần làm bài đó
+             attempt = parsedData.find((h: any) => h.id === attemptId)
+          } else {
+             // Dự phòng nếu không có id truyền vào
+             attempt = parsedData.find((h: any) => h.id === currentId || h.quiz_id === currentId)
+          }
+        } 
+        // Xử lý dữ liệu định dạng Object kiểu cũ
+        else if (parsedData && typeof parsedData === 'object') {
           if (parsedData[currentId as string]) {
             attempt = parsedData[currentId as string];
           } else if (parsedData.id === currentId || parsedData.quiz_id === currentId) {
@@ -52,7 +65,7 @@ export default function ReviewQuizPage() {
     } finally {
       setLoading(false)
     }
-  }, [params])
+  }, [params, attemptId])
 
   if (loading) return <div className="min-h-screen flex items-center justify-center text-slate-500">Đang tải dữ liệu...</div>
   
@@ -121,7 +134,6 @@ export default function ReviewQuizPage() {
 
           <div className="text-center bg-white px-10 py-5 rounded-2xl border-2 border-slate-100 shadow-sm min-w-[140px]">
             <p className="text-sm text-slate-500 font-bold mb-2 uppercase tracking-wider">Điểm số</p>
-            {/* Điểm số hiển thị to, in đậm, đổi dấu chấm thành phẩy, bỏ tổng số câu */}
             <p className="text-5xl font-black text-[#1e293b]">
               {score.toString().replace('.', ',')}
             </p>
@@ -137,7 +149,6 @@ export default function ReviewQuizPage() {
               const isUserChoice = userAnswer !== '';
               const isCorrect = isUserChoice && (userAnswer === correctAnswer);
 
-              // Cập nhật viền câu hỏi: border-2 đậm hơn và bo góc rounded-3xl
               let cardBorderColor = "border-2 border-slate-200 bg-white";
               if (!isUserChoice) {
                 cardBorderColor = "border-2 border-red-400 bg-white"; 
@@ -154,7 +165,6 @@ export default function ReviewQuizPage() {
                   </h3>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* BẢO ĐẢM AN TOÀN KHI HIỂN THỊ ĐÁP ÁN ĐỂ KHÔNG BỊ LỖI REACT #31 */}
                     {q.options?.map((opt: any, optIndex: number) => {
                       const currentKey = opt?.key || ['A', 'B', 'C', 'D'][optIndex];
                       
@@ -166,7 +176,6 @@ export default function ReviewQuizPage() {
                       const isThisOptionCorrect = correctAnswer === currentKey;
                       const isThisOptionUserChoice = userAnswer === currentKey;
 
-                      // Cập nhật viền đáp án: border-2 đậm hơn, bo góc rounded-2xl, tinh chỉnh màu sắc
                       let optionClass = "border-2 border-slate-200 bg-white text-slate-600";
                       let IconElement = null;
 

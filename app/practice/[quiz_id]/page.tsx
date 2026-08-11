@@ -15,7 +15,6 @@ export default function QuizTakingPage() {
   const [questions, setQuestions] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
-  // --- THÔNG TIN HỌC SINH & TRẠNG THÁI BẮT ĐẦU ---
   const [studentInfo, setStudentInfo] = useState({ fullName: '', className: '', schoolName: '' })
   const [isStarted, setIsStarted] = useState(false) 
 
@@ -38,7 +37,6 @@ export default function QuizTakingPage() {
     if (quizId) fetchQuizData()
   }, [quizId])
 
-  // --- LOGIC 1: ĐẾM NGƯỢC THỜI GIAN ---
   useEffect(() => {
     if (!isStarted || loading || isSubmitted || timeLeft <= 0) return
 
@@ -56,7 +54,6 @@ export default function QuizTakingPage() {
     return () => clearInterval(timer)
   }, [isStarted, loading, isSubmitted, timeLeft])
 
-  // --- LOGIC 2: CHỐNG GIAN LẬN ---
   useEffect(() => {
     if (!isStarted || loading || isSubmitted) return
 
@@ -83,7 +80,6 @@ export default function QuizTakingPage() {
     if (forceSubmit && !isSubmitted) handleSubmit()
   }, [forceSubmit])
 
-  // --- THUẬT TOÁN ĐẢO MẢNG CHUNG ---
   const shuffleArray = (array: any[]) => {
     const arr = [...array]
     for (let i = arr.length - 1; i > 0; i--) {
@@ -110,24 +106,20 @@ export default function QuizTakingPage() {
         .eq('quiz_id', quizId)
       
       if (questionsData) {
-        // --- XỬ LÝ ĐẢO ĐÁP ÁN BÊN TRONG TỪNG CÂU HỎI ---
         const processedQuestions = questionsData.map((q: any) => {
           if (!q.options || q.options.length === 0) return q;
 
-          // Xác định đáp án đúng gốc
           const originalCorrectKey = q.correct_answer || 'A';
           const originalCorrectOption = q.options.find((o: any) => o.option_key === originalCorrectKey || o.key === originalCorrectKey);
           
-          // Xáo trộn mảng lựa chọn
           const shuffledOptions = shuffleArray([...q.options]);
           const newKeys = ['A', 'B', 'C', 'D'];
           let newCorrectAnswer = originalCorrectKey;
 
-          // Gắn lại key A, B, C, D và cập nhật lại đáp án đúng
           const newOptions = shuffledOptions.map((opt, index) => {
              const newKey = newKeys[index] || String.fromCharCode(65 + index);
              if (originalCorrectOption && opt.id === originalCorrectOption.id) {
-                 newCorrectAnswer = newKey; // Cập nhật sang Key mới
+                 newCorrectAnswer = newKey; 
              }
              return { ...opt, option_key: newKey, key: newKey };
           });
@@ -139,7 +131,6 @@ export default function QuizTakingPage() {
           };
         });
 
-        // Đảo ngẫu nhiên thứ tự câu hỏi trước khi lưu vào state
         setQuestions(shuffleArray(processedQuestions))
       }
     } catch (error) {
@@ -167,17 +158,14 @@ export default function QuizTakingPage() {
     setReviewMarks(prev => ({ ...prev, [currentQuestion]: !prev[currentQuestion] }))
   }
 
-  // --- LOGIC 3: NỘP BÀI VÀ LƯU CHI TIẾT ĐÃ ĐƯỢC CẬP NHẬT ---
+  // --- LOGIC NỘP BÀI ĐÃ ĐƯỢC CẬP NHẬT (LƯU DẠNG MẢNG ĐỂ CỘNG DỒN LỊCH SỬ) ---
   const handleSubmit = async () => {
     if (isSubmitted || isSubmittingToDB) return
     setIsSubmittingToDB(true)
 
     let correctCount = 0
-    // Cấu trúc lại mảng câu hỏi để lưu xuống LocalStorage
     const reviewQuestions = questions.map((q, index) => {
-      // Đáp án người dùng chọn (A, B, C, D)
       const userChoice = answers[index] || '' 
-      // Đáp án đúng của câu hỏi
       const correctChoice = q.correct_answer || 'A'
       
       if (userChoice === correctChoice) {
@@ -186,7 +174,6 @@ export default function QuizTakingPage() {
 
       return {
           question_text: q.question_text || q.text,
-          // Đóng gói danh sách đáp án với key (A,B,C,D) tương ứng
           options: ['A', 'B', 'C', 'D'].map((key) => {
               const optText = getOptionText(q, key);
               return { key: key, text: optText }
@@ -198,10 +185,8 @@ export default function QuizTakingPage() {
     
     const finalScore = questions.length > 0 ? (correctCount / questions.length) * 10 : 0
     const roundedScore = parseFloat(finalScore.toFixed(2))
-    
-    // Tính toán thời gian
     const totalTimeAllowed = (quiz?.time_limit || 15) * 60
-    const timeTakenInSeconds = totalTimeAllowed - timeLeft // Tổng thời gian đã dùng (giây)
+    const timeTakenInSeconds = totalTimeAllowed - timeLeft 
     
     setScore(roundedScore)
     setIsSubmitted(true)
@@ -235,25 +220,45 @@ export default function QuizTakingPage() {
         setLeaderboard(leaderboardData)
       }
 
-      // --- LƯU LỊCH SỬ LOCAL ---
+      // Đọc lịch sử hiện tại ra để xử lý
       const historyString = localStorage.getItem('quiz_history')
-      const history = historyString ? JSON.parse(historyString) : {}
+      let historyArray = []
+      
+      if (historyString) {
+        try {
+          const parsedData = JSON.parse(historyString)
+          if (Array.isArray(parsedData)) {
+            historyArray = parsedData
+          } else if (typeof parsedData === 'object') {
+            // Tự động bảo tồn các bài thi cũ bằng cách chuyển Object thành Mảng
+            historyArray = Object.keys(parsedData).map(key => ({
+               quiz_id: key,
+               ...parsedData[key]
+            }))
+          }
+        } catch(e) {}
+      }
       
       const now = new Date()
-      history[quizId] = {
+      const attemptId = now.getTime().toString() // Mã định danh riêng biệt cho bài thi này
+      
+      // Thêm bài thi mới vào danh sách
+      historyArray.push({
+        id: attemptId,
+        quiz_id: quizId,
         score: roundedScore,
         correctAnswers: correctCount,
         totalQuestions: questions.length,
         completedAt: now.toISOString(),
         date: now.toLocaleDateString('vi-VN'),
         time: now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
-        // Tính toán số phút và số giây đã dùng
         durationMinutes: Math.floor(timeTakenInSeconds / 60),
         durationSeconds: timeTakenInSeconds % 60,
         questions: reviewQuestions 
-      }
+      })
       
-      localStorage.setItem('quiz_history', JSON.stringify(history))
+      // Lưu lại mảng mới cập nhật vào bộ nhớ
+      localStorage.setItem('quiz_history', JSON.stringify(historyArray))
 
     } catch (err) {
       console.error("Lỗi khi lưu kết quả:", err)
@@ -280,7 +285,6 @@ export default function QuizTakingPage() {
   if (loading) return <div className="min-h-screen flex items-center justify-center bg-slate-50"><p className="text-blue-600 font-bold text-xl animate-pulse">Đang tải đề thi...</p></div>
   if (!quiz || questions.length === 0) return <div className="min-h-screen flex items-center justify-center bg-slate-50"><p className="text-red-500 font-bold text-xl">Không tìm thấy nội dung đề thi!</p></div>
 
-  // --- MÀN HÌNH NHẬP THÔNG TIN TRƯỚC KHI THI ---
   if (!isStarted) {
     return (
       <div className="min-h-screen bg-[#F4F7FB] flex items-center justify-center p-4">
@@ -341,7 +345,6 @@ export default function QuizTakingPage() {
     )
   }
 
-  // --- 1. GIAO DIỆN HOÀN THÀNH BÀI THI & BẢNG XẾP HẠNG PODIUM ---
   if (isSubmitted) {
     const top3 = leaderboard.slice(0, 3)
     const restOfLeaderboard = leaderboard.slice(3)
@@ -350,7 +353,6 @@ export default function QuizTakingPage() {
       <div className="min-h-screen bg-slate-50 p-4 md:p-8">
         <div className="max-w-7xl mx-auto grid grid-cols-1 xl:grid-cols-3 gap-8">
           
-          {/* Cột Chi tiết kết quả */}
           <div className="xl:col-span-2 space-y-6">
             <div className="bg-white rounded-3xl p-8 text-center shadow-sm border border-slate-200">
               <Trophy className="w-20 h-20 text-yellow-500 mx-auto mb-4" />
@@ -399,7 +401,6 @@ export default function QuizTakingPage() {
             </div>
           </div>
 
-          {/* Cột Bảng xếp hạng */}
           <div className="xl:col-span-1">
             <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-200 sticky top-6">
               <h3 className="font-black text-xl text-slate-800 mb-8 flex items-center justify-center gap-2 uppercase tracking-wider">
@@ -411,7 +412,6 @@ export default function QuizTakingPage() {
               ) : (
                 <>
                   <div className="flex items-end justify-center gap-2 mb-10 mt-4 px-2">
-                    {/* Hạng 2 */}
                     {top3[1] && (
                       <div className="flex flex-col items-center w-1/3 relative group">
                         <div className="text-center mb-6 px-1">
@@ -427,7 +427,6 @@ export default function QuizTakingPage() {
                       </div>
                     )}
 
-                    {/* Hạng 1 */}
                     {top3[0] && (
                       <div className="flex flex-col items-center w-1/3 relative z-10 -mx-2">
                         <div className="text-center mb-8 px-1">
@@ -443,7 +442,6 @@ export default function QuizTakingPage() {
                       </div>
                     )}
 
-                    {/* Hạng 3 */}
                     {top3[2] && (
                       <div className="flex flex-col items-center w-1/3 relative">
                         <div className="text-center mb-4 px-1">
@@ -495,7 +493,6 @@ export default function QuizTakingPage() {
     )
   }
 
-  // --- 2. GIAO DIỆN ĐANG LÀM BÀI ---
   const q = questions[currentQuestion]
 
   return (
