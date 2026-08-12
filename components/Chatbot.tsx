@@ -4,67 +4,63 @@ import { useState, useRef, useEffect } from 'react'
 import { usePathname } from 'next/navigation'
 import { MessageCircle, X, Send, Bot, User, Sparkles, Copy, Trash2, Check } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
+// Import đúng chuẩn của Vercel AI SDK v5
 import { useChat } from '@ai-sdk/react'
+import { DefaultChatTransport } from 'ai'
 
 export default function Chatbot() {
   const pathname = usePathname()
   const [isOpen, setIsOpen] = useState(false)
   const [copiedId, setCopiedId] = useState<string | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  
+  // Ở bản v5, ta phải tự quản lý state của ô nhập liệu
+  const [input, setInput] = useState('')
 
-  // Bỏ qua cảnh báo TypeScript bằng @ts-ignore để giữ nguyên cấu trúc gốc của thư viện
-  // @ts-ignore
-  const { messages, input, handleInputChange, handleSubmit, isLoading, setMessages } = useChat({
-    api: '/api/chat',
-    initialMessages: [
-      {
-        id: 'welcome',
-        role: 'assistant',
-        content: 'Chào bạn! Mình là Trợ lý AI của Thư Viện Văn Mẫu. Bạn cần hỗ trợ gì nào?'
-      }
-    ]
+  // Cấu trúc CHUẨN của v5: dùng DefaultChatTransport, trả về sendMessage và status
+  const { messages, sendMessage, status, setMessages } = useChat({
+    transport: new DefaultChatTransport({
+      api: '/api/chat',
+    }),
   })
 
-  // Phục hồi lịch sử chat một cách an toàn
+  // status trong v5 cho biết trạng thái ('submitted', 'streaming', 'ready')
+  const isLoading = status === 'submitted' || status === 'streaming'
+
+  // Lấy lịch sử chat một cách an toàn
   useEffect(() => {
-    const saved = localStorage.getItem('chat_history')
-    if (saved) {
-      try {
+    try {
+      const saved = localStorage.getItem('chat_history')
+      if (saved) {
         const parsed = JSON.parse(saved)
-        if (Array.isArray(parsed) && parsed.length > 1) {
+        if (Array.isArray(parsed) && parsed.length > 0) {
           setMessages(parsed)
         }
-      } catch (e) {
-        console.error('Lỗi đọc lịch sử chat:', e)
-        localStorage.removeItem('chat_history') // Xóa dữ liệu lỗi để tránh crash
       }
+    } catch (e) {
+      console.error('Lỗi đọc lịch sử chat:', e)
+      localStorage.removeItem('chat_history')
     }
   }, [setMessages])
 
   // Lưu lịch sử chat
   useEffect(() => {
-    if (messages && messages.length > 1) {
+    if (messages && messages.length > 0) {
       localStorage.setItem('chat_history', JSON.stringify(messages))
     }
   }, [messages])
 
-  // Tự động cuộn mượt mà
+  // Tự động cuộn xuống
   useEffect(() => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' })
     }
   }, [messages, isOpen])
 
+  // Xóa lịch sử chat
   const clearChat = () => {
     if (confirm('Bạn có chắc muốn xóa toàn bộ lịch sử trò chuyện?')) {
-      // @ts-ignore
-      setMessages([
-        {
-          id: 'welcome',
-          role: 'assistant',
-          content: 'Chào bạn! Mình là Trợ lý AI của Thư Viện Văn Mẫu. Bạn cần hỗ trợ gì nào?'
-        }
-      ])
+      setMessages([])
       localStorage.removeItem('chat_history')
     }
   }
@@ -75,11 +71,22 @@ export default function Chatbot() {
     setTimeout(() => setCopiedId(null), 2000)
   }
 
+  // Hàm xử lý khi gửi tin nhắn (Bản v5 dùng sendMessage)
+  const handleSend = (e: React.FormEvent) => {
+    e.preventDefault()
+    const textToSend = input.trim()
+    if (!textToSend || isLoading) return
+
+    setInput('') 
+    sendMessage({ text: textToSend })
+  }
+
   const isTakingQuiz = pathname?.startsWith('/practice/') && pathname !== '/practice'
   if (isTakingQuiz) return null
 
-  // Trích xuất văn bản an toàn
+  // Trích xuất văn bản từ cấu trúc mới của v5
   const getMessageText = (msg: any) => {
+    if (typeof msg.text === 'string') return msg.text; // v5 dùng 'text' thay vì 'content'
     if (typeof msg.content === 'string') return msg.content;
     if (msg.parts && Array.isArray(msg.parts)) return msg.parts.map((p: any) => p.text || '').join('');
     return '';
@@ -118,6 +125,18 @@ export default function Chatbot() {
         </div>
 
         <div className="flex-1 overflow-y-auto p-4 space-y-5 bg-[#F4F7FB]">
+          
+          {(!messages || messages.length === 0) && (
+            <div className="flex gap-3">
+              <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 shadow-sm bg-blue-600 text-white">
+                <Sparkles size={16} />
+              </div>
+              <div className="relative px-4 py-3 rounded-2xl max-w-[85%] text-sm leading-relaxed shadow-sm bg-white border border-slate-200 text-slate-700 rounded-tl-sm">
+                Chào bạn! Mình là Trợ lý AI của Thư Viện Văn Mẫu. Bạn cần hỗ trợ gì nào?
+              </div>
+            </div>
+          )}
+
           {(messages || []).map((msg: any) => {
             const messageText = getMessageText(msg);
             if (!messageText) return null;
@@ -166,22 +185,22 @@ export default function Chatbot() {
           <div ref={messagesEndRef} />
         </div>
 
-        <form onSubmit={handleSubmit} className="p-3 bg-white border-t border-slate-100 shrink-0">
+        <form onSubmit={handleSend} className="p-3 bg-white border-t border-slate-100 shrink-0">
           <div className="relative flex items-center">
             <input
               type="text"
-              value={input || ''}
-              onChange={handleInputChange}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
               placeholder="Nhập câu hỏi của bạn..."
               className="w-full pl-4 pr-12 py-3.5 bg-slate-50 border border-slate-200 rounded-full focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all text-sm font-medium"
               disabled={isLoading}
             />
             <button
               type="submit"
-              disabled={!input?.trim() || isLoading}
+              disabled={!input.trim() || isLoading}
               className="absolute right-1.5 p-2.5 bg-blue-600 text-white rounded-full hover:bg-blue-700 disabled:opacity-50 disabled:hover:bg-blue-600 transition-all active:scale-90"
             >
-              <Send size={16} className={input?.trim() && !isLoading ? 'translate-x-0.5 -translate-y-0.5' : ''} />
+              <Send size={16} className={input.trim() && !isLoading ? 'translate-x-0.5 -translate-y-0.5' : ''} />
             </button>
           </div>
         </form>
