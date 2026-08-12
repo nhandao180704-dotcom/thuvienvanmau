@@ -12,8 +12,8 @@ export async function POST(req: Request) {
     const { messages } = await req.json();
 
     const result = await generateText({
-      // Đã cập nhật lên model gemini-2.5-flash mới nhất
-      model: google('gemini-2.5-flash'),
+      // Sử dụng model chuẩn cập nhật mới nhất của Google
+      model: google('gemini-1.5-flash-latest'),
       system: "Bạn là một giáo viên Ngữ Văn THCS tâm huyết, chuyên môn cao. Nhiệm vụ của bạn là hỗ trợ học sinh cấp 2 phân tích tác phẩm, lập dàn ý, và ôn thi vào lớp 10. Luôn xưng hô là 'Cô/Thầy' hoặc 'Trợ lý' và gọi người dùng là 'bạn' hoặc 'em'. Hãy trả lời thân thiện, dễ hiểu, có cảm xúc. Hướng dẫn học sinh cách làm bài thay vì chỉ đưa ra bài văn mẫu giải sẵn.",
       messages,
     });
