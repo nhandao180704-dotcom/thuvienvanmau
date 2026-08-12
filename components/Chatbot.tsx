@@ -1,8 +1,9 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { usePathname } from 'next/navigation' // Thêm hook lấy đường dẫn
+import { usePathname } from 'next/navigation'
 import { MessageCircle, X, Send, Bot, User, Sparkles } from 'lucide-react'
+import ReactMarkdown from 'react-markdown'
 
 export default function Chatbot() {
   const pathname = usePathname()
@@ -106,8 +107,15 @@ export default function Chatbot() {
               <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 shadow-sm ${msg.role === 'user' ? 'bg-indigo-100 text-indigo-600' : 'bg-blue-600 text-white'}`}>
                 {msg.role === 'user' ? <User size={16} /> : <Sparkles size={16} />}
               </div>
-              <div className={`px-4 py-3 rounded-2xl max-w-[75%] text-sm leading-relaxed whitespace-pre-wrap shadow-sm ${msg.role === 'user' ? 'bg-indigo-600 text-white rounded-tr-sm' : 'bg-white border border-slate-200 text-slate-700 rounded-tl-sm'}`}>
-                {msg.content}
+              <div className={`px-4 py-3 rounded-2xl max-w-[85%] text-sm leading-relaxed shadow-sm ${msg.role === 'user' ? 'bg-indigo-600 text-white rounded-tr-sm whitespace-pre-wrap' : 'bg-white border border-slate-200 text-slate-700 rounded-tl-sm'}`}>
+                {msg.role === 'user' ? (
+                  msg.content
+                ) : (
+                  /* Bọc tin nhắn AI bằng ReactMarkdown để render định dạng */
+                  <div className="prose prose-sm max-w-none prose-p:my-1 prose-headings:my-2 prose-ul:my-1 prose-li:my-0">
+                    <ReactMarkdown>{msg.content}</ReactMarkdown>
+                  </div>
+                )}
               </div>
             </div>
           ))}
