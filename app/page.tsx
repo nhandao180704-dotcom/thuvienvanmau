@@ -92,7 +92,7 @@ export default function LibraryPage() {
   })
 
   return (
-    <div className="min-h-screen bg-[#F4F7FB] text-slate-800 font-sans selection:bg-blue-300 selection:text-blue-900 overflow-x-hidden w-full">
+    <div className="min-h-screen bg-[#F4F7FB] text-slate-800 font-sans selection:bg-blue-300 selection:text-blue-900 overflow-x-hidden w-full relative">
       <Navbar />
 
       {/* Phần Header màu xanh với hiệu ứng chuyển động */}
@@ -150,13 +150,15 @@ export default function LibraryPage() {
         </div>
       </div>
 
-      {/* SỬA LỖI HÌNH NỀN IOS BẰNG WRAPPER CÓ STICKY HEIGHT 100DVH */}
-      <div className="relative w-full min-h-screen pb-20">
-        <div className="absolute inset-0 z-0 pointer-events-none">
-          <div className="sticky top-0 w-full h-[100dvh] bg-[url('/bg-van-hoc.jpg')] bg-cover bg-center bg-no-repeat"></div>
+      {/* LỚP NỀN CỐ ĐỊNH CHUẨN (Tương thích mọi thiết bị) */}
+      <div className="relative w-full min-h-screen pb-20 z-10">
+        
+        {/* Lớp Fixed Background: Khóa chặt hình nền với kích thước màn hình, không bị bóp méo hay biến mất */}
+        <div className="fixed top-0 left-0 w-full h-full pointer-events-none z-0">
+          <div className="w-full h-full bg-[url('/bg-van-hoc.jpg')] bg-cover bg-center bg-no-repeat"></div>
         </div>
 
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 relative z-30 w-full box-border">
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 relative z-10 w-full box-border">
           <div className="flex flex-col lg:flex-row gap-8 lg:gap-10 w-full">
             <div className="flex-1 space-y-6 md:space-y-8 w-full max-w-full overflow-hidden">
               <div className="bg-white/80 backdrop-blur-xl p-2 rounded-2xl shadow-sm border border-slate-200 overflow-x-auto hide-scrollbar touch-pan-x w-full">
