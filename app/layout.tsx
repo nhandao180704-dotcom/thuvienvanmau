@@ -3,6 +3,7 @@ import { Analytics } from '@vercel/analytics/next'
 import type { Metadata, Viewport } from 'next'
 import { AuthProvider } from '@/lib/auth-context'
 import { ToastContainer } from '@/components/Toast'
+import Chatbot from '@/components/Chatbot' // Import Chatbot
 import './globals.css'
 
 const geistSans = Geist({ 
@@ -73,6 +74,9 @@ export default function RootLayout({
         
         {/* Hiển thị thông báo (Thêm vào danh sách, Lỗi đăng nhập,...) */}
         <ToastContainer />
+
+        {/* Trợ lý AI Ngữ Văn */}
+        <Chatbot />
         
         {/* Chỉ chạy theo dõi phân tích khi đã đưa lên mạng */}
         {process.env.NODE_ENV === 'production' && <Analytics />}
