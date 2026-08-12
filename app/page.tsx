@@ -151,10 +151,9 @@ export default function LibraryPage() {
       </div>
 
       <div 
-        className="w-full min-h-screen pb-20 bg-no-repeat bg-center"
+        className="w-full min-h-screen pb-20 bg-no-repeat bg-center bg-cover bg-fixed"
         style={{ 
-          backgroundImage: "url('/bg-van-hoc.jpg')",
-          backgroundSize: "100% 100%" 
+          backgroundImage: "url('/bg-van-hoc.jpg')"
         }}
       >
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 relative z-30 w-full box-border">
