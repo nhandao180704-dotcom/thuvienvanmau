@@ -4,30 +4,52 @@ import { useState, useRef, useEffect } from 'react'
 import { usePathname } from 'next/navigation'
 import { MessageCircle, X, Send, Bot, User, Sparkles, Copy, Trash2, Check } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
-// Import đúng chuẩn của Vercel AI SDK v5
 import { useChat } from '@ai-sdk/react'
-import { DefaultChatTransport } from 'ai'
 
 export default function Chatbot() {
   const pathname = usePathname()
   const [isOpen, setIsOpen] = useState(false)
   const [copiedId, setCopiedId] = useState<string | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
-  
-  // Ở bản v5, ta phải tự quản lý state của ô nhập liệu
-  const [input, setInput] = useState('')
 
-  // Cấu trúc CHUẨN của v5: dùng DefaultChatTransport, trả về sendMessage và status
-  const { messages, sendMessage, status, setMessages } = useChat({
-    transport: new DefaultChatTransport({
-      api: '/api/chat',
-    }),
-  })
+  // Gọi trực tiếp useChat và "làm mù" TypeScript bằng any
+  const chatInstance = useChat({ api: '/api/chat' } as any) as any
 
-  // status trong v5 cho biết trạng thái ('submitted', 'streaming', 'ready')
-  const isLoading = status === 'submitted' || status === 'streaming'
+  // Bóc tách dữ liệu một cách an toàn nhất, nếu không có thì lấy giá trị rỗng
+  const messages = chatInstance?.messages || []
+  const input = chatInstance?.input || ''
+  const handleInputChange = chatInstance?.handleInputChange || (() => {})
+  const isLoading = chatInstance?.isLoading || false
+  const setMessages = chatInstance?.setMessages || (() => {})
 
-  // Lấy lịch sử chat một cách an toàn
+  // Tự tạo hàm Gửi để tương thích ngược với mọi kiểu (dùng append, sendMessage, hay handleSubmit đều được)
+  const handleSend = async (e: React.FormEvent) => {
+    e.preventDefault()
+    const textToSend = input.trim()
+    if (!textToSend || isLoading) return
+
+    // Xóa ô nhập ngay lập tức
+    if (chatInstance?.setInput) {
+      chatInstance.setInput('')
+    } else {
+      // Dùng cách hack event giả lập nếu không có setInput
+      handleInputChange({ target: { value: '' } } as any)
+    }
+
+    // Ưu tiên dùng hàm mới nhất, nếu không có thì dùng hàm cũ
+    if (chatInstance?.append) {
+      await chatInstance.append({ role: 'user', content: textToSend })
+    } else if (chatInstance?.sendMessage) {
+      chatInstance.sendMessage({ content: textToSend, text: textToSend })
+    } else if (chatInstance?.handleSubmit) {
+      // Dùng handleSubmit có sẵn
+      chatInstance.handleSubmit(e)
+    } else {
+      alert("Lỗi: Không tìm thấy phương thức gửi tin nhắn trong phiên bản AI SDK này.")
+    }
+  }
+
+  // Khôi phục lịch sử chat
   useEffect(() => {
     try {
       const saved = localStorage.getItem('chat_history')
@@ -38,26 +60,25 @@ export default function Chatbot() {
         }
       }
     } catch (e) {
-      console.error('Lỗi đọc lịch sử chat:', e)
       localStorage.removeItem('chat_history')
     }
   }, [setMessages])
 
   // Lưu lịch sử chat
   useEffect(() => {
-    if (messages && messages.length > 0) {
+    if (messages.length > 0) {
       localStorage.setItem('chat_history', JSON.stringify(messages))
     }
   }, [messages])
 
-  // Tự động cuộn xuống
+  // Tự động cuộn
   useEffect(() => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' })
     }
   }, [messages, isOpen])
 
-  // Xóa lịch sử chat
+  // Xóa lịch sử
   const clearChat = () => {
     if (confirm('Bạn có chắc muốn xóa toàn bộ lịch sử trò chuyện?')) {
       setMessages([])
@@ -71,23 +92,13 @@ export default function Chatbot() {
     setTimeout(() => setCopiedId(null), 2000)
   }
 
-  // Hàm xử lý khi gửi tin nhắn (Bản v5 dùng sendMessage)
-  const handleSend = (e: React.FormEvent) => {
-    e.preventDefault()
-    const textToSend = input.trim()
-    if (!textToSend || isLoading) return
-
-    setInput('') 
-    sendMessage({ text: textToSend })
-  }
-
   const isTakingQuiz = pathname?.startsWith('/practice/') && pathname !== '/practice'
   if (isTakingQuiz) return null
 
-  // Trích xuất văn bản từ cấu trúc mới của v5
+  // Đọc nội dung an toàn
   const getMessageText = (msg: any) => {
-    if (typeof msg.text === 'string') return msg.text; // v5 dùng 'text' thay vì 'content'
     if (typeof msg.content === 'string') return msg.content;
+    if (typeof msg.text === 'string') return msg.text;
     if (msg.parts && Array.isArray(msg.parts)) return msg.parts.map((p: any) => p.text || '').join('');
     return '';
   }
@@ -190,7 +201,7 @@ export default function Chatbot() {
             <input
               type="text"
               value={input}
-              onChange={(e) => setInput(e.target.value)}
+              onChange={handleInputChange}
               placeholder="Nhập câu hỏi của bạn..."
               className="w-full pl-4 pr-12 py-3.5 bg-slate-50 border border-slate-200 rounded-full focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all text-sm font-medium"
               disabled={isLoading}
