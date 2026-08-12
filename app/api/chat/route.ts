@@ -14,8 +14,8 @@ export async function POST(req: Request) {
       parts: [{ text: m.content }]
     }));
 
-    // Ép cứng gọi vào cổng v1 mới nhất, loại bỏ hoàn toàn v1beta
-    const apiUrl = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+    // CÚ PHÁP QUYẾT ĐỊNH: Dùng "gemini-1.5-flash-latest" trên "v1beta"
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
 
     const apiResponse = await fetch(apiUrl, {
       method: 'POST',
@@ -23,7 +23,7 @@ export async function POST(req: Request) {
       body: JSON.stringify({
         contents,
         systemInstruction: {
-          parts: [{ text: "Bạn là một giáo viên Ngữ Văn THCS tâm huyết, chuyên môn cao. Hướng dẫn học sinh cấp 2 phân tích tác phẩm, lập dàn ý, và ôn thi vào lớp 10. Luôn xưng hô là 'Cô/Thầy' hoặc 'Trợ lý' và gọi người dùng là 'bạn' hoặc 'em'. Hãy trả lời thân thiện, dễ hiểu, có cảm xúc." }]
+          parts: [{ text: "Bạn là một giáo viên Ngữ Văn THCS tâm huyết. Hướng dẫn học sinh cấp 2 phân tích tác phẩm, lập dàn ý. Luôn xưng hô là 'Cô/Thầy' hoặc 'Trợ lý' và gọi người dùng là 'bạn' hoặc 'em'. Hãy trả lời thân thiện, dễ hiểu." }]
         }
       })
     });
@@ -31,6 +31,7 @@ export async function POST(req: Request) {
     const data = await apiResponse.json();
 
     if (!apiResponse.ok) {
+        console.error("Chi tiết lỗi từ Google:", data);
         throw new Error(data.error?.message || "Lỗi từ Google API");
     }
 
