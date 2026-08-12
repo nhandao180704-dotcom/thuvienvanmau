@@ -21,7 +21,7 @@ const BANNERS = [
     icon: <Star className="text-yellow-300 animate-bounce w-5 h-5" />
   },
   {
-    title: "Nâng tầm tư duy Ngữ Văn cùng AI",
+    title: "Nâng tầm tư duy và kỹ năng viết Văn",
     subtitle: "Hàng ngàn bài viết được chọn lọc và kiểm duyệt kỹ lưỡng",
     gradient: "from-orange-500 via-red-500 to-rose-600",
     icon: <Flame className="text-yellow-300 animate-pulse w-5 h-5" />
