@@ -442,7 +442,7 @@ export default function QuizTakingPage() {
                       <div className="flex flex-col items-center w-1/3 relative group">
                         <div className="text-center mb-6 px-1">
                           <p className="text-xs font-bold text-slate-700 truncate w-full" title={top3[1].display_name}>{top3[1].display_name}</p>
-                          <p className="font-black text-lg text-slate-800">{top3[1].score.toString().replace('.', ',')}</p>
+                          <p className="font-black text-lg text-slate-800">{top3[1].score.toString().replace('.', ',')} <span className="text-[10px] text-slate-400">/ 10</span></p>
                         </div>
                         <div className="w-full h-24 bg-gradient-to-t from-slate-200 to-slate-100 rounded-t-xl border-t-4 border-slate-300 relative shadow-inner flex justify-center">
                           <div className="absolute -top-6 bg-white rounded-full p-1 shadow-md border border-slate-200">
@@ -457,7 +457,7 @@ export default function QuizTakingPage() {
                       <div className="flex flex-col items-center w-1/3 relative z-10 -mx-2">
                         <div className="text-center mb-8 px-1">
                           <p className="text-sm font-black text-yellow-600 truncate w-full" title={top3[0].display_name}>{top3[0].display_name}</p>
-                          <p className="font-black text-2xl text-slate-800">{top3[0].score.toString().replace('.', ',')}</p>
+                          <p className="font-black text-2xl text-slate-800">{top3[0].score.toString().replace('.', ',')} <span className="text-xs text-slate-400">/ 10</span></p>
                         </div>
                         <div className="w-full h-32 bg-gradient-to-t from-yellow-200 to-yellow-50 rounded-t-xl border-t-4 border-yellow-400 relative shadow-lg flex justify-center">
                           <div className="absolute -top-7 bg-white rounded-full p-1.5 shadow-md border border-yellow-200">
@@ -472,7 +472,7 @@ export default function QuizTakingPage() {
                       <div className="flex flex-col items-center w-1/3 relative">
                         <div className="text-center mb-4 px-1">
                           <p className="text-xs font-bold text-slate-700 truncate w-full" title={top3[2].display_name}>{top3[2].display_name}</p>
-                          <p className="font-black text-lg text-slate-800">{top3[2].score.toString().replace('.', ',')}</p>
+                          <p className="font-black text-lg text-slate-800">{top3[2].score.toString().replace('.', ',')} <span className="text-[10px] text-slate-400">/ 10</span></p>
                         </div>
                         <div className="w-full h-20 bg-gradient-to-t from-amber-200/50 to-amber-50 rounded-t-xl border-t-4 border-amber-600/50 relative shadow-inner flex justify-center">
                           <div className="absolute -top-6 bg-white rounded-full p-1 shadow-md border border-amber-100">
@@ -485,29 +485,39 @@ export default function QuizTakingPage() {
                   </div>
 
                   {restOfLeaderboard.length > 0 && (
-                    <div className="space-y-3 mt-6 border-t border-slate-100 pt-6">
+                    <div className="space-y-3 mt-8 border-t border-slate-100 pt-6">
                       <div className="overflow-x-auto hide-scrollbar pb-2">
-                        <table className="w-full text-left border-collapse min-w-[300px]">
+                        {/* THÊM min-w-[500px] VÀO ĐÂY ĐỂ TRÁNH BỊ BÓP BẢNG TRÊN ĐIỆN THOẠI */}
+                        <table className="w-full text-left border-collapse min-w-[500px]">
+                          <thead>
+                            <tr className="text-slate-400 text-[10px] uppercase tracking-wider border-b border-slate-100">
+                              <th className="pb-3 pr-2 font-bold w-12 text-center">Hạng</th>
+                              <th className="pb-3 px-2 font-bold">Học sinh</th>
+                              <th className="pb-3 px-2 font-bold text-center">Thời gian</th>
+                              <th className="pb-3 pl-2 font-bold text-right w-28">Điểm</th>
+                            </tr>
+                          </thead>
                           <tbody className="divide-y divide-slate-50 text-sm font-medium text-slate-700">
                             {restOfLeaderboard.map((user, idx) => (
                               <tr key={idx} className="hover:bg-slate-50/50 transition">
-                                <td className="py-3 pr-3">
-                                  <div className="w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs bg-slate-200 text-slate-600 shrink-0">
+                                <td className="py-3 pr-2">
+                                  <div className="w-7 h-7 mx-auto rounded-full flex items-center justify-center font-bold text-xs bg-slate-200 text-slate-600 shrink-0">
                                     {idx + 4}
                                   </div>
                                 </td>
                                 <td className="py-3 px-2 w-full">
                                   <div className="flex flex-col min-w-0">
                                     <p className="font-bold text-sm text-slate-700 truncate max-w-[120px] md:max-w-[160px]" title={user.display_name}>{user.display_name}</p>
-                                    <div className="flex items-center gap-2 text-[10px] text-slate-400 mt-0.5">
-                                      {user.class_name && <span className="truncate max-w-[60px]">{user.class_name}</span>}
-                                      <span className="flex items-center gap-0.5 shrink-0"><Clock size={10}/> {formatTime(user.time_taken)}</span>
-                                    </div>
+                                    {user.class_name && <span className="text-[10px] text-slate-400 mt-0.5 truncate">{user.class_name}</span>}
                                   </div>
                                 </td>
-                                <td className="py-3 pl-3 text-right whitespace-nowrap">
-                                  <div className="inline-flex items-center justify-center px-2 py-1 bg-emerald-50 text-emerald-700 font-black rounded-lg border border-emerald-200 min-w-[70px]">
-                                    {user.score.toString().replace('.', ',')}
+                                <td className="py-3 px-2 text-center whitespace-nowrap">
+                                  <span className="inline-flex items-center justify-center gap-1 text-xs text-slate-500"><Clock size={12}/> {formatTime(user.time_taken)}</span>
+                                </td>
+                                <td className="py-3 pl-2 text-right whitespace-nowrap">
+                                  {/* Ép kích thước khung điểm và chống ngắt dòng */}
+                                  <div className="inline-flex items-center justify-center px-3 py-1.5 bg-emerald-50 text-emerald-700 font-black rounded-xl border border-emerald-200 min-w-[80px]">
+                                    {user.score.toString().replace('.', ',')} / 10
                                   </div>
                                 </td>
                               </tr>
