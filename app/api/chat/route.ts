@@ -1,38 +1,29 @@
-import { NextResponse } from 'next/server';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { streamText } from 'ai';
+import { createGoogleGenerativeAI } from '@ai-sdk/google';
 
 export const dynamic = 'force-dynamic';
 
 export async function POST(req: Request) {
   try {
-    const apiKey = process.env.GEMINI_API_KEY;
-    
-    if (!apiKey) {
-      return NextResponse.json({ reply: "Lỗi cấu hình: Vercel không tìm thấy GEMINI_API_KEY." }, { status: 500 });
-    }
-
-    const { message, history } = await req.json();
-    
-    const genAI = new GoogleGenerativeAI(apiKey);
-    
-    // Cập nhật model thế hệ mới nhất: gemini-3.6-flash
-    const model = genAI.getGenerativeModel({ 
-      model: "gemini-3.6-flash",
-      systemInstruction: "Bạn là một giáo viên Ngữ Văn THCS tâm huyết, chuyên môn cao. Nhiệm vụ của bạn là hỗ trợ học sinh cấp 2 phân tích tác phẩm, lập dàn ý, và ôn thi vào lớp 10. Luôn xưng hô là 'Cô/Thầy' hoặc 'Trợ lý' và gọi người dùng là 'bạn' hoặc 'em'. Hãy trả lời thân thiện, dễ hiểu, có cảm xúc. Hướng dẫn học sinh cách làm bài thay vì chỉ đưa ra bài văn mẫu giải sẵn."
+    // 1. Thêm "as string" để báo cho TypeScript biết API Key chắc chắn tồn tại
+    const google = createGoogleGenerativeAI({
+      apiKey: process.env.GEMINI_API_KEY as string,
     });
 
-    const formattedHistory = (history || []).map((msg: any) => ({
-      role: msg.role === 'user' ? 'user' : 'model',
-      parts: [{ text: msg.content }]
-    }));
+    // 2. Nhận tin nhắn từ Client
+    const { messages } = await req.json();
 
-    const chat = model.startChat({ history: formattedHistory });
-    const result = await chat.sendMessage(message);
-    const response = await result.response;
+    // 3. Gọi model và truyền hướng dẫn đóng vai
+    const result = await streamText({
+      model: google('gemini-1.5-flash'), // Có thể đổi thành gemini-3.6-flash nếu muốn
+      system: "Bạn là một giáo viên Ngữ Văn THCS tâm huyết, chuyên môn cao. Nhiệm vụ của bạn là hỗ trợ học sinh cấp 2 phân tích tác phẩm, lập dàn ý, và ôn thi vào lớp 10. Luôn xưng hô là 'Cô/Thầy' hoặc 'Trợ lý' và gọi người dùng là 'bạn' hoặc 'em'. Hãy trả lời thân thiện, dễ hiểu, có cảm xúc. Hướng dẫn học sinh cách làm bài thay vì chỉ đưa ra bài văn mẫu giải sẵn.",
+      messages,
+    });
 
-    return NextResponse.json({ reply: response.text() });
+    // 4. Dùng toTextStreamResponse() để đảm bảo tương thích mọi phiên bản thư viện AI
+    return result.toTextStreamResponse();
   } catch (error) {
     console.error("Chat API Error:", error);
-    return NextResponse.json({ reply: "Xin lỗi, hệ thống AI đang bận hoặc quá tải. Vui lòng thử lại sau vài giây!" }, { status: 500 });
+    return new Response("Lỗi hệ thống", { status: 500 });
   }
 }

@@ -8,12 +8,14 @@
     "start": "next start"
   },
   "dependencies": {
+    "@ai-sdk/google": "^4.0.42",
     "@base-ui/react": "^1.5.0",
     "@ducanh2912/next-pwa": "^10.2.9",
     "@google/generative-ai": "^0.24.1",
     "@supabase/ssr": "^0.12.4",
     "@supabase/supabase-js": "^2.112.2",
     "@vercel/analytics": "1.6.1",
+    "ai": "^7.0.62",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^1.16.0",
