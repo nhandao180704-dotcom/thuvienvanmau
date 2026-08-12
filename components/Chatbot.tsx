@@ -12,37 +12,31 @@ export default function Chatbot() {
   const [copiedId, setCopiedId] = useState<string | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
-  // Gọi trực tiếp useChat và "làm mù" TypeScript bằng any
+  // Gọi trực tiếp useChat và "làm mù" TypeScript bằng any để triệt tiêu mọi gạch đỏ
   const chatInstance = useChat({ api: '/api/chat' } as any) as any
 
-  // Bóc tách dữ liệu một cách an toàn nhất, nếu không có thì lấy giá trị rỗng
+  // Bóc tách dữ liệu an toàn
   const messages = chatInstance?.messages || []
   const input = chatInstance?.input || ''
   const handleInputChange = chatInstance?.handleInputChange || (() => {})
   const isLoading = chatInstance?.isLoading || false
   const setMessages = chatInstance?.setMessages || (() => {})
 
-  // Tự tạo hàm Gửi để tương thích ngược với mọi kiểu (dùng append, sendMessage, hay handleSubmit đều được)
+  // HÀM GỬI TIN NHẮN ĐÃ ĐƯỢC BỔ SUNG ĐẦY ĐỦ VÀ AN TOÀN
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault()
     const textToSend = input.trim()
     if (!textToSend || isLoading) return
 
-    // Xóa ô nhập ngay lập tức
-    if (chatInstance?.setInput) {
-      chatInstance.setInput('')
-    } else {
-      // Dùng cách hack event giả lập nếu không có setInput
-      handleInputChange({ target: { value: '' } } as any)
-    }
+    // Xóa ô nhập ngay lập tức bằng cách gán giá trị rỗng qua handleInputChange
+    handleInputChange({ target: { value: '' } } as any)
 
-    // Ưu tiên dùng hàm mới nhất, nếu không có thì dùng hàm cũ
+    // Tương thích ngược với mọi phiên bản SDK (append, sendMessage hay handleSubmit)
     if (chatInstance?.append) {
       await chatInstance.append({ role: 'user', content: textToSend })
     } else if (chatInstance?.sendMessage) {
       chatInstance.sendMessage({ content: textToSend, text: textToSend })
     } else if (chatInstance?.handleSubmit) {
-      // Dùng handleSubmit có sẵn
       chatInstance.handleSubmit(e)
     } else {
       alert("Lỗi: Không tìm thấy phương thức gửi tin nhắn trong phiên bản AI SDK này.")
@@ -71,7 +65,7 @@ export default function Chatbot() {
     }
   }, [messages])
 
-  // Tự động cuộn
+  // Tự động cuộn xuống dưới cùng
   useEffect(() => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' })
@@ -95,7 +89,7 @@ export default function Chatbot() {
   const isTakingQuiz = pathname?.startsWith('/practice/') && pathname !== '/practice'
   if (isTakingQuiz) return null
 
-  // Đọc nội dung an toàn
+  // Đọc nội dung an toàn từ các định dạng khác nhau của tin nhắn
   const getMessageText = (msg: any) => {
     if (typeof msg.content === 'string') return msg.content;
     if (typeof msg.text === 'string') return msg.text;
@@ -196,6 +190,7 @@ export default function Chatbot() {
           <div ref={messagesEndRef} />
         </div>
 
+        {/* Gắn hàm handleSend vào form */}
         <form onSubmit={handleSend} className="p-3 bg-white border-t border-slate-100 shrink-0">
           <div className="relative flex items-center">
             <input
