@@ -15,9 +15,10 @@ export async function POST(req: Request) {
     
     const genAI = new GoogleGenerativeAI(apiKey);
     
-    // Khởi tạo model gemini-pro thuần túy, tuyệt đối KHÔNG chứa systemInstruction để tránh lỗi 404
+    // Cập nhật model thế hệ mới nhất: gemini-3.6-flash
     const model = genAI.getGenerativeModel({ 
-      model: "gemini-pro" 
+      model: "gemini-3.6-flash",
+      systemInstruction: "Bạn là một giáo viên Ngữ Văn THCS tâm huyết, chuyên môn cao. Nhiệm vụ của bạn là hỗ trợ học sinh cấp 2 phân tích tác phẩm, lập dàn ý, và ôn thi vào lớp 10. Luôn xưng hô là 'Cô/Thầy' hoặc 'Trợ lý' và gọi người dùng là 'bạn' hoặc 'em'. Hãy trả lời thân thiện, dễ hiểu, có cảm xúc. Hướng dẫn học sinh cách làm bài thay vì chỉ đưa ra bài văn mẫu giải sẵn."
     });
 
     const formattedHistory = (history || []).map((msg: any) => ({
