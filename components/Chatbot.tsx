@@ -4,7 +4,15 @@ import { useState, useRef, useEffect } from 'react'
 import { usePathname } from 'next/navigation'
 import { MessageCircle, X, Send, Bot, User, Sparkles, Copy, Trash2, Check } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
-import { useChat } from 'ai/react' // Import thư viện quản lý Chat chuyên nghiệp
+// Import thêm type Message để fix triệt để lỗi gạch đỏ TypeScript
+import { useChat, type Message } from '@ai-sdk/react' 
+
+// Khai báo tin nhắn chào mừng chuẩn định dạng của Vercel AI
+const welcomeMessage: Message = { 
+  id: 'welcome', 
+  role: 'assistant', 
+  content: 'Chào bạn! Mình là Trợ lý AI của Thư Viện Văn Mẫu. Mình có thể giúp bạn lập dàn ý, giải đáp thắc mắc tác phẩm, hoặc ôn thi Ngữ Văn. Bạn cần hỗ trợ gì nào?' 
+}
 
 export default function Chatbot() {
   const pathname = usePathname()
@@ -12,38 +20,38 @@ export default function Chatbot() {
   const [copiedId, setCopiedId] = useState<string | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
-  // 1. Khởi tạo useChat (Tự động lo việc gọi API, Streaming và quản lý state)
+  // 1. Khởi tạo useChat
   const { messages, input, handleInputChange, handleSubmit, isLoading, setMessages } = useChat({
     api: '/api/chat',
-    initialMessages: [
-      { id: 'welcome', role: 'assistant', content: 'Chào bạn! Mình là Trợ lý AI của Thư Viện Văn Mẫu. Mình có thể giúp bạn lập dàn ý, giải đáp thắc mắc tác phẩm, hoặc ôn thi Ngữ Văn. Bạn cần hỗ trợ gì nào?' }
-    ]
+    initialMessages: [welcomeMessage]
   })
 
-  // 2. Tính năng LƯU LỊCH SỬ vào Local Storage
+  // 2. Lấy lịch sử (Ép kiểu dữ liệu as Message[] để TypeScript không báo lỗi)
   useEffect(() => {
     const saved = localStorage.getItem('chat_history')
     if (saved) {
       try {
-        const parsed = JSON.parse(saved)
+        const parsed = JSON.parse(saved) as Message[]
         if (parsed.length > 1) setMessages(parsed)
       } catch (e) {}
     }
   }, [setMessages])
 
+  // 3. Lưu lịch sử
   useEffect(() => {
     if (messages.length > 1) {
       localStorage.setItem('chat_history', JSON.stringify(messages))
     }
   }, [messages])
 
-  // 3. Các hàm tiện ích
+  // 4. Các hàm tiện ích
   const scrollToBottom = () => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   useEffect(() => scrollToBottom(), [messages, isOpen])
 
   const clearChat = () => {
     if(confirm('Bạn có chắc muốn xóa toàn bộ lịch sử trò chuyện?')) {
-      setMessages([{ id: 'welcome', role: 'assistant', content: 'Chào bạn! Mình là Trợ lý AI của Thư Viện Văn Mẫu. Mình cần hỗ trợ gì nào?' }])
+      // Dùng lại format chuẩn của welcomeMessage
+      setMessages([{ ...welcomeMessage, content: 'Chào bạn! Mình là Trợ lý AI của Thư Viện Văn Mẫu. Mình cần hỗ trợ gì nào?' }])
       localStorage.removeItem('chat_history')
     }
   }
@@ -54,7 +62,7 @@ export default function Chatbot() {
     setTimeout(() => setCopiedId(null), 2000)
   }
 
-  // 4. Logic ẩn Chatbot ở trang thi
+  // 5. Logic ẩn Chatbot ở trang thi
   const isTakingQuiz = pathname?.startsWith('/practice/') && pathname !== '/practice'
   if (isTakingQuiz) return null
 
