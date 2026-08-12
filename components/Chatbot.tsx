@@ -60,7 +60,7 @@ export default function Chatbot() {
   const isTakingQuiz = pathname?.startsWith('/practice/') && pathname !== '/practice'
   if (isTakingQuiz) return null
 
-  // Hàm gửi tin nhắn trực tiếp qua fetch API cực kỳ ổn định
+  // Hàm gửi tin nhắn nhận dữ liệu JSON chuẩn xác
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault()
     const textToSend = input.trim()
@@ -86,33 +86,29 @@ export default function Chatbot() {
         })
       })
 
+      const data = await response.json()
+
       if (!response.ok) {
-        throw new Error('Lỗi kết nối từ server AI')
+        throw new Error(data.error || 'Lỗi kết nối từ server AI')
       }
 
-      // Đọc dữ liệu trả về từ stream của AI
-      const reader = response.body?.getReader()
-      const decoder = new TextDecoder()
-      let aiResponseText = ''
-
-      const aiMessageId = (Date.now() + 1).toString()
-      setMessages(prev => [...prev, { id: aiMessageId, role: 'assistant', content: '' }])
-
-      if (reader) {
-        while (true) {
-          const { done, value } = await reader.read()
-          if (done) break
-          const chunk = decoder.decode(value, { stream: true })
-          aiResponseText += chunk
-          
-          setMessages(prev => 
-            prev.map(msg => msg.id === aiMessageId ? { ...msg, content: aiResponseText } : msg)
-          )
-        }
+      const aiMessage = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: data.text || 'Không có phản hồi từ AI.'
       }
+
+      setMessages(prev => [...prev, aiMessage])
     } catch (error) {
       console.error('Lỗi chat:', error)
-      setMessages(prev => [...prev, { id: Date.now().toString(), role: 'assistant', content: 'Xin lỗi, hiện tại hệ thống AI đang gặp chút sự cố kết nối. Bạn vui lòng thử lại sau nhé!' }])
+      setMessages(prev => [
+        ...prev, 
+        { 
+          id: Date.now().toString(), 
+          role: 'assistant', 
+          content: 'Xin lỗi, hiện tại hệ thống AI đang gặp chút sự cố kết nối. Bạn vui lòng thử lại sau nhé!' 
+        }
+      ])
     } finally {
       setIsLoading(false)
     }
@@ -164,7 +160,7 @@ export default function Chatbot() {
 
           {messages.map((msg: any) => {
             const messageText = msg.content || '';
-            if (!messageText && msg.role === 'assistant' && isLoading) return null;
+            if (!messageText) return null;
 
             return (
               <div key={msg.id} className={`flex gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : 'group'}`}>
@@ -194,7 +190,7 @@ export default function Chatbot() {
             )
           })}
 
-          {isLoading && messages[messages.length - 1]?.role === 'user' && (
+          {isLoading && (
             <div className="flex gap-3">
               <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 bg-blue-600 text-white shadow-sm">
                 <Bot size={16} />
