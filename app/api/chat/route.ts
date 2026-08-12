@@ -1,48 +1,35 @@
+import { createGoogleGenerativeAI } from '@ai-sdk/google';
+import { generateText } from 'ai';
+
 export const dynamic = 'force-dynamic';
 
 export async function POST(req: Request) {
   try {
     const { messages } = await req.json();
-    const apiKey = process.env.GEMINI_API_KEY;
 
-    if (!apiKey) {
-      console.error("Lỗi: GEMINI_API_KEY chưa được cấu hình.");
-      return Response.json({ error: "Chưa cấu hình khóa API." }, { status: 500 });
-    }
-
-    const contents = messages.map((m: any) => ({
-      role: m.role === 'user' ? 'user' : 'model',
-      parts: [{ text: m.content }]
-    }));
-
-    const systemInstruction = {
-      parts: [{ text: "Bạn là một giáo viên Ngữ Văn THCS tâm huyết, chuyên môn cao. Nhiệm vụ của bạn là hỗ trợ học sinh cấp 2 phân tích tác phẩm, lập dàn ý, và ôn thi vào lớp 10. Luôn xưng hô là 'Cô/Thầy' hoặc 'Trợ lý' và gọi người dùng là 'bạn' hoặc 'em'. Hãy trả lời thân thiện, dễ hiểu, có cảm xúc. Hướng dẫn học sinh cách làm bài thay vì chỉ đưa ra bài văn mẫu giải sẵn." }]
-    };
-
-    // Sử dụng model gemini-1.5-pro với endpoint v1
-    const apiUrl = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-pro:generateContent?key=${apiKey}`;
-
-    const apiResponse = await fetch(apiUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents,
-        systemInstruction,
-      })
+    // 1. Khởi tạo SDK kết nối với biến môi trường GEMINI_API_KEY trên Vercel của bạn
+    const google = createGoogleGenerativeAI({
+      apiKey: process.env.GEMINI_API_KEY || '',
     });
 
-    const data = await apiResponse.json();
+    // 2. Chuyển đổi lịch sử tin nhắn sang định dạng chuẩn của SDK
+    const formattedMessages = messages.map((m: any) => ({
+      role: m.role === 'user' ? 'user' : 'assistant',
+      content: m.content
+    }));
 
-    if (!apiResponse.ok) {
-        console.error("Lỗi từ Google API:", data);
-        throw new Error(data.error?.message || "Lỗi khi gọi Google Gemini API");
-    }
+    // 3. Sử dụng generateText thay vì fetch thủ công. 
+    // SDK sẽ tự động đàm phán endpoint chính xác nhất với Google.
+    const { text } = await generateText({
+      model: google('gemini-1.5-flash'), 
+      system: "Bạn là một giáo viên Ngữ Văn THCS tâm huyết, chuyên môn cao. Nhiệm vụ của bạn là hỗ trợ học sinh cấp 2 phân tích tác phẩm, lập dàn ý, và ôn thi vào lớp 10. Luôn xưng hô là 'Cô/Thầy' hoặc 'Trợ lý' và gọi người dùng là 'bạn' hoặc 'em'. Hãy trả lời thân thiện, dễ hiểu, có cảm xúc. Hướng dẫn học sinh cách làm bài thay vì chỉ đưa ra bài văn mẫu giải sẵn.",
+      messages: formattedMessages,
+    });
 
-    const aiText = data.candidates?.[0]?.content?.parts?.[0]?.text || "Không có phản hồi từ AI.";
-
-    return Response.json({ text: aiText });
+    // 4. Trả kết quả về cho frontend
+    return Response.json({ text });
   } catch (error: any) {
-    console.error("Chat API Error - Backend:", error);
+    console.error("Lỗi Vercel AI SDK:", error);
     return Response.json({ error: error.message || "Lỗi hệ thống từ server AI" }, { status: 500 });
   }
 }
