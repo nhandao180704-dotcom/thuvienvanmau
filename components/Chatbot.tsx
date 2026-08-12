@@ -4,7 +4,6 @@ import { useState, useRef, useEffect } from 'react'
 import { usePathname } from 'next/navigation'
 import { MessageCircle, X, Send, Bot, User, Sparkles, Copy, Trash2, Check } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
-import { useChat } from '@ai-sdk/react'
 
 export default function Chatbot() {
   const pathname = usePathname()
@@ -12,30 +11,11 @@ export default function Chatbot() {
   const [copiedId, setCopiedId] = useState<string | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
-  const [localInput, setLocalInput] = useState('')
+  const [input, setInput] = useState('')
+  const [messages, setMessages] = useState<any[]>([])
+  const [isLoading, setIsLoading] = useState(false)
 
-  const chatInstance = useChat({ api: '/api/chat' } as any) as any
-  const messages = chatInstance?.messages || []
-  const isLoading = chatInstance?.isLoading || false
-  const setMessages = chatInstance?.setMessages || (() => {})
-  const append = chatInstance?.append
-
-  const handleSend = async (e: React.FormEvent) => {
-    e.preventDefault()
-    const textToSend = localInput.trim()
-    if (!textToSend || isLoading) return
-
-    setLocalInput('')
-
-    if (append) {
-      await append({ role: 'user', content: textToSend })
-    } else if (chatInstance?.sendMessage) {
-      chatInstance.sendMessage({ content: textToSend, text: textToSend })
-    } else if (chatInstance?.handleSubmit) {
-      chatInstance.handleSubmit(e)
-    }
-  }
-
+  // Khôi phục lịch sử chat từ localStorage
   useEffect(() => {
     try {
       const saved = localStorage.getItem('chat_history')
@@ -48,14 +28,16 @@ export default function Chatbot() {
     } catch (e) {
       localStorage.removeItem('chat_history')
     }
-  }, [setMessages])
+  }, [])
 
+  // Lưu lịch sử chat
   useEffect(() => {
     if (messages.length > 0) {
       localStorage.setItem('chat_history', JSON.stringify(messages))
     }
   }, [messages])
 
+  // Tự động cuộn xuống dưới cùng
   useEffect(() => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' })
@@ -78,18 +60,62 @@ export default function Chatbot() {
   const isTakingQuiz = pathname?.startsWith('/practice/') && pathname !== '/practice'
   if (isTakingQuiz) return null
 
-  // HÀM ĐỌC NỘI DUNG AN TOÀN, HỖ TRỢ MỌI CẤU TRÚC (content, text, parts)
-  const getMessageText = (msg: any) => {
-    if (!msg) return '';
-    if (typeof msg.content === 'string') return msg.content;
-    if (typeof msg.text === 'string') return msg.text;
-    if (Array.isArray(msg.parts)) {
-      return msg.parts.map((p: any) => p.text || '').join('');
+  // Hàm gửi tin nhắn trực tiếp qua fetch API cực kỳ ổn định
+  const handleSendMessage = async (e: React.FormEvent) => {
+    e.preventDefault()
+    const textToSend = input.trim()
+    if (!textToSend || isLoading) return
+
+    const userMessage = {
+      id: Date.now().toString(),
+      role: 'user',
+      content: textToSend
     }
-    if (Array.isArray(msg.content)) {
-      return msg.content.map((p: any) => p.text || '').join('');
+
+    const updatedMessages = [...messages, userMessage]
+    setMessages(updatedMessages)
+    setInput('')
+    setIsLoading(true)
+
+    try {
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: updatedMessages.map(m => ({ role: m.role, content: m.content }))
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error('Lỗi kết nối từ server AI')
+      }
+
+      // Đọc dữ liệu trả về từ stream của AI
+      const reader = response.body?.getReader()
+      const decoder = new TextDecoder()
+      let aiResponseText = ''
+
+      const aiMessageId = (Date.now() + 1).toString()
+      setMessages(prev => [...prev, { id: aiMessageId, role: 'assistant', content: '' }])
+
+      if (reader) {
+        while (true) {
+          const { done, value } = await reader.read()
+          if (done) break
+          const chunk = decoder.decode(value, { stream: true })
+          aiResponseText += chunk
+          
+          setMessages(prev => 
+            prev.map(msg => msg.id === aiMessageId ? { ...msg, content: aiResponseText } : msg)
+          )
+        }
+      }
+    } catch (error) {
+      console.error('Lỗi chat:', error)
+      setMessages(prev => [...prev, { id: Date.now().toString(), role: 'assistant', content: 'Xin lỗi, hiện tại hệ thống AI đang gặp chút sự cố kết nối. Bạn vui lòng thử lại sau nhé!' }])
+    } finally {
+      setIsLoading(false)
     }
-    return '';
   }
 
   return (
@@ -125,8 +151,7 @@ export default function Chatbot() {
         </div>
 
         <div className="flex-1 overflow-y-auto p-4 space-y-5 bg-[#F4F7FB]">
-          
-          {(!messages || messages.length === 0) && (
+          {messages.length === 0 && (
             <div className="flex gap-3">
               <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 shadow-sm bg-blue-600 text-white">
                 <Sparkles size={16} />
@@ -137,9 +162,9 @@ export default function Chatbot() {
             </div>
           )}
 
-          {(messages || []).map((msg: any) => {
-            const messageText = getMessageText(msg);
-            if (!messageText) return null;
+          {messages.map((msg: any) => {
+            const messageText = msg.content || '';
+            if (!messageText && msg.role === 'assistant' && isLoading) return null;
 
             return (
               <div key={msg.id} className={`flex gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : 'group'}`}>
@@ -169,7 +194,7 @@ export default function Chatbot() {
             )
           })}
 
-          {isLoading && (
+          {isLoading && messages[messages.length - 1]?.role === 'user' && (
             <div className="flex gap-3">
               <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 bg-blue-600 text-white shadow-sm">
                 <Bot size={16} />
@@ -185,22 +210,22 @@ export default function Chatbot() {
           <div ref={messagesEndRef} />
         </div>
 
-        <form onSubmit={handleSend} className="p-3 bg-white border-t border-slate-100 shrink-0">
+        <form onSubmit={handleSendMessage} className="p-3 bg-white border-t border-slate-100 shrink-0">
           <div className="relative flex items-center">
             <input
               type="text"
-              value={localInput}
-              onChange={(e) => setLocalInput(e.target.value)}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
               placeholder="Nhập câu hỏi của bạn..."
               className="w-full pl-4 pr-12 py-3.5 bg-slate-50 border border-slate-200 rounded-full focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all text-sm font-medium"
               disabled={isLoading}
             />
             <button
               type="submit"
-              disabled={!localInput.trim() || isLoading}
+              disabled={!input.trim() || isLoading}
               className="absolute right-1.5 p-2.5 bg-blue-600 text-white rounded-full hover:bg-blue-700 disabled:opacity-50 disabled:hover:bg-blue-600 transition-all active:scale-90"
             >
-              <Send size={16} className={localInput.trim() && !isLoading ? 'translate-x-0.5 -translate-y-0.5' : ''} />
+              <Send size={16} className={input.trim() && !isLoading ? 'translate-x-0.5 -translate-y-0.5' : ''} />
             </button>
           </div>
         </form>
