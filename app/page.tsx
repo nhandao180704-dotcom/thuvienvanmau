@@ -96,7 +96,7 @@ export default function LibraryPage() {
       <Navbar />
 
       {/* Phần Header màu xanh với hiệu ứng chuyển động */}
-      <div className="relative min-h-[480px] md:h-[600px] w-full overflow-hidden flex items-center justify-center pb-8 px-4 box-border">
+      <div className="relative min-h-[480px] md:h-[600px] w-full overflow-hidden flex items-center justify-center pb-8 px-4 box-border z-20">
         {BANNERS.map((banner, index) => (
           <div 
             key={index}
@@ -150,12 +150,12 @@ export default function LibraryPage() {
         </div>
       </div>
 
-      <div 
-        className="w-full min-h-screen pb-20 bg-no-repeat bg-center bg-cover bg-fixed"
-        style={{ 
-          backgroundImage: "url('/bg-van-hoc.jpg')"
-        }}
-      >
+      {/* SỬA LỖI HÌNH NỀN IOS BẰNG WRAPPER CÓ STICKY HEIGHT 100DVH */}
+      <div className="relative w-full min-h-screen pb-20">
+        <div className="absolute inset-0 z-0 pointer-events-none">
+          <div className="sticky top-0 w-full h-[100dvh] bg-[url('/bg-van-hoc.jpg')] bg-cover bg-center bg-no-repeat"></div>
+        </div>
+
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 relative z-30 w-full box-border">
           <div className="flex flex-col lg:flex-row gap-8 lg:gap-10 w-full">
             <div className="flex-1 space-y-6 md:space-y-8 w-full max-w-full overflow-hidden">
