@@ -12,23 +12,20 @@ export default function Chatbot() {
   const [copiedId, setCopiedId] = useState<string | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
-  // 1. Dùng state riêng cho ô nhập chữ để bạn gõ thoải mái không bao giờ bị đơ
   const [localInput, setLocalInput] = useState('')
 
-  // 2. Gọi useChat tiêu chuẩn
   const chatInstance = useChat({ api: '/api/chat' } as any) as any
   const messages = chatInstance?.messages || []
   const isLoading = chatInstance?.isLoading || false
   const setMessages = chatInstance?.setMessages || (() => {})
   const append = chatInstance?.append
 
-  // 3. Hàm gửi tin nhắn độc lập cực kỳ an toàn
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault()
     const textToSend = localInput.trim()
     if (!textToSend || isLoading) return
 
-    setLocalInput('') // Xóa trắng ô nhập ngay lập tức
+    setLocalInput('')
 
     if (append) {
       await append({ role: 'user', content: textToSend })
@@ -39,7 +36,6 @@ export default function Chatbot() {
     }
   }
 
-  // Khôi phục lịch sử chat
   useEffect(() => {
     try {
       const saved = localStorage.getItem('chat_history')
@@ -54,21 +50,18 @@ export default function Chatbot() {
     }
   }, [setMessages])
 
-  // Lưu lịch sử chat
   useEffect(() => {
     if (messages.length > 0) {
       localStorage.setItem('chat_history', JSON.stringify(messages))
     }
   }, [messages])
 
-  // Tự động cuộn xuống dưới cùng
   useEffect(() => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' })
     }
   }, [messages, isOpen])
 
-  // Xóa lịch sử
   const clearChat = () => {
     if (confirm('Bạn có chắc muốn xóa toàn bộ lịch sử trò chuyện?')) {
       setMessages([])
@@ -85,11 +78,17 @@ export default function Chatbot() {
   const isTakingQuiz = pathname?.startsWith('/practice/') && pathname !== '/practice'
   if (isTakingQuiz) return null
 
-  // Đọc nội dung an toàn từ các định dạng tin nhắn khác nhau
+  // HÀM ĐỌC NỘI DUNG AN TOÀN, HỖ TRỢ MỌI CẤU TRÚC (content, text, parts)
   const getMessageText = (msg: any) => {
+    if (!msg) return '';
     if (typeof msg.content === 'string') return msg.content;
     if (typeof msg.text === 'string') return msg.text;
-    if (msg.parts && Array.isArray(msg.parts)) return msg.parts.map((p: any) => p.text || '').join('');
+    if (Array.isArray(msg.parts)) {
+      return msg.parts.map((p: any) => p.text || '').join('');
+    }
+    if (Array.isArray(msg.content)) {
+      return msg.content.map((p: any) => p.text || '').join('');
+    }
     return '';
   }
 
@@ -186,7 +185,6 @@ export default function Chatbot() {
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Form gửi tin nhắn dùng localInput */}
         <form onSubmit={handleSend} className="p-3 bg-white border-t border-slate-100 shrink-0">
           <div className="relative flex items-center">
             <input
