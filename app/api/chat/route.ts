@@ -1,24 +1,45 @@
-import { generateText } from 'ai';
-import { createGoogleGenerativeAI } from '@ai-sdk/google';
-
 export const dynamic = 'force-dynamic';
 
 export async function POST(req: Request) {
   try {
-    const google = createGoogleGenerativeAI({
-      apiKey: process.env.GEMINI_API_KEY as string,
-    });
-
     const { messages } = await req.json();
+    const apiKey = process.env.GEMINI_API_KEY;
 
-    const result = await generateText({
-      // Sử dụng model chuẩn cập nhật mới nhất của Google
-      model: google('gemini-1.5-flash-latest'),
-      system: "Bạn là một giáo viên Ngữ Văn THCS tâm huyết, chuyên môn cao. Nhiệm vụ của bạn là hỗ trợ học sinh cấp 2 phân tích tác phẩm, lập dàn ý, và ôn thi vào lớp 10. Luôn xưng hô là 'Cô/Thầy' hoặc 'Trợ lý' và gọi người dùng là 'bạn' hoặc 'em'. Hãy trả lời thân thiện, dễ hiểu, có cảm xúc. Hướng dẫn học sinh cách làm bài thay vì chỉ đưa ra bài văn mẫu giải sẵn.",
-      messages,
+    if (!apiKey) {
+      return Response.json({ error: "Chưa cấu hình GEMINI_API_KEY trên môi trường." }, { status: 500 });
+    }
+
+    // Chuyển đổi định dạng messages của frontend sang định dạng contents của Gemini API
+    const contents = messages.map((m: any) => ({
+      role: m.role === 'user' ? 'user' : 'model',
+      parts: [{ text: m.content }]
+    }));
+
+    // Thêm system instruction vào đầu hoặc dùng cấu hình systemInstruction của Gemini
+    const systemInstruction = {
+      parts: [{ text: "Bạn là một giáo viên Ngữ Văn THCS tâm huyết, chuyên môn cao. Nhiệm vụ của bạn là hỗ trợ học sinh cấp 2 phân tích tác phẩm, lập dàn ý, và ôn thi vào lớp 10. Luôn xưng hô là 'Cô/Thầy' hoặc 'Trợ lý' và gọi người dùng là 'bạn' hoặc 'em'. Hãy trả lời thân thiện, dễ hiểu, có cảm xúc. Hướng dẫn học sinh cách làm bài thay vì chỉ đưa ra bài văn mẫu giải sẵn." }]
+    };
+
+    // Gọi trực tiếp Gemini API v1beta bằng fetch tiêu chuẩn
+    const apiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents,
+        systemInstruction,
+      })
     });
 
-    return Response.json({ text: result.text });
+    const data = await apiResponse.json();
+
+    if (!apiResponse.ok) {
+      throw new Error(data.error?.message || "Lỗi khi gọi Google Gemini API");
+    }
+
+    // Lấy nội dung câu trả lời từ cấu trúc trả về của Gemini
+    const aiText = data.candidates?.[0]?.content?.parts?.[0]?.text || "Không có phản hồi từ AI.";
+
+    return Response.json({ text: aiText });
   } catch (error: any) {
     console.error("Chat API Error:", error);
     return Response.json({ error: error.message || "Lỗi hệ thống từ server AI" }, { status: 500 });
