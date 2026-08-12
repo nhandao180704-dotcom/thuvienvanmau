@@ -12,34 +12,30 @@ export default function Chatbot() {
   const [copiedId, setCopiedId] = useState<string | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
-  // Gọi trực tiếp useChat và "làm mù" TypeScript bằng any để triệt tiêu mọi gạch đỏ
-  const chatInstance = useChat({ api: '/api/chat' } as any) as any
+  // 1. Dùng state riêng cho ô nhập chữ để bạn gõ thoải mái không bao giờ bị đơ
+  const [localInput, setLocalInput] = useState('')
 
-  // Bóc tách dữ liệu an toàn
+  // 2. Gọi useChat tiêu chuẩn
+  const chatInstance = useChat({ api: '/api/chat' } as any) as any
   const messages = chatInstance?.messages || []
-  const input = chatInstance?.input || ''
-  const handleInputChange = chatInstance?.handleInputChange || (() => {})
   const isLoading = chatInstance?.isLoading || false
   const setMessages = chatInstance?.setMessages || (() => {})
+  const append = chatInstance?.append
 
-  // HÀM GỬI TIN NHẮN ĐÃ ĐƯỢC BỔ SUNG ĐẦY ĐỦ VÀ AN TOÀN
+  // 3. Hàm gửi tin nhắn độc lập cực kỳ an toàn
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault()
-    const textToSend = input.trim()
+    const textToSend = localInput.trim()
     if (!textToSend || isLoading) return
 
-    // Xóa ô nhập ngay lập tức bằng cách gán giá trị rỗng qua handleInputChange
-    handleInputChange({ target: { value: '' } } as any)
+    setLocalInput('') // Xóa trắng ô nhập ngay lập tức
 
-    // Tương thích ngược với mọi phiên bản SDK (append, sendMessage hay handleSubmit)
-    if (chatInstance?.append) {
-      await chatInstance.append({ role: 'user', content: textToSend })
+    if (append) {
+      await append({ role: 'user', content: textToSend })
     } else if (chatInstance?.sendMessage) {
       chatInstance.sendMessage({ content: textToSend, text: textToSend })
     } else if (chatInstance?.handleSubmit) {
       chatInstance.handleSubmit(e)
-    } else {
-      alert("Lỗi: Không tìm thấy phương thức gửi tin nhắn trong phiên bản AI SDK này.")
     }
   }
 
@@ -89,7 +85,7 @@ export default function Chatbot() {
   const isTakingQuiz = pathname?.startsWith('/practice/') && pathname !== '/practice'
   if (isTakingQuiz) return null
 
-  // Đọc nội dung an toàn từ các định dạng khác nhau của tin nhắn
+  // Đọc nội dung an toàn từ các định dạng tin nhắn khác nhau
   const getMessageText = (msg: any) => {
     if (typeof msg.content === 'string') return msg.content;
     if (typeof msg.text === 'string') return msg.text;
@@ -190,23 +186,23 @@ export default function Chatbot() {
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Gắn hàm handleSend vào form */}
+        {/* Form gửi tin nhắn dùng localInput */}
         <form onSubmit={handleSend} className="p-3 bg-white border-t border-slate-100 shrink-0">
           <div className="relative flex items-center">
             <input
               type="text"
-              value={input}
-              onChange={handleInputChange}
+              value={localInput}
+              onChange={(e) => setLocalInput(e.target.value)}
               placeholder="Nhập câu hỏi của bạn..."
               className="w-full pl-4 pr-12 py-3.5 bg-slate-50 border border-slate-200 rounded-full focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all text-sm font-medium"
               disabled={isLoading}
             />
             <button
               type="submit"
-              disabled={!input.trim() || isLoading}
+              disabled={!localInput.trim() || isLoading}
               className="absolute right-1.5 p-2.5 bg-blue-600 text-white rounded-full hover:bg-blue-700 disabled:opacity-50 disabled:hover:bg-blue-600 transition-all active:scale-90"
             >
-              <Send size={16} className={input.trim() && !isLoading ? 'translate-x-0.5 -translate-y-0.5' : ''} />
+              <Send size={16} className={localInput.trim() && !isLoading ? 'translate-x-0.5 -translate-y-0.5' : ''} />
             </button>
           </div>
         </form>
