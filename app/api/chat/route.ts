@@ -18,8 +18,8 @@ export async function POST(req: Request) {
       parts: [{ text: "Bạn là một giáo viên Ngữ Văn THCS tâm huyết, chuyên môn cao. Nhiệm vụ của bạn là hỗ trợ học sinh cấp 2 phân tích tác phẩm, lập dàn ý, và ôn thi vào lớp 10. Luôn xưng hô là 'Cô/Thầy' hoặc 'Trợ lý' và gọi người dùng là 'bạn' hoặc 'em'. Hãy trả lời thân thiện, dễ hiểu, có cảm xúc. Hướng dẫn học sinh cách làm bài thay vì chỉ đưa ra bài văn mẫu giải sẵn." }]
     };
 
-    // Sử dụng model gemini-2.5-flash mới nhất
-    const apiResponse = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+    // Sử dụng model gemini-1.5-flash trên endpoint v1 ổn định nhất
+    const apiResponse = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -41,4 +41,4 @@ export async function POST(req: Request) {
     console.error("Chat API Error:", error);
     return Response.json({ error: error.message || "Lỗi hệ thống từ server AI" }, { status: 500 });
   }
-}``
+}
