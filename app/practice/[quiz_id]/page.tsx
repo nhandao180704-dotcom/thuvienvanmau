@@ -341,157 +341,189 @@ export default function QuizTakingPage() {
   }
 
   if (isSubmitted) {
+    const top3 = leaderboard.slice(0, 3)
+    const restOfLeaderboard = leaderboard.slice(3)
+
     return (
-      <div className="min-h-screen bg-slate-50 p-3 md:p-8">
-        <div className="max-w-4xl mx-auto space-y-6">
+      <div className="min-h-screen bg-slate-50 p-4 md:p-8">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 xl:grid-cols-3 gap-8">
           
-          <div className="flex items-center justify-between bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
-            <div className="flex items-center gap-3">
-              <button onClick={() => router.push('/practice')} className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition">
-                <ArrowLeft size={20} />
-              </button>
-              <div>
-                <h1 className="text-lg md:text-2xl font-black text-slate-900">Thống kê kết quả bài thi</h1>
-                <p className="text-xs md:text-sm text-blue-600 font-bold">{quiz.title}</p>
-              </div>
-            </div>
-            <Link href="/practice" className="px-4 py-2 bg-slate-900 text-white text-xs md:text-sm font-bold rounded-xl hover:bg-slate-800 transition">
-              Về phòng luyện thi
-            </Link>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex items-center gap-4">
-              <div className="p-3 bg-blue-50 text-blue-600 rounded-2xl"><User size={24} /></div>
-              <div>
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Lượt làm bài</p>
-                <p className="text-2xl font-black text-slate-800">{leaderboard.length}</p>
-              </div>
-            </div>
-
-            <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex items-center gap-4">
-              <div className="p-3 bg-emerald-50 text-emerald-600 rounded-2xl"><Trophy size={24} /></div>
-              <div>
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Điểm trung bình</p>
-                <p className="text-2xl font-black text-slate-800">
-                  {leaderboard.length > 0 ? (leaderboard.reduce((acc, curr) => acc + curr.score, 0) / leaderboard.length).toFixed(1).replace('.', ',') : 0} / 10
+          <div className="xl:col-span-2 space-y-6">
+            <div className="bg-white rounded-3xl p-8 text-center shadow-sm border border-slate-200">
+              <Trophy className="w-20 h-20 text-yellow-500 mx-auto mb-4" />
+              <h1 className="text-3xl font-black text-slate-800 mb-2">Hoàn thành bài thi!</h1>
+              <p className="text-slate-500 font-medium mb-6">
+                Thí sinh: <span className="text-blue-600 mr-4">{studentInfo.fullName}</span> 
+                {studentInfo.className && <>Lớp: <span className="text-blue-600">{studentInfo.className}</span></>}
+              </p>
+              
+              <div className="inline-block px-10 py-6 bg-slate-50 rounded-3xl border border-slate-100 mb-6">
+                <p className="text-sm text-slate-500 font-bold mb-2 uppercase tracking-wider">Điểm số của bạn</p>
+                <p className={`text-6xl font-black ${score >= 8 ? 'text-emerald-500' : score >= 5 ? 'text-blue-500' : 'text-red-500'}`}>
+                  {score.toString().replace('.', ',')}<span className="text-2xl text-slate-400">/10</span>
                 </p>
               </div>
             </div>
 
-            <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex items-center gap-4">
-              <div className="p-3 bg-amber-50 text-amber-600 rounded-2xl"><Medal size={24} /></div>
-              <div>
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Điểm cao nhất</p>
-                <p className="text-2xl font-black text-slate-800">
-                  {leaderboard.length > 0 ? Math.max(...leaderboard.map(u => u.score)).toString().replace('.', ',') : 0} / 10
-                </p>
-              </div>
-            </div>
-          </div>
+            <div className="space-y-4">
+              {questions.map((q, idx) => {
+                const correctAns = q.correct_answer || 'A'
+                const isUserChoice = answers[idx] !== undefined && answers[idx] !== '';
+                const isCorrect = isUserChoice && (answers[idx] === correctAns);
 
-          <div className="bg-white rounded-3xl shadow-sm border border-slate-200 p-4 md:p-6 overflow-hidden">
-            <h3 className="font-black text-lg text-slate-800 mb-4 uppercase tracking-wider">
-              Danh sách học sinh đã nộp bài
-            </h3>
+                let cardBorderColor = "border-2 border-slate-200 bg-white";
+                if (!isUserChoice) {
+                  cardBorderColor = "border-2 border-red-400 bg-white"; 
+                } else if (isCorrect) {
+                  cardBorderColor = "border-2 border-green-400 bg-white"; 
+                } else {
+                  cardBorderColor = "border-2 border-red-400 bg-white"; 
+                }
 
-            {leaderboard.length === 0 ? (
-              <p className="text-center text-slate-400 py-8">Chưa có lịch sử làm bài.</p>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse min-w-[550px]">
-                  <thead>
-                    <tr className="border-b border-slate-100 text-slate-400 text-xs uppercase tracking-wider">
-                      <th className="py-3 px-3 font-bold w-16">Hạng</th>
-                      <th className="py-3 px-3 font-bold">Họ và tên</th>
-                      <th className="py-3 px-3 font-bold w-20">Lớp</th>
-                      <th className="py-3 px-3 font-bold w-32">Trường</th>
-                      <th className="py-3 px-3 font-bold text-right w-28">Điểm số</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-50 text-sm font-medium text-slate-700">
-                    {leaderboard.map((user, idx) => (
-                      <tr key={idx} className="hover:bg-slate-50/50 transition">
-                        <td className="py-4 px-3 font-black text-slate-900 whitespace-nowrap">
-                          {idx === 0 ? '🥇 1' : idx === 1 ? '🥈 2' : idx === 2 ? '🥉 3' : `#${idx + 1}`}
-                        </td>
-                        <td className="py-4 px-3 font-bold text-slate-800">{user.display_name}</td>
-                        <td className="py-4 px-3 text-slate-500 whitespace-nowrap">{user.class_name || '—'}</td>
-                        <td className="py-4 px-3 text-slate-500 truncate max-w-[120px]">{user.school_name || '—'}</td>
-                        <td className="py-4 px-3 text-right whitespace-nowrap">
-                          {/* Ép khung điểm số đủ rộng và hiển thị trọn vẹn trên 1 hàng ngang */}
-                          <div className="inline-flex items-center justify-center px-3 py-1.5 bg-emerald-50 text-emerald-700 font-black rounded-xl border border-emerald-200 min-w-[85px]">
-                            {user.score.toString().replace('.', ',')} / 10
+                return (
+                  <div key={idx} className={`rounded-3xl p-6 md:p-8 ${cardBorderColor} shadow-sm transition-all`}>
+                    <h3 className="text-base md:text-lg font-bold text-slate-600 mb-6">
+                      Câu {idx + 1}: <span className="text-slate-900">{q.question_text || q.text}</span>
+                    </h3>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {['A', 'B', 'C', 'D'].map(opt => {
+                        const optionText = getOptionText(q, opt)
+                        const isActualCorrect = correctAns === opt
+                        const isThisUserChoice = answers[idx] === opt
+                        
+                        let optionClass = "border-2 border-slate-200 bg-white text-slate-600";
+                        let IconElement = null;
+
+                        if (isActualCorrect) {
+                          optionClass = "border-2 border-green-500 bg-white text-green-600 font-bold";
+                          IconElement = <CheckCircle className="text-green-500" size={24} strokeWidth={2.5} />;
+                        } else if (isThisUserChoice && !isActualCorrect) {
+                          optionClass = "border-2 border-red-500 bg-red-50 text-red-600 font-bold";
+                          IconElement = <XCircle className="text-red-500" size={24} strokeWidth={2.5} />;
+                        }
+
+                        return (
+                          <div 
+                            key={opt} 
+                            className={`flex items-center justify-between p-4 rounded-2xl transition-all ${optionClass}`}
+                          >
+                            <div>
+                              <span className={`font-bold mr-2 ${isActualCorrect || isThisUserChoice ? '' : 'text-slate-800'}`}>
+                                {opt}.
+                              </span> 
+                              <span className={isActualCorrect || isThisUserChoice ? 'font-bold' : ''}>
+                                {optionText}
+                              </span>
+                            </div>
+                            {IconElement}
                           </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
-
-          <div className="space-y-4 pt-4">
-            <h3 className="font-black text-xl text-slate-800">Chi tiết bài làm của bạn</h3>
-            {questions.map((q, idx) => {
-              const correctAns = q.correct_answer || 'A'
-              const isUserChoice = answers[idx] !== undefined && answers[idx] !== '';
-              const isCorrect = isUserChoice && (answers[idx] === correctAns);
-
-              let cardBorderColor = "border-2 border-slate-200 bg-white";
-              if (!isUserChoice) {
-                cardBorderColor = "border-2 border-red-400 bg-white"; 
-              } else if (isCorrect) {
-                cardBorderColor = "border-2 border-green-400 bg-white"; 
-              } else {
-                cardBorderColor = "border-2 border-red-400 bg-white"; 
-              }
-
-              return (
-                <div key={idx} className={`rounded-3xl p-6 md:p-8 ${cardBorderColor} shadow-sm transition-all`}>
-                  <h3 className="text-base md:text-lg font-bold text-slate-600 mb-6">
-                    Câu {idx + 1}: <span className="text-slate-900">{q.question_text || q.text}</span>
-                  </h3>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {['A', 'B', 'C', 'D'].map(opt => {
-                      const optionText = getOptionText(q, opt)
-                      const isActualCorrect = correctAns === opt
-                      const isThisUserChoice = answers[idx] === opt
-                      
-                      let optionClass = "border-2 border-slate-200 bg-white text-slate-600";
-                      let IconElement = null;
-
-                      if (isActualCorrect) {
-                        optionClass = "border-2 border-green-500 bg-white text-green-600 font-bold";
-                        IconElement = <CheckCircle className="text-green-500" size={24} strokeWidth={2.5} />;
-                      } else if (isThisUserChoice && !isActualCorrect) {
-                        optionClass = "border-2 border-red-500 bg-red-50 text-red-600 font-bold";
-                        IconElement = <XCircle className="text-red-500" size={24} strokeWidth={2.5} />;
-                      }
-
-                      return (
-                        <div 
-                          key={opt} 
-                          className={`flex items-center justify-between p-4 rounded-2xl transition-all ${optionClass}`}
-                        >
-                          <div>
-                            <span className={`font-bold mr-2 ${isActualCorrect || isThisUserChoice ? '' : 'text-slate-800'}`}>
-                              {opt}.
-                            </span> 
-                            <span className={isActualCorrect || isThisUserChoice ? 'font-bold' : ''}>
-                              {optionText}
-                            </span>
-                          </div>
-                          {IconElement}
-                        </div>
-                      )
-                    })}
+                        )
+                      })}
+                    </div>
                   </div>
-                </div>
-              )
-            })}
+                )
+              })}
+            </div>
+          </div>
+
+          <div className="xl:col-span-1">
+            <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-200 sticky top-6">
+              <h3 className="font-black text-xl text-slate-800 mb-8 flex items-center justify-center gap-2 uppercase tracking-wider">
+                <Trophy className="text-yellow-500 w-6 h-6"/> BẢNG XẾP HẠNG
+              </h3>
+              
+              {leaderboard.length === 0 ? (
+                <p className="text-center text-slate-500 italic py-4">Đang tải bảng xếp hạng...</p>
+              ) : (
+                <>
+                  <div className="flex items-end justify-center gap-2 mb-10 mt-4 px-2">
+                    {top3[1] && (
+                      <div className="flex flex-col items-center w-1/3 relative group">
+                        <div className="text-center mb-6 px-1">
+                          <p className="text-xs font-bold text-slate-700 truncate w-full" title={top3[1].display_name}>{top3[1].display_name}</p>
+                          <p className="font-black text-lg text-slate-800">{top3[1].score.toString().replace('.', ',')}</p>
+                        </div>
+                        <div className="w-full h-24 bg-gradient-to-t from-slate-200 to-slate-100 rounded-t-xl border-t-4 border-slate-300 relative shadow-inner flex justify-center">
+                          <div className="absolute -top-6 bg-white rounded-full p-1 shadow-md border border-slate-200">
+                            <Medal className="w-8 h-8 text-slate-400 fill-slate-200" />
+                          </div>
+                          <span className="mt-8 text-3xl font-black text-slate-300 opacity-50">2</span>
+                        </div>
+                      </div>
+                    )}
+
+                    {top3[0] && (
+                      <div className="flex flex-col items-center w-1/3 relative z-10 -mx-2">
+                        <div className="text-center mb-8 px-1">
+                          <p className="text-sm font-black text-yellow-600 truncate w-full" title={top3[0].display_name}>{top3[0].display_name}</p>
+                          <p className="font-black text-2xl text-slate-800">{top3[0].score.toString().replace('.', ',')}</p>
+                        </div>
+                        <div className="w-full h-32 bg-gradient-to-t from-yellow-200 to-yellow-50 rounded-t-xl border-t-4 border-yellow-400 relative shadow-lg flex justify-center">
+                          <div className="absolute -top-7 bg-white rounded-full p-1.5 shadow-md border border-yellow-200">
+                            <Medal className="w-10 h-10 text-yellow-500 fill-yellow-300" />
+                          </div>
+                          <span className="mt-10 text-4xl font-black text-yellow-500 opacity-40">1</span>
+                        </div>
+                      </div>
+                    )}
+
+                    {top3[2] && (
+                      <div className="flex flex-col items-center w-1/3 relative">
+                        <div className="text-center mb-4 px-1">
+                          <p className="text-xs font-bold text-slate-700 truncate w-full" title={top3[2].display_name}>{top3[2].display_name}</p>
+                          <p className="font-black text-lg text-slate-800">{top3[2].score.toString().replace('.', ',')}</p>
+                        </div>
+                        <div className="w-full h-20 bg-gradient-to-t from-amber-200/50 to-amber-50 rounded-t-xl border-t-4 border-amber-600/50 relative shadow-inner flex justify-center">
+                          <div className="absolute -top-6 bg-white rounded-full p-1 shadow-md border border-amber-100">
+                            <Medal className="w-8 h-8 text-amber-600 fill-amber-200" />
+                          </div>
+                          <span className="mt-6 text-2xl font-black text-amber-600/40 opacity-50">3</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {restOfLeaderboard.length > 0 && (
+                    <div className="space-y-3 mt-6 border-t border-slate-100 pt-6">
+                      <div className="overflow-x-auto hide-scrollbar pb-2">
+                        <table className="w-full text-left border-collapse min-w-[300px]">
+                          <tbody className="divide-y divide-slate-50 text-sm font-medium text-slate-700">
+                            {restOfLeaderboard.map((user, idx) => (
+                              <tr key={idx} className="hover:bg-slate-50/50 transition">
+                                <td className="py-3 pr-3">
+                                  <div className="w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs bg-slate-200 text-slate-600 shrink-0">
+                                    {idx + 4}
+                                  </div>
+                                </td>
+                                <td className="py-3 px-2 w-full">
+                                  <div className="flex flex-col min-w-0">
+                                    <p className="font-bold text-sm text-slate-700 truncate max-w-[120px] md:max-w-[160px]" title={user.display_name}>{user.display_name}</p>
+                                    <div className="flex items-center gap-2 text-[10px] text-slate-400 mt-0.5">
+                                      {user.class_name && <span className="truncate max-w-[60px]">{user.class_name}</span>}
+                                      <span className="flex items-center gap-0.5 shrink-0"><Clock size={10}/> {formatTime(user.time_taken)}</span>
+                                    </div>
+                                  </div>
+                                </td>
+                                <td className="py-3 pl-3 text-right whitespace-nowrap">
+                                  <div className="inline-flex items-center justify-center px-2 py-1 bg-emerald-50 text-emerald-700 font-black rounded-lg border border-emerald-200 min-w-[70px]">
+                                    {user.score.toString().replace('.', ',')}
+                                  </div>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+              
+              <Link href="/practice" className="mt-8 block w-full py-4 text-center bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition shadow-lg shadow-slate-900/20">
+                Về phòng luyện thi
+              </Link>
+            </div>
           </div>
 
         </div>

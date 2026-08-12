@@ -114,7 +114,6 @@ export default function LibraryPage() {
             <span className="transition-all duration-500 truncate">{BANNERS[currentBanner].subtitle}</span>
           </div>
           
-          {/* Căn chỉnh text an toàn, bẻ chữ nếu quá dài để không bao giờ tràn mép */}
           <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight mb-8 leading-snug drop-shadow-2xl whitespace-normal break-words px-2 w-full">
             {BANNERS[currentBanner].title}
           </h1>
@@ -151,7 +150,6 @@ export default function LibraryPage() {
         </div>
       </div>
 
-      {/* Phần nền lưới full màn hình phía dưới */}
       <div 
         className="w-full min-h-screen pb-20 bg-no-repeat bg-center"
         style={{ 
