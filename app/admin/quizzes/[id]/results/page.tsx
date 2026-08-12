@@ -91,7 +91,7 @@ export default function AdminQuizResultsPage() {
           <div>
             <p className="text-xs text-slate-500 font-bold uppercase">Điểm trung bình</p>
             <p className="text-2xl font-black text-slate-800">
-              {results.length > 0 ? (results.reduce((acc, curr) => acc + curr.score, 0) / results.length).toFixed(1) : 0} / 10
+              {results.length > 0 ? (results.reduce((acc, curr) => acc + curr.score, 0) / results.length).toFixed(1).replace('.', ',') : 0} / 10
             </p>
           </div>
         </div>
@@ -103,7 +103,7 @@ export default function AdminQuizResultsPage() {
           <div>
             <p className="text-xs text-slate-500 font-bold uppercase">Điểm cao nhất</p>
             <p className="text-2xl font-black text-slate-800">
-              {results.length > 0 ? Math.max(...results.map(r => r.score)) : 0} / 10
+              {results.length > 0 ? Math.max(...results.map(r => r.score)).toString().replace('.', ',') : 0} / 10
             </p>
           </div>
         </div>
@@ -115,18 +115,19 @@ export default function AdminQuizResultsPage() {
           <h2 className="text-lg font-bold text-slate-800">Danh sách học sinh đã nộp bài</h2>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
+        <div className="overflow-x-auto hide-scrollbar pb-2">
+          {/* Thêm min-w-[900px] để bảng không bị bóp nghẹt trên mobile */}
+          <table className="w-full text-left border-collapse min-w-[900px]">
             <thead>
               <tr className="bg-slate-50 text-slate-500 text-xs font-bold uppercase border-b border-slate-100">
-                <th className="p-4 pl-6">Hạng</th>
+                <th className="p-4 pl-6 w-16">Hạng</th>
                 <th className="p-4">Họ và tên</th>
-                <th className="p-4">Lớp</th>
+                <th className="p-4 w-24">Lớp</th>
                 <th className="p-4">Trường</th>
-                <th className="p-4 text-center">Điểm số</th>
-                <th className="p-4 text-center">Thời gian làm</th>
-                <th className="p-4 text-center">Số vi phạm</th>
-                <th className="p-4 pr-6 text-right">Nộp lúc</th>
+                <th className="p-4 text-center w-28">Điểm số</th>
+                <th className="p-4 text-center w-32">Thời gian làm</th>
+                <th className="p-4 text-center w-28">Số vi phạm</th>
+                <th className="p-4 pr-6 text-right w-36">Nộp lúc</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-sm font-semibold text-slate-700">
@@ -137,30 +138,33 @@ export default function AdminQuizResultsPage() {
               ) : (
                 results.map((res, index) => (
                   <tr key={res.id} className="hover:bg-slate-50/80 transition">
-                    <td className="p-4 pl-6 font-black text-slate-400">
+                    <td className="p-4 pl-6 font-black text-slate-400 whitespace-nowrap">
                       {index === 0 ? '🥇 1' : index === 1 ? '🥈 2' : index === 2 ? '🥉 3' : `#${index + 1}`}
                     </td>
                     <td className="p-4 font-bold text-slate-900">{res.display_name}</td>
-                    <td className="p-4 text-slate-600">{res.class_name || '—'}</td>
-                    <td className="p-4 text-slate-600">{res.school_name || '—'}</td>
-                    <td className="p-4 text-center">
-                      <span className={`px-3 py-1 rounded-full font-black text-xs ${res.score >= 8 ? 'bg-emerald-100 text-emerald-700' : res.score >= 5 ? 'bg-blue-100 text-blue-700' : 'bg-red-100 text-red-700'}`}>
-                        {res.score} / 10
-                      </span>
+                    <td className="p-4 text-slate-600 whitespace-nowrap">{res.class_name || '—'}</td>
+                    <td className="p-4 text-slate-600 truncate max-w-[150px]">{res.school_name || '—'}</td>
+                    
+                    {/* Cột Điểm số được ép hiển thị trên 1 dòng với whitespace-nowrap và min-w */}
+                    <td className="p-4 text-center whitespace-nowrap">
+                      <div className={`inline-flex items-center justify-center whitespace-nowrap px-3 py-1.5 rounded-full font-black text-xs min-w-[70px] ${res.score >= 8 ? 'bg-emerald-100 text-emerald-700' : res.score >= 5 ? 'bg-blue-100 text-blue-700' : 'bg-red-100 text-red-700'}`}>
+                        {res.score.toString().replace('.', ',')} / 10
+                      </div>
                     </td>
-                    <td className="p-4 text-center font-mono text-slate-500">
+                    
+                    <td className="p-4 text-center font-mono text-slate-500 whitespace-nowrap">
                       <span className="inline-flex items-center gap-1"><Clock size={14} /> {formatTime(res.time_taken)}</span>
                     </td>
-                    <td className="p-4 text-center">
+                    <td className="p-4 text-center whitespace-nowrap">
                       {res.cheat_count > 0 ? (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-red-100 text-red-600 rounded-lg text-xs font-bold">
+                        <span className="inline-flex items-center justify-center gap-1 px-2.5 py-1 bg-red-100 text-red-600 rounded-lg text-xs font-bold min-w-[65px]">
                           <ShieldAlert size={14} /> {res.cheat_count} lần
                         </span>
                       ) : (
                         <span className="text-slate-400 text-xs">Không</span>
                       )}
                     </td>
-                    <td className="p-4 pr-6 text-right text-xs text-slate-400 font-medium">{formatDateTime(res.created_at)}</td>
+                    <td className="p-4 pr-6 text-right text-xs text-slate-400 font-medium whitespace-nowrap">{formatDateTime(res.created_at)}</td>
                   </tr>
                 ))
               )}
