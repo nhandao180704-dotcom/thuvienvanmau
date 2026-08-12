@@ -1,3 +1,5 @@
+import { GoogleGenerativeAI } from "@google/generative-ai";
+
 export const dynamic = 'force-dynamic';
 
 export async function POST(req: Request) {
@@ -9,34 +11,28 @@ export async function POST(req: Request) {
       return Response.json({ error: "Chưa cấu hình GEMINI_API_KEY trên môi trường." }, { status: 500 });
     }
 
-    const contents = messages.map((m: any) => ({
+    // Khởi tạo SDK chính thức với phiên bản model mới nhất
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({ 
+      model: "gemini-2.5-flash",
+      systemInstruction: "Bạn là một giáo viên Ngữ Văn THCS tâm huyết, chuyên môn cao. Nhiệm vụ của bạn là hỗ trợ học sinh cấp 2 phân tích tác phẩm, lập dàn ý, và ôn thi vào lớp 10. Luôn xưng hô là 'Cô/Thầy' hoặc 'Trợ lý' và gọi người dùng là 'bạn' hoặc 'em'. Hãy trả lời thân thiện, dễ hiểu, có cảm xúc. Hướng dẫn học sinh cách làm bài thay vì chỉ đưa ra bài văn mẫu giải sẵn."
+    });
+
+    const formattedHistory = messages.slice(0, -1).map((m: any) => ({
       role: m.role === 'user' ? 'user' : 'model',
       parts: [{ text: m.content }]
     }));
 
-    const systemInstruction = {
-      parts: [{ text: "Bạn là một giáo viên Ngữ Văn THCS tâm huyết, chuyên môn cao. Nhiệm vụ của bạn là hỗ trợ học sinh cấp 2 phân tích tác phẩm, lập dàn ý, và ôn thi vào lớp 10. Luôn xưng hô là 'Cô/Thầy' hoặc 'Trợ lý' và gọi người dùng là 'bạn' hoặc 'em'. Hãy trả lời thân thiện, dễ hiểu, có cảm xúc. Hướng dẫn học sinh cách làm bài thay vì chỉ đưa ra bài văn mẫu giải sẵn." }]
-    };
+    const latestMessage = messages[messages.length - 1]?.content || "";
 
-    // Sử dụng model gemini-2.0-flash hoàn toàn mới và chuẩn xác
-    const apiResponse = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents,
-        systemInstruction,
-      })
+    const chat = model.startChat({
+      history: formattedHistory,
     });
 
-    const data = await apiResponse.json();
+    const result = await chat.sendMessage(latestMessage);
+    const responseText = result.response.text();
 
-    if (!apiResponse.ok) {
-      throw new Error(data.error?.message || "Lỗi khi gọi Google Gemini API");
-    }
-
-    const aiText = data.candidates?.[0]?.content?.parts?.[0]?.text || "Không có phản hồi từ AI.";
-
-    return Response.json({ text: aiText });
+    return Response.json({ text: responseText });
   } catch (error: any) {
     console.error("Chat API Error:", error);
     return Response.json({ error: error.message || "Lỗi hệ thống từ server AI" }, { status: 500 });
