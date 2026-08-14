@@ -26,31 +26,6 @@ export default function EditEssayPage() {
     content: '',
   })
 
-  // Ánh xạ chuỗi sang danh mục DB chuẩn
-  const mapToGenre = (category: string) => {
-    const map: Record<string, string> = {
-      'văn_tự_sự': 'Văn tự sự',
-      'văn_miêu_tả': 'Văn miêu tả',
-      'văn_biểu_cảm': 'Văn biểu cảm',
-      'văn_nghị_luận': 'Văn nghị luận',
-      'văn_thuyết_minh': 'Văn thuyết minh',
-      'phân_tích_tác_phẩm': 'Phân tích tác phẩm'
-    }
-    return map[category] || 'Văn nghị luận'
-  }
-
-  const mapToCategory = (genre: string) => {
-    const map: Record<string, string> = {
-      'Văn tự sự': 'văn_tự_sự',
-      'Văn miêu tả': 'văn_miêu_tả',
-      'Văn biểu cảm': 'văn_biểu_cảm',
-      'Văn nghị luận': 'văn_nghị_luận',
-      'Văn thuyết minh': 'văn_thuyết_minh',
-      'Phân tích tác phẩm': 'phân_tích_tác_phẩm'
-    }
-    return map[genre] || 'văn_nghị_luận'
-  }
-
   useEffect(() => {
     const fetchEssayDetail = async () => {
       try {
@@ -63,10 +38,11 @@ export default function EditEssayPage() {
         if (error) throw error
 
         if (data) {
+          // Lấy dữ liệu trực tiếp từ cột grade và genre của DB
           setFormData({
             title: data.title || '',
-            grade: data.class_level ? (data.class_level === 10 ? 'Ôn thi vào 10' : `Lớp ${data.class_level}`) : 'Lớp 9',
-            genre: data.category ? mapToGenre(data.category) : 'Văn nghị luận',
+            grade: data.grade || 'Lớp 9',
+            genre: data.genre || 'Văn nghị luận',
             content: data.content || '',
           })
           if (data.thumbnail_url) setThumbnailUrl(data.thumbnail_url)
@@ -99,18 +75,11 @@ export default function EditEssayPage() {
     setSaving(true)
 
     try {
-      let classLevel = 9;
-      if (formData.grade === 'Ôn thi vào 10') {
-        classLevel = 10;
-      } else {
-        const match = formData.grade.match(/\d+/)
-        if (match) classLevel = parseInt(match[0])
-      }
-
+      // Lưu lại chính xác bằng tên cột grade và genre, không đổi thành class_level hay category
       const updateData: any = {
         title: formData.title,
-        class_level: classLevel,
-        category: mapToCategory(formData.genre),
+        grade: formData.grade,
+        genre: formData.genre,
         content: formData.content,
       }
 
