@@ -17,18 +17,17 @@ export default function AdminLayout({
     const checkAdmin = async () => {
       const { data: { session } } = await supabase.auth.getSession()
       
-      // Nếu chưa đăng nhập HOẶC không phải là email admin thì "đá" về trang /login
+      // Kiểm tra email cứng làm Admin
       if (!session || session.user.email !== 'admin@thuvien.edu.vn') {
-        router.push('/login')
+        router.replace('/login') // Thay 'push' bằng 'replace' để không kẹt lịch sử trình duyệt
       } else {
         setIsAuthorized(true)
       }
     }
 
     checkAdmin()
-  }, [router, pathname]) // Kiểm tra lại mỗi khi chuyển trang trong khu vực admin
+  }, [router, pathname]) 
 
-  // Hiển thị vòng xoay loading trong lúc kiểm tra quyền, tránh lộ giao diện admin
   if (!isAuthorized) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
@@ -37,6 +36,5 @@ export default function AdminLayout({
     )
   }
 
-  // Nếu là Admin xịn thì cho phép hiển thị nội dung trang
   return <>{children}</>
 }

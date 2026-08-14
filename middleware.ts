@@ -27,31 +27,16 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  // Lấy thông tin người dùng đang đăng nhập
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  // Chỉ cần lấy session thay vì getUser để tăng tốc độ
+  const { data: { session } } = await supabase.auth.getSession()
 
   const url = request.nextUrl.clone()
 
   // Kiểm tra nếu người dùng đang cố truy cập vào khu vực admin
   if (url.pathname.startsWith('/admin')) {
-    // 1. Nếu chưa đăng nhập -> Đá về trang chủ hoặc trang đăng nhập
-    if (!user) {
-      url.pathname = '/login' // Đẩy về trang đăng nhập
-      return NextResponse.redirect(url)
-    }
-
-    // 2. Kiểm tra xem user này có quyền admin trong bảng profiles không
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single()
-
-    // 3. Nếu không tìm thấy profile hoặc không phải admin -> Đá về trang chủ
-    if (!profile || profile.role !== 'admin') {
-      url.pathname = '/'
+    // Nếu chưa đăng nhập -> Đá về trang đăng nhập
+    if (!session) {
+      url.pathname = '/login'
       return NextResponse.redirect(url)
     }
   }
