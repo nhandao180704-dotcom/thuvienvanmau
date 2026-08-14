@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { BookmarkPlus, PenTool, BookOpen, Menu, X, LogIn, LogOut, LayoutDashboard } from 'lucide-react'
+import { BookmarkPlus, BookOpen, Menu, X, LogIn, LogOut, LayoutDashboard } from 'lucide-react'
 import { supabase } from '@/lib/supabase-client'
 
 export default function Navbar() {
@@ -13,43 +13,25 @@ export default function Navbar() {
   const router = useRouter()
 
   useEffect(() => {
-    // Hàm phụ trợ để kiểm tra quyền từ DB
-    const checkUserRole = async (currentUser: any) => {
-      if (!currentUser) {
-        setIsAdmin(false)
-        return
-      }
-      
-      try {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', currentUser.id)
-          .single()
-          
-        setIsAdmin(profile?.role === 'admin')
-      } catch (error) {
-        console.error("Lỗi khi lấy quyền người dùng:", error)
-        setIsAdmin(false)
-      }
-    }
-
-    // Lấy thông tin user khi load trang
+    // Lấy thông tin user khi load trang và kiểm tra email quản trị viên
     const getUser = async () => {
       const { data: { session } } = await supabase.auth.getSession()
       if (session?.user) {
         setUser(session.user)
-        await checkUserRole(session.user)
+        setIsAdmin(session.user.email === 'admin@thuvien.edu.vn')
+      } else {
+        setUser(null)
+        setIsAdmin(false)
       }
     }
     
     getUser()
 
-    // Lắng nghe sự kiện đăng nhập/đăng xuất
+    // Lắng nghe sự kiện đăng nhập/đăng xuất thay đổi trạng thái realtime
     const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session?.user) {
         setUser(session.user)
-        await checkUserRole(session.user)
+        setIsAdmin(session.user.email === 'admin@thuvien.edu.vn')
       } else {
         setUser(null)
         setIsAdmin(false)
@@ -83,6 +65,7 @@ export default function Navbar() {
 
           {/* Các nút điều hướng - Desktop */}
           <div className="hidden md:flex items-center gap-4 shrink-0">
+            {/* Nút Quản trị viên hiển thị ở bên trái nút Lưu trữ */}
             {isAdmin && (
               <Link 
                 href="/admin/dashboard" 

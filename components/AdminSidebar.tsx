@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-// Đã thêm import Database ở đây
 import { LayoutDashboard, FileText, Settings, BookOpen, HelpCircle, Menu, X, Database } from 'lucide-react'
 
 export default function AdminSidebar() {
@@ -12,7 +11,6 @@ export default function AdminSidebar() {
   // Trạng thái đóng/mở menu trên mobile
   const [isOpen, setIsOpen] = useState(false)
 
-  // Đã bổ sung tab Ngân hàng câu hỏi vào danh sách menu
   const menuItems = [
     { label: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard, isActive: pathname === '/admin/dashboard' },
     { label: 'Quản lý bài viết', href: '/admin/essays', icon: FileText, isActive: pathname.startsWith('/admin/essays') },
@@ -45,16 +43,20 @@ export default function AdminSidebar() {
           isOpen ? 'translate-x-0' : '-translate-x-full'
         } md:translate-x-0`}
       >
-        {/* Phần Logo Thư Viện */}
-        <div className="px-6 py-8 md:py-6 pt-16 md:pt-6 border-b border-slate-100 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-[#0052CC] flex items-center justify-center shadow-sm shrink-0">
+        {/* Phần Logo Thư Viện (Đã bọc Link dẫn về Dashboard và có hiệu ứng hover) */}
+        <Link 
+          href="/admin/dashboard"
+          onClick={() => setIsOpen(false)}
+          className="px-6 py-8 md:py-6 pt-16 md:pt-6 border-b border-slate-100 flex items-center gap-3 hover:bg-slate-50 transition-colors group cursor-pointer"
+        >
+          <div className="w-10 h-10 rounded-xl bg-[#0052CC] flex items-center justify-center shadow-sm shrink-0 group-hover:scale-105 transition-transform">
             <BookOpen size={22} className="text-white" />
           </div>
           <div className="flex flex-col">
-            <h2 className="text-lg font-bold text-slate-900 leading-tight">Thư Viện</h2>
+            <h2 className="text-lg font-bold text-slate-900 group-hover:text-[#0052CC] leading-tight transition-colors">Thư Viện</h2>
             <p className="text-sm font-medium text-slate-500 leading-tight mt-0.5">Admin</p>
           </div>
-        </div>
+        </Link>
 
         {/* Danh sách Menu */}
         <nav className="flex-1 px-4 py-6 space-y-1.5 overflow-y-auto">
@@ -71,7 +73,7 @@ export default function AdminSidebar() {
                     : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900'
                 }`}
               >
-                {/* Đường viền xanh bo tròn góc bên trái cho Tab đang chọn (Giống hệt hình minh họa) */}
+                {/* Đường viền xanh bo tròn góc bên trái cho Tab đang chọn */}
                 {item.isActive && (
                   <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#0052CC] rounded-r-md" />
                 )}
