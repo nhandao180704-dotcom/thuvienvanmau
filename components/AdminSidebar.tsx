@@ -3,7 +3,8 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, FileText, Settings, BookOpen, HelpCircle, Menu, X } from 'lucide-react'
+// Đã thêm import Database ở đây
+import { LayoutDashboard, FileText, Settings, BookOpen, HelpCircle, Menu, X, Database } from 'lucide-react'
 
 export default function AdminSidebar() {
   const pathname = usePathname()
@@ -11,9 +12,11 @@ export default function AdminSidebar() {
   // Trạng thái đóng/mở menu trên mobile
   const [isOpen, setIsOpen] = useState(false)
 
+  // Đã bổ sung tab Ngân hàng câu hỏi vào danh sách menu
   const menuItems = [
     { label: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard, isActive: pathname === '/admin/dashboard' },
     { label: 'Quản lý bài viết', href: '/admin/essays', icon: FileText, isActive: pathname.startsWith('/admin/essays') },
+    { label: 'Ngân hàng câu hỏi', href: '/admin/question-bank', icon: Database, isActive: pathname.startsWith('/admin/question-bank') },
     { label: 'Quản lý đề thi', href: '/admin/quizzes', icon: HelpCircle, isActive: pathname.startsWith('/admin/quizzes') },
     { label: 'Cài đặt hệ thống', href: '/admin/settings', icon: Settings, isActive: pathname.startsWith('/admin/settings') },
   ]
