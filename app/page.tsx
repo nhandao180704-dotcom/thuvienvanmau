@@ -183,7 +183,7 @@ export default function LibraryPage() {
       {/* LỚP NỀN CỐ ĐỊNH */}
       <div className="relative w-full min-h-screen pb-20 z-10">
         <div className="fixed top-0 left-0 w-full h-full pointer-events-none z-0">
-          <div className="w-full h-full bg-[url('/bg-van-hoc.jpg')] bg-cover bg-center bg-no-repeat opacity-80"></div>
+          <div className="w-full h-full bg-[url('/bg-van-hoc.jpg')] bg-cover bg-center bg-no-repeat opacity-100"></div>
         </div>
 
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 relative z-10 w-full box-border">
