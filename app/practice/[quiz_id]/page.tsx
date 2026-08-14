@@ -78,7 +78,7 @@ export default function QuizTakingPage() {
 
   useEffect(() => {
     if (forceSubmit && !isSubmitted) handleSubmit()
-  }, [forceSubmit])
+  }, [forceSubmit, isSubmitted])
 
   const shuffleArray = (array: any[]) => {
     const arr = [...array]
@@ -92,41 +92,53 @@ export default function QuizTakingPage() {
   const fetchQuizData = async () => {
     setLoading(true)
     try {
-      const { data: quizData } = await supabase.from('quizzes').select('*').eq('id', quizId).single()
-      if (quizData) {
-        setQuiz(quizData)
-        if (quizData.time_limit) {
-          setTimeLeft(quizData.time_limit * 60)
-        }
+      // 1. Dùng maybeSingle() để tránh lỗi 406
+      const { data: quizData } = await supabase.from('quizzes').select('*').eq('id', quizId).maybeSingle()
+      if (!quizData) {
+        setLoading(false)
+        return // Dừng lại, UI sẽ tự hiện thông báo "Không tìm thấy nội dung"
       }
-
+      
+      setQuiz(quizData)
+      const quizDuration = quizData.duration || quizData.time_limit || 15
+      setTimeLeft(quizDuration * 60)
+      
+      // 2. Không join options nữa vì đã dùng chuẩn JSONB
       const { data: questionsData } = await supabase
         .from('questions')
-        .select('*, options(*)')
+        .select('*')
         .eq('quiz_id', quizId)
       
       if (questionsData) {
         const processedQuestions = questionsData.map((q: any) => {
-          if (!q.options || q.options.length === 0) return q;
+          if (q.question_type === 'essay' || !q.options) return q;
+
+          // Chuyển đổi JSONB {A: "...", B: "..."} thành mảng để thuật toán xáo trộn hoạt động
+          let optionsArray = [];
+          if (typeof q.options === 'object' && !Array.isArray(q.options)) {
+              optionsArray = Object.keys(q.options).map(k => ({ originalKey: k, text: q.options[k] }));
+          } else {
+              return q;
+          }
 
           const originalCorrectKey = q.correct_answer || 'A';
-          const originalCorrectOption = q.options.find((o: any) => o.option_key === originalCorrectKey || o.key === originalCorrectKey);
+          const shuffledOptions = shuffleArray([...optionsArray]);
           
-          const shuffledOptions = shuffleArray([...q.options]);
           const newKeys = ['A', 'B', 'C', 'D'];
           let newCorrectAnswer = originalCorrectKey;
 
-          const newOptions = shuffledOptions.map((opt, index) => {
+          // Gán lại nhãn A, B, C, D mới sau khi xáo trộn
+          const finalOptions = shuffledOptions.map((opt, index) => {
              const newKey = newKeys[index] || String.fromCharCode(65 + index);
-             if (originalCorrectOption && opt.id === originalCorrectOption.id) {
+             if (opt.originalKey === originalCorrectKey) {
                  newCorrectAnswer = newKey; 
              }
-             return { ...opt, option_key: newKey, key: newKey };
+             return { option_key: newKey, option_text: opt.text };
           });
 
           return {
              ...q,
-             options: newOptions,
+             options: finalOptions,
              correct_answer: newCorrectAnswer
           };
         });
@@ -162,17 +174,20 @@ export default function QuizTakingPage() {
     if (isSubmitted || isSubmittingToDB) return
     setIsSubmittingToDB(true)
 
+    let calculatedScore = 0
     let correctCount = 0
+
     const reviewQuestions = questions.map((q, index) => {
       const userChoice = answers[index] || '' 
       const correctChoice = q.correct_answer || 'A'
       
-      if (userChoice === correctChoice) {
+      if (q.question_type === 'multiple_choice' && userChoice === correctChoice) {
+          calculatedScore += Number(q.points || 0) // Cộng điểm chuẩn theo hệ thang 10
           correctCount++
       }
 
       return {
-          question_text: q.question_text || q.text,
+          question_text: q.question_text || q.content || q.text,
           options: ['A', 'B', 'C', 'D'].map((key) => {
               const optText = getOptionText(q, key);
               return { key: key, text: optText }
@@ -182,9 +197,8 @@ export default function QuizTakingPage() {
       }
     })
     
-    const finalScore = questions.length > 0 ? (correctCount / questions.length) * 10 : 0
-    const roundedScore = parseFloat(finalScore.toFixed(2))
-    const totalTimeAllowed = (quiz?.time_limit || 15) * 60
+    const roundedScore = parseFloat(calculatedScore.toFixed(2))
+    const totalTimeAllowed = (quiz?.duration || quiz?.time_limit || 15) * 60
     const timeTakenInSeconds = totalTimeAllowed - timeLeft 
     
     setScore(roundedScore)
@@ -219,9 +233,9 @@ export default function QuizTakingPage() {
         setLeaderboard(leaderboardData)
       }
 
+      // Lưu LocalStorage
       const historyString = localStorage.getItem('quiz_history')
       let historyArray = []
-      
       if (historyString) {
         try {
           const parsedData = JSON.parse(historyString)
@@ -269,12 +283,11 @@ export default function QuizTakingPage() {
   }
 
   const getOptionText = (q: any, opt: string) => {
-    if (q.options && Array.isArray(q.options) && q.options.length > 0) {
-      const targetOpt = q.options.find((o: any) => o.option_key === opt || o.key === opt || o.label === opt || o.option_label === opt)
-      if (targetOpt) return targetOpt.option_text || targetOpt.text || targetOpt.content || targetOpt.value
+    if (q.options && Array.isArray(q.options)) {
+      const targetOpt = q.options.find((o: any) => o.option_key === opt)
+      if (targetOpt) return targetOpt.option_text
     }
-    const keyLower = opt.toLowerCase()
-    return q[`option_${keyLower}`] || q[`opt_${keyLower}`] || `Lựa chọn ${opt}`
+    return `Lựa chọn ${opt}`
   }
 
   if (loading) return <div className="min-h-screen flex items-center justify-center bg-slate-50"><p className="text-blue-600 font-bold text-xl animate-pulse">Đang tải đề thi...</p></div>
@@ -286,7 +299,7 @@ export default function QuizTakingPage() {
         <div className="bg-white rounded-3xl shadow-xl border border-slate-200 p-8 md:p-12 max-w-lg w-full">
           <div className="text-center mb-8">
             <h1 className="text-2xl md:text-3xl font-black text-slate-800 mb-2">{quiz.title}</h1>
-            <p className="text-slate-500 font-medium">Thời gian: <span className="text-blue-600 font-bold">{quiz.time_limit || 15} phút</span> | Tổng số câu: <span className="text-blue-600 font-bold">{questions.length} câu</span></p>
+            <p className="text-slate-500 font-medium">Thời gian: <span className="text-blue-600 font-bold">{quiz.duration || quiz.time_limit || 15} phút</span> | Tổng số câu: <span className="text-blue-600 font-bold">{questions.length} câu</span></p>
           </div>
 
           <form onSubmit={handleStartQuiz} className="space-y-5">
@@ -383,7 +396,7 @@ export default function QuizTakingPage() {
                 return (
                   <div key={idx} className={`rounded-3xl p-6 md:p-8 ${cardBorderColor} shadow-sm transition-all`}>
                     <h3 className="text-base md:text-lg font-bold text-slate-600 mb-6">
-                      Câu {idx + 1}: <span className="text-slate-900">{q.question_text || q.text}</span>
+                      Câu {idx + 1}: <span className="text-slate-900">{q.question_text || q.content || q.text}</span>
                     </h3>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -487,7 +500,6 @@ export default function QuizTakingPage() {
                   {restOfLeaderboard.length > 0 && (
                     <div className="space-y-3 mt-8 border-t border-slate-100 pt-6">
                       <div className="overflow-x-auto hide-scrollbar pb-2">
-                        {/* THÊM min-w-[500px] VÀO ĐÂY ĐỂ TRÁNH BỊ BÓP BẢNG TRÊN ĐIỆN THOẠI */}
                         <table className="w-full text-left border-collapse min-w-[500px]">
                           <thead>
                             <tr className="text-slate-400 text-[10px] uppercase tracking-wider border-b border-slate-100">
@@ -515,7 +527,6 @@ export default function QuizTakingPage() {
                                   <span className="inline-flex items-center justify-center gap-1 text-xs text-slate-500"><Clock size={12}/> {formatTime(user.time_taken)}</span>
                                 </td>
                                 <td className="py-3 pl-2 text-right whitespace-nowrap">
-                                  {/* Ép kích thước khung điểm và chống ngắt dòng */}
                                   <div className="inline-flex items-center justify-center px-3 py-1.5 bg-emerald-50 text-emerald-700 font-black rounded-xl border border-emerald-200 min-w-[80px]">
                                     {user.score.toString().replace('.', ',')} / 10
                                   </div>
@@ -587,7 +598,7 @@ export default function QuizTakingPage() {
             <div className="flex justify-between items-start gap-4 mb-6">
               <h2 className="text-base md:text-lg font-bold text-slate-800 flex-1 leading-relaxed">
                 <span className="text-blue-600 mr-2">Câu {currentQuestion + 1}:</span>
-                {q?.question_text || q?.text}
+                {q?.question_text || q?.content || q?.text}
               </h2>
 
               <button 
@@ -604,7 +615,7 @@ export default function QuizTakingPage() {
             </div>
 
             <div className="space-y-4 mt-4">
-              {['A', 'B', 'C', 'D'].map(opt => {
+              {q?.question_type !== 'essay' && ['A', 'B', 'C', 'D'].map(opt => {
                 const optionText = getOptionText(q, opt)
                 const isSelected = answers[currentQuestion] === opt
 
@@ -626,6 +637,15 @@ export default function QuizTakingPage() {
                   </button>
                 )
               })}
+
+              {q?.question_type === 'essay' && (
+                <textarea
+                  placeholder="Nhập phần trả lời tự luận của bạn vào đây..."
+                  value={answers[currentQuestion] || ''}
+                  onChange={(e) => setAnswers({ ...answers, [currentQuestion]: e.target.value })}
+                  className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 focus:border-blue-500 outline-none min-h-[200px]"
+                />
+              )}
             </div>
           </div>
         </div>
