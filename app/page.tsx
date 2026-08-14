@@ -101,7 +101,7 @@ export default function LibraryPage() {
   const searchSuggestions = searchQuery.trim() === '' ? [] : essays.filter(e => e.title?.toLowerCase().includes(searchQuery.trim().toLowerCase())).slice(0, 5)
 
   return (
-    <div className="min-h-screen bg-[#F4F7FB]/90 text-slate-800 font-sans selection:bg-blue-300 selection:text-blue-900 overflow-x-hidden w-full relative">
+    <div className="min-h-screen bg-[#F4F7FB]/95 text-slate-800 font-sans selection:bg-blue-300 selection:text-blue-900 overflow-x-hidden w-full relative">
       <Navbar />
 
       {/* Phần Header màu xanh với hiệu ứng chuyển động */}
@@ -180,16 +180,16 @@ export default function LibraryPage() {
         </div>
       </div>
 
-      {/* LỚP NỀN CỐ ĐỊNH (Đã tăng độ nét của hình nền lên opacity-15 để không bị mờ nhòe) */}
+      {/* LỚP NỀN CỐ ĐỊNH (Tăng độ rõ nét tối đa với opacity-40 và tăng độ tương phản màu sắc) */}
       <div className="relative w-full min-h-screen pb-20 z-10">
         <div className="fixed top-0 left-0 w-full h-full pointer-events-none z-0">
-          <div className="w-full h-full bg-[url('/bg-van-hoc.jpg')] bg-cover bg-center bg-no-repeat opacity-15"></div>
+          <div className="w-full h-full bg-[url('/bg-van-hoc.jpg')] bg-cover bg-center bg-no-repeat opacity-40 contrast-125 saturate-150"></div>
         </div>
 
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 relative z-10 w-full box-border">
           <div className="flex flex-col lg:flex-row gap-8 lg:gap-10 w-full">
             <div className="flex-1 space-y-6 md:space-y-8 w-full max-w-full overflow-hidden">
-              <div className="bg-white/90 backdrop-blur-xl p-2 rounded-2xl shadow-sm border border-slate-200 overflow-x-auto hide-scrollbar touch-pan-x w-full">
+              <div className="bg-white/95 backdrop-blur-xl p-2 rounded-2xl shadow-sm border border-slate-200 overflow-x-auto hide-scrollbar touch-pan-x w-full">
                 <div className="flex items-center w-max gap-2 px-1">
                   {TABS.map((tab) => (
                     <button
@@ -266,7 +266,7 @@ export default function LibraryPage() {
                   ))}
                 </div>
               ) : filteredEssays.length === 0 ? (
-                <div className="flex flex-col items-center justify-center px-4 py-16 sm:py-24 bg-white/90 backdrop-blur-sm rounded-[2rem] border-2 border-dashed border-slate-300 w-full text-center">
+                <div className="flex flex-col items-center justify-center px-4 py-16 sm:py-24 bg-white/95 backdrop-blur-sm rounded-[2rem] border-2 border-dashed border-slate-300 w-full text-center">
                   <BookOpen size={64} className="mx-auto text-slate-300 mb-6 animate-bounce" />
                   <h3 className="text-xl sm:text-2xl font-black text-slate-700 mb-2">Không tìm thấy bài viết!</h3>
                   <p className="text-slate-500 mb-8 text-sm sm:text-lg">Thử một từ khóa khác xem sao nhé.</p>
