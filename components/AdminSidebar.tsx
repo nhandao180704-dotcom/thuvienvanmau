@@ -2,27 +2,25 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { usePathname, useSearchParams } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import { LayoutDashboard, FileText, Settings, BookOpen, HelpCircle, Menu, X } from 'lucide-react'
 
 export default function AdminSidebar() {
   const pathname = usePathname()
-  const searchParams = useSearchParams()
-  const tab = searchParams.get('tab')
 
   // Trạng thái đóng/mở menu trên mobile
   const [isOpen, setIsOpen] = useState(false)
 
   const menuItems = [
-    { label: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard, isActive: pathname === '/admin/dashboard' && !tab },
-    { label: 'Quản lý bài viết', href: '/admin/dashboard?tab=essays', icon: FileText, isActive: pathname === '/admin/dashboard' && tab === 'essays' },
-    { label: 'Quản lý đề thi', href: '/admin/dashboard?tab=quizzes', icon: HelpCircle, isActive: pathname === '/admin/dashboard' && tab === 'quizzes' },
+    { label: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard, isActive: pathname === '/admin/dashboard' },
+    { label: 'Quản lý bài viết', href: '/admin/essays', icon: FileText, isActive: pathname.startsWith('/admin/essays') },
+    { label: 'Quản lý đề thi', href: '/admin/quizzes', icon: HelpCircle, isActive: pathname.startsWith('/admin/quizzes') },
     { label: 'Cài đặt hệ thống', href: '/admin/settings', icon: Settings, isActive: pathname.startsWith('/admin/settings') },
   ]
 
   return (
     <>
-      {/* 1. NÚT HAMBURGER (Góc trên cùng bên trái, ngang hàng thanh tìm kiếm) */}
+      {/* NÚT HAMBURGER (Hiển thị trên Mobile) */}
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="md:hidden fixed top-3 left-4 z-[70] bg-white text-slate-800 p-2 rounded-lg shadow-sm border border-slate-200 hover:bg-slate-50 transition-all"
@@ -30,7 +28,7 @@ export default function AdminSidebar() {
         {isOpen ? <X size={24} className="text-red-600" /> : <Menu size={24} className="text-blue-600" />}
       </button>
 
-      {/* 2. LỚP PHỦ ĐEN MỜ */}
+      {/* LỚP PHỦ ĐEN MỜ (Trên Mobile) */}
       {isOpen && (
         <div
           onClick={() => setIsOpen(false)}
@@ -38,46 +36,50 @@ export default function AdminSidebar() {
         />
       )}
 
-      {/* 3. THANH MENU BÊN TRÁI (Trượt đè lên trên, không xô đẩy Dashboard) */}
-      <div 
-        className={`fixed left-0 top-0 h-screen w-64 bg-white border-r border-slate-200 shadow-sm flex flex-col z-50 transition-transform duration-300 ease-in-out ${
+      {/* THANH MENU BÊN TRÁI */}
+      <aside 
+        className={`fixed left-0 top-0 h-screen w-64 bg-white border-r border-slate-200 flex flex-col z-50 transition-transform duration-300 ease-in-out ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         } md:translate-x-0`}
       >
-        {/* Logo (Thêm khoảng trống pt-16 để không đè vào nút Tắt) */}
-        <div className="px-6 py-6 pt-16 md:pt-6 border-b border-slate-200">
-          <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-            <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center">
-              <BookOpen size={24} className="text-white" />
-            </div>
-            <div>
-              <h2 className="text-lg font-bold text-foreground">Thư Viện</h2>
-              <p className="text-xs text-muted-foreground">Admin</p>
-            </div>
-          </Link>
+        {/* Phần Logo Thư Viện */}
+        <div className="px-6 py-8 md:py-6 pt-16 md:pt-6 border-b border-slate-100 flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-[#0052CC] flex items-center justify-center shadow-sm shrink-0">
+            <BookOpen size={22} className="text-white" />
+          </div>
+          <div className="flex flex-col">
+            <h2 className="text-lg font-bold text-slate-900 leading-tight">Thư Viện</h2>
+            <p className="text-sm font-medium text-slate-500 leading-tight mt-0.5">Admin</p>
+          </div>
         </div>
 
-        <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
+        {/* Danh sách Menu */}
+        <nav className="flex-1 px-4 py-6 space-y-1.5 overflow-y-auto">
           {menuItems.map((item, idx) => {
             const Icon = item.icon
             return (
               <Link
                 key={`${item.href}-${idx}`}
                 href={item.href}
-                onClick={() => setIsOpen(false)} // Tự đóng khi chọn xong
-                className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all ${
+                onClick={() => setIsOpen(false)}
+                className={`relative flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all duration-200 overflow-hidden ${
                   item.isActive
-                    ? 'bg-blue-50 text-primary border-l-4 border-primary pl-3'
-                    : 'text-foreground hover:bg-slate-50'
+                    ? 'bg-[#F0F5FF] text-[#0052CC]' 
+                    : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900'
                 }`}
               >
-                <Icon size={20} />
-                <span>{item.label}</span>
+                {/* Đường viền xanh bo tròn góc bên trái cho Tab đang chọn (Giống hệt hình minh họa) */}
+                {item.isActive && (
+                  <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#0052CC] rounded-r-md" />
+                )}
+                
+                <Icon size={20} className={item.isActive ? 'text-[#0052CC]' : 'text-slate-500'} />
+                <span className="text-[15px]">{item.label}</span>
               </Link>
             )
           })}
         </nav>
-      </div>
+      </aside>
     </>
   )
 }
