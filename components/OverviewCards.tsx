@@ -18,7 +18,7 @@ export default function OverviewCards({
   const cards = [
     {
       title: 'Tổng số bài viết',
-      value: totalEssays,
+      value: totalEssays || 0,
       icon: BookOpen,
       color: 'from-blue-500 to-blue-600',
       bgColor: 'bg-blue-50',
@@ -26,7 +26,8 @@ export default function OverviewCards({
     },
     {
       title: 'Tổng lượt xem',
-      value: totalViews.toLocaleString('vi-VN'),
+      // Thêm fallback an toàn tránh lỗi NaN
+      value: (totalViews || 0).toLocaleString('vi-VN'),
       icon: Eye,
       color: 'from-purple-500 to-purple-600',
       bgColor: 'bg-purple-50',
@@ -34,7 +35,7 @@ export default function OverviewCards({
     },
     {
       title: 'Đã xuất bản',
-      value: publishedCount,
+      value: publishedCount || 0,
       icon: CheckCircle,
       color: 'from-green-500 to-green-600',
       bgColor: 'bg-green-50',
@@ -42,7 +43,7 @@ export default function OverviewCards({
     },
     {
       title: 'Bài nháp',
-      value: draftCount,
+      value: draftCount || 0,
       icon: Clock,
       color: 'from-amber-500 to-amber-600',
       bgColor: 'bg-amber-50',
@@ -60,13 +61,13 @@ export default function OverviewCards({
             className="bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow p-6"
           >
             <div className="flex items-start justify-between mb-4">
-              <h3 className="text-sm font-medium text-muted-foreground">{card.title}</h3>
+              <h3 className="text-sm font-medium text-slate-500">{card.title}</h3>
               <div className={`p-2 rounded-lg ${card.bgColor}`}>
                 <Icon size={20} className={card.textColor} />
               </div>
             </div>
             <div>
-              <p className="text-3xl font-bold text-foreground">{card.value}</p>
+              <p className="text-3xl font-black text-slate-800">{card.value}</p>
             </div>
           </div>
         )

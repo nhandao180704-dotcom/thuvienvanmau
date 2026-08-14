@@ -7,7 +7,8 @@ import { supabase } from '@/lib/supabase-client'
 import AdminSidebar from '@/components/AdminSidebar'
 import AdminHeader from '@/components/AdminHeader'
 import DashboardCharts from '@/components/DashboardCharts'
-import { Plus, Edit, Trash2, BookOpen, Eye, CheckCircle, Clock, Users, BrainCircuit, ArrowRight, BarChart2 } from 'lucide-react'
+import OverviewCards from '@/components/OverviewCards' // Đã import Component thẻ thống kê
+import { Plus, Edit, Trash2, BarChart2 } from 'lucide-react'
 
 function DashboardContent() {
   const router = useRouter()
@@ -66,6 +67,20 @@ function DashboardContent() {
     }
   }
 
+  // Helper format thể loại văn (ánh xạ từ mã Database)
+  const formatCategory = (cat: string) => {
+    const map: Record<string, string> = {
+      'văn_tự_sự': 'Văn tự sự',
+      'văn_miêu_tả': 'Văn miêu tả',
+      'văn_biểu_cảm': 'Văn biểu cảm',
+      'văn_nghị_luận': 'Văn nghị luận',
+      'văn_thuyết_minh': 'Văn thuyết minh',
+      'phân_tích_tác_phẩm': 'Phân tích tác phẩm'
+    }
+    return map[cat] || cat || '---'
+  }
+
+  // Tính toán số liệu thống kê
   const totalViews = essays.reduce((sum, essay) => sum + (essay.views || 0), 0)
   const publishedCount = essays.length
   const draftCount = 0
@@ -87,40 +102,15 @@ function DashboardContent() {
                 <p className="text-slate-500">Quản lý số liệu và tổng quan hệ thống thư viện</p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col">
-                  <div className="flex justify-between items-start mb-4">
-                    <span className="text-slate-500 font-medium text-sm">Tổng số bài viết</span>
-                    <div className="p-2 bg-blue-50 text-blue-600 rounded-lg"><BookOpen className="w-5 h-5" /></div>
-                  </div>
-                  <h3 className="text-3xl font-bold text-slate-900">{essays.length}</h3>
-                </div>
+              {/* Sử dụng Component OverviewCards siêu xịn */}
+              <OverviewCards 
+                totalEssays={essays.length} 
+                totalViews={totalViews} 
+                publishedCount={publishedCount} 
+                draftCount={draftCount} 
+              />
 
-                <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col">
-                  <div className="flex justify-between items-start mb-4">
-                    <span className="text-slate-500 font-medium text-sm">Tổng lượt xem</span>
-                    <div className="p-2 bg-purple-50 text-purple-600 rounded-lg"><Eye className="w-5 h-5" /></div>
-                  </div>
-                  <h3 className="text-3xl font-bold text-slate-900">{totalViews}</h3>
-                </div>
-
-                <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col">
-                  <div className="flex justify-between items-start mb-4">
-                    <span className="text-slate-500 font-medium text-sm">Đã xuất bản</span>
-                    <div className="p-2 bg-emerald-50 text-emerald-600 rounded-lg"><CheckCircle className="w-5 h-5" /></div>
-                  </div>
-                  <h3 className="text-3xl font-bold text-slate-900">{publishedCount}</h3>
-                </div>
-
-                <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col">
-                  <div className="flex justify-between items-start mb-4">
-                    <span className="text-slate-500 font-medium text-sm">Bài nháp</span>
-                    <div className="p-2 bg-amber-50 text-amber-600 rounded-lg"><Clock className="w-5 h-5" /></div>
-                  </div>
-                  <h3 className="text-3xl font-bold text-slate-900">{draftCount}</h3>
-                </div>
-              </div>
-
+              {/* Biểu đồ Real-time */}
               <DashboardCharts />
             </div>
           )}
@@ -155,9 +145,11 @@ function DashboardContent() {
                     <tbody>
                       {essays.map(essay => (
                         <tr key={essay.id} className="border-b border-slate-100 hover:bg-slate-50 transition">
-                          <td className="py-4 font-medium text-slate-900 max-w-xs truncate pr-4">{essay.title}</td>
-                          <td className="py-4 text-slate-600">{essay.grade}</td>
-                          <td className="py-4 text-slate-600">{essay.genre}</td>
+                          <td className="py-4 font-bold text-slate-900 max-w-xs truncate pr-4">{essay.title}</td>
+                          <td className="py-4 text-blue-600 font-medium">
+                            {essay.class_level ? (essay.class_level === 10 ? 'Ôn thi vào 10' : `Lớp ${essay.class_level}`) : '---'}
+                          </td>
+                          <td className="py-4 text-slate-600">{formatCategory(essay.category)}</td>
                           <td className="py-4 text-right space-x-4">
                             <Link href={`/admin/essays/edit/${essay.id}`} className="text-blue-500 hover:text-blue-700">
                               <Edit className="w-5 h-5 inline" />
@@ -203,18 +195,17 @@ function DashboardContent() {
                       <tr className="border-b border-slate-200 text-sm text-slate-500">
                         <th className="pb-3 font-medium">Tên đề thi</th>
                         <th className="pb-3 font-medium">Dành cho</th>
-                        <th className="pb-3 font-medium">Mô tả</th>
+                        <th className="pb-3 font-medium">Thời gian</th>
                         <th className="pb-3 font-medium text-right">Thao tác</th>
                       </tr>
                     </thead>
                     <tbody>
                       {quizzes.map(quiz => (
                         <tr key={quiz.id} className="border-b border-slate-100 hover:bg-slate-50 transition">
-                          <td className="py-4 font-medium text-slate-900 pr-4">{quiz.title}</td>
-                          <td className="py-4 text-slate-600">Lớp {quiz.grade_level}</td>
-                          <td className="py-4 text-slate-600 truncate max-w-xs pr-4">{quiz.description}</td>
+                          <td className="py-4 font-bold text-slate-900 pr-4">{quiz.title}</td>
+                          <td className="py-4 text-emerald-600 font-medium">{quiz.grade || '---'}</td>
+                          <td className="py-4 text-slate-600 truncate max-w-xs pr-4">{quiz.duration ? `${quiz.duration} phút` : '---'}</td>
                           <td className="py-4 text-right space-x-3">
-                            {/* Nút Xem Thống Kê Mới */}
                             <Link href={`/admin/quizzes/${quiz.id}/results`} className="text-amber-500 hover:text-amber-700 transition" title="Xem kết quả">
                               <BarChart2 className="w-5 h-5 inline" />
                             </Link>
