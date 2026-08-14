@@ -16,12 +16,12 @@ export default function QuestionBankPage() {
     fetchQuestions()
   }, [])
 
-  // Tải danh sách câu hỏi từ Supabase
+  // Tải danh sách câu hỏi từ bảng question_bank
   const fetchQuestions = async () => {
     setLoading(true)
     try {
       const { data, error } = await supabase
-        .from('questions')
+        .from('question_bank')
         .select('*')
         .order('created_at', { ascending: false })
       
@@ -39,7 +39,7 @@ export default function QuestionBankPage() {
     if (!window.confirm('Bạn có chắc chắn muốn xóa câu hỏi này khỏi ngân hàng?')) return
 
     try {
-      const { error } = await supabase.from('questions').delete().eq('id', id)
+      const { error } = await supabase.from('question_bank').delete().eq('id', id)
       if (error) throw error
       setQuestions(questions.filter(q => q.id !== id))
       alert('Đã xóa câu hỏi thành công!')
@@ -49,7 +49,6 @@ export default function QuestionBankPage() {
     }
   }
 
-  // Lọc câu hỏi theo từ khóa tìm kiếm hoặc khối lớp
   const filteredQuestions = questions.filter(q => 
     (q.content && q.content.toLowerCase().includes(searchQuery.toLowerCase())) ||
     (q.grade && q.grade.toLowerCase().includes(searchQuery.toLowerCase()))
@@ -64,7 +63,6 @@ export default function QuestionBankPage() {
         <main className="flex-1 p-4 md:p-8 overflow-y-auto mt-16 max-w-7xl mx-auto w-full">
           <div className="space-y-6">
             
-            {/* Header & Nút thêm mới */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <h1 className="text-2xl md:text-3xl font-black text-slate-900 flex items-center gap-3">
@@ -84,7 +82,6 @@ export default function QuestionBankPage() {
               </Link>
             </div>
 
-            {/* Thanh tìm kiếm */}
             <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex items-center gap-3">
               <Search className="text-slate-400 w-5 h-5 ml-2" />
               <input 
@@ -96,7 +93,6 @@ export default function QuestionBankPage() {
               />
             </div>
 
-            {/* Bảng danh sách câu hỏi */}
             <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse min-w-[800px]">

@@ -27,13 +27,13 @@ export default function EditQuestionPage({ params }: { params: Promise<{ id: str
     explanation: ''
   })
 
-  // Tải dữ liệu cũ của câu hỏi khi mở trang
+  // Tải chi tiết từ bảng question_bank
   useEffect(() => {
     const fetchQuestionDetail = async () => {
       setFetching(true)
       try {
         const { data, error } = await supabase
-          .from('questions')
+          .from('question_bank')
           .select('*')
           .eq('id', questionId)
           .single()
@@ -70,7 +70,7 @@ export default function EditQuestionPage({ params }: { params: Promise<{ id: str
     setFormData(prev => ({ ...prev, [name]: value }))
   }
 
-  // Xử lý cập nhật vào Supabase
+  // Cập nhật vào bảng question_bank
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
@@ -89,7 +89,7 @@ export default function EditQuestionPage({ params }: { params: Promise<{ id: str
       }
 
       const { error } = await supabase
-        .from('questions')
+        .from('question_bank')
         .update({
           content: formData.content,
           options: options,

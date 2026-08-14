@@ -12,7 +12,6 @@ export default function NewQuestionPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
 
-  // State lưu trữ dữ liệu form
   const [formData, setFormData] = useState({
     grade: 'Lớp 9',
     content: '',
@@ -24,17 +23,15 @@ export default function NewQuestionPage() {
     explanation: ''
   })
 
-  // Xử lý cập nhật state khi gõ input
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target
     setFormData(prev => ({ ...prev, [name]: value }))
   }
 
-  // Xử lý lưu vào Supabase
+  // Lưu vào bảng question_bank
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    // Validate cơ bản
     if (!formData.content.trim() || !formData.optionA.trim() || !formData.optionB.trim()) {
       alert('Vui lòng nhập nội dung câu hỏi và ít nhất 2 đáp án A, B!')
       return
@@ -42,7 +39,6 @@ export default function NewQuestionPage() {
 
     setLoading(true)
     try {
-      // Đóng gói 4 đáp án vào 1 object JSON
       const options = {
         A: formData.optionA,
         B: formData.optionB,
@@ -50,7 +46,7 @@ export default function NewQuestionPage() {
         D: formData.optionD
       }
 
-      const { error } = await supabase.from('questions').insert([
+      const { error } = await supabase.from('question_bank').insert([
         {
           content: formData.content,
           options: options,
@@ -63,7 +59,7 @@ export default function NewQuestionPage() {
       if (error) throw error
 
       alert('Thêm câu hỏi thành công!')
-      router.push('/admin/question-bank') // Quay về danh sách sau khi thêm
+      router.push('/admin/question-bank')
       
     } catch (error) {
       console.error('Lỗi khi lưu câu hỏi:', error)
@@ -81,7 +77,6 @@ export default function NewQuestionPage() {
         
         <main className="flex-1 p-4 md:p-8 overflow-y-auto mt-16 max-w-4xl mx-auto w-full">
           
-          {/* Nút Quay Lại */}
           <Link 
             href="/admin/question-bank" 
             className="inline-flex items-center gap-2 text-slate-500 hover:text-[#0052CC] font-medium transition-colors mb-6"
@@ -98,7 +93,6 @@ export default function NewQuestionPage() {
 
             <form onSubmit={handleSubmit} className="p-8 space-y-8">
               
-              {/* Khối lớp */}
               <div className="w-1/3">
                 <label className="block text-sm font-bold text-slate-700 mb-2">Khối lớp / Phân loại</label>
                 <select 
@@ -115,7 +109,6 @@ export default function NewQuestionPage() {
                 </select>
               </div>
 
-              {/* Nội dung câu hỏi */}
               <div>
                 <label className="block text-sm font-bold text-slate-700 mb-2">
                   Nội dung câu hỏi / Đoạn ngữ liệu <span className="text-red-500">*</span>
@@ -129,27 +122,22 @@ export default function NewQuestionPage() {
                 />
               </div>
 
-              {/* Khu vực 4 đáp án */}
               <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100 space-y-5">
                 <h3 className="font-bold text-slate-800 mb-2">Các phương án trả lời:</h3>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                  {/* Đáp án A */}
                   <div className="flex items-center gap-3">
                     <span className="w-10 h-10 rounded-lg bg-white border border-slate-200 shadow-sm flex items-center justify-center font-black text-slate-700 shrink-0">A</span>
                     <input type="text" name="optionA" value={formData.optionA} onChange={handleChange} placeholder="Nội dung đáp án A" className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-[#0052CC]/20 focus:border-[#0052CC] outline-none" required />
                   </div>
-                  {/* Đáp án B */}
                   <div className="flex items-center gap-3">
                     <span className="w-10 h-10 rounded-lg bg-white border border-slate-200 shadow-sm flex items-center justify-center font-black text-slate-700 shrink-0">B</span>
                     <input type="text" name="optionB" value={formData.optionB} onChange={handleChange} placeholder="Nội dung đáp án B" className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-[#0052CC]/20 focus:border-[#0052CC] outline-none" required />
                   </div>
-                  {/* Đáp án C */}
                   <div className="flex items-center gap-3">
                     <span className="w-10 h-10 rounded-lg bg-white border border-slate-200 shadow-sm flex items-center justify-center font-black text-slate-700 shrink-0">C</span>
                     <input type="text" name="optionC" value={formData.optionC} onChange={handleChange} placeholder="Nội dung đáp án C" className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-[#0052CC]/20 focus:border-[#0052CC] outline-none" />
                   </div>
-                  {/* Đáp án D */}
                   <div className="flex items-center gap-3">
                     <span className="w-10 h-10 rounded-lg bg-white border border-slate-200 shadow-sm flex items-center justify-center font-black text-slate-700 shrink-0">D</span>
                     <input type="text" name="optionD" value={formData.optionD} onChange={handleChange} placeholder="Nội dung đáp án D" className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-[#0052CC]/20 focus:border-[#0052CC] outline-none" />
@@ -157,7 +145,6 @@ export default function NewQuestionPage() {
                 </div>
               </div>
 
-              {/* Đáp án đúng */}
               <div className="w-1/3">
                 <label className="block text-sm font-bold text-slate-700 mb-2 flex items-center gap-2">
                   <CheckCircle2 size={18} className="text-emerald-500" /> Chọn đáp án đúng
@@ -175,7 +162,6 @@ export default function NewQuestionPage() {
                 </select>
               </div>
 
-              {/* Lời giải thích */}
               <div>
                 <label className="block text-sm font-bold text-slate-700 mb-2">
                   Lời giải thích chi tiết (Không bắt buộc)
@@ -189,7 +175,6 @@ export default function NewQuestionPage() {
                 />
               </div>
 
-              {/* Nút Submit */}
               <div className="pt-6 border-t border-slate-100 flex justify-end">
                 <button 
                   type="submit" 
