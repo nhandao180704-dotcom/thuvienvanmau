@@ -195,7 +195,7 @@ function QuizForm() {
           {/* KHỐI 1.5: CẤU HÌNH THANG ĐIỂM 10 */}
           <div className="bg-indigo-50 border border-indigo-100 p-6 rounded-2xl shadow-sm">
             <h2 className="text-lg font-black text-indigo-900 flex items-center gap-2 border-b border-indigo-200 pb-2 mb-4">
-              <Calculator size={20} /> 2. Cấu hình & Thống kê điểm số (Chuẩn thang 10)
+              <Calculator size={20} /> 2. Cấu hình & Thống kê điểm số (Chuẩn thang điểm 10)
             </h2>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
