@@ -1,21 +1,67 @@
+import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
-export function middleware(request: NextRequest) {
-  // Protect all admin routes except login
-  if (request.nextUrl.pathname.startsWith('/admin') && !request.nextUrl.pathname.startsWith('/login')) {
-    // Check for admin_token cookie (set by login page)
-    const adminToken = request.cookies.get('admin_token')
-    const adminSession = request.cookies.get('adminSession')
-    
-    // Allow access if either cookie exists (backward compatibility)
-    if (!adminToken && !adminSession) {
-      return NextResponse.redirect(new URL('/login', request.url))
+export async function middleware(request: NextRequest) {
+  let supabaseResponse = NextResponse.next({
+    request,
+  })
+
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll()
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
+          supabaseResponse = NextResponse.next({
+            request,
+          })
+          cookiesToSet.forEach(({ name, value, options }) =>
+            supabaseResponse.cookies.set(name, value, options)
+          )
+        },
+      },
+    }
+  )
+
+  // Lấy thông tin người dùng đang đăng nhập
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  const url = request.nextUrl.clone()
+
+  // Kiểm tra nếu người dùng đang cố truy cập vào khu vực admin
+  if (url.pathname.startsWith('/admin')) {
+    // 1. Nếu chưa đăng nhập -> Đá về trang chủ hoặc trang đăng nhập
+    if (!user) {
+      url.pathname = '/login' // Đẩy về trang đăng nhập
+      return NextResponse.redirect(url)
+    }
+
+    // 2. Kiểm tra xem user này có quyền admin trong bảng profiles không
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single()
+
+    // 3. Nếu không tìm thấy profile hoặc không phải admin -> Đá về trang chủ
+    if (!profile || profile.role !== 'admin') {
+      url.pathname = '/'
+      return NextResponse.redirect(url)
     }
   }
 
-  return NextResponse.next()
+  return supabaseResponse
 }
 
+// Cấu hình để Middleware chỉ chạy trên các đường dẫn cần thiết
 export const config = {
-  matcher: ['/admin/:path*'],
+  matcher: [
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+  ],
 }

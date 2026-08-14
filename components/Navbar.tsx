@@ -13,22 +13,43 @@ export default function Navbar() {
   const router = useRouter()
 
   useEffect(() => {
-    // Lấy thông tin user đang đăng nhập
+    // Hàm phụ trợ để kiểm tra quyền từ DB
+    const checkUserRole = async (currentUser: any) => {
+      if (!currentUser) {
+        setIsAdmin(false)
+        return
+      }
+      
+      try {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', currentUser.id)
+          .single()
+          
+        setIsAdmin(profile?.role === 'admin')
+      } catch (error) {
+        console.error("Lỗi khi lấy quyền người dùng:", error)
+        setIsAdmin(false)
+      }
+    }
+
+    // Lấy thông tin user khi load trang
     const getUser = async () => {
       const { data: { session } } = await supabase.auth.getSession()
       if (session?.user) {
         setUser(session.user)
-        setIsAdmin(session.user.email === 'admin@thuvien.edu.vn')
+        await checkUserRole(session.user)
       }
     }
     
     getUser()
 
     // Lắng nghe sự kiện đăng nhập/đăng xuất
-    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session?.user) {
         setUser(session.user)
-        setIsAdmin(session.user.email === 'admin@thuvien.edu.vn')
+        await checkUserRole(session.user)
       } else {
         setUser(null)
         setIsAdmin(false)
