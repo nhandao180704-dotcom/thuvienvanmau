@@ -2,20 +2,22 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Star, Zap, BookOpen, ChevronRight, TrendingUp, Trophy, ArrowRight } from 'lucide-react'
+import { Star, Zap, BookOpen, ChevronRight, TrendingUp, Trophy, ArrowRight, PenTool, LayoutDashboard } from 'lucide-react'
 import { supabase } from '@/lib/supabase-client'
 import VisitorCounter from '@/components/VisitorCounter'
 
 export default function Sidebar() {
   const [hotEssays, setHotEssays] = useState<any[]>([])
+  const [isAdmin, setIsAdmin] = useState(false) // Thêm state kiểm tra Admin
 
   useEffect(() => {
+    // 1. Tải danh sách bài viết Hot
     const fetchHotEssays = async () => {
       try {
         const { data } = await supabase
           .from('essays')
           .select('id, title, genre, grade')
-          .eq('status', 'published')
+          // .eq('status', 'published') // Bỏ comment nếu bạn có cột status
           .order('created_at', { ascending: false })
           .limit(4)
         
@@ -26,7 +28,25 @@ export default function Sidebar() {
         console.error('Lỗi tải bài hot:', error)
       }
     }
+
+    // 2. Kiểm tra quyền Admin
+    const checkAdminRole = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session?.user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', session.user.id)
+          .single()
+        
+        if (profile && profile.role === 'admin') {
+          setIsAdmin(true)
+        }
+      }
+    }
+
     fetchHotEssays()
+    checkAdminRole()
   }, [])
 
   const examPrepItems = [
@@ -38,6 +58,31 @@ export default function Sidebar() {
   return (
     <aside className="space-y-6">
       
+      {/* KHỐI QUẢN TRỊ - CHỈ HIỂN THỊ KHI LÀ ADMIN */}
+      {isAdmin && (
+        <div className="bg-white rounded-3xl border border-blue-100 shadow-sm overflow-hidden">
+          <div className="bg-slate-900 p-5 flex items-center gap-3 text-white">
+            <div className="p-2 bg-blue-500/20 rounded-lg">
+              <LayoutDashboard size={20} className="text-blue-400" />
+            </div>
+            <div>
+              <h3 className="font-extrabold text-lg tracking-tight">Khu vực Quản trị</h3>
+              <p className="text-xs text-slate-400 font-medium">Dành riêng cho Admin</p>
+            </div>
+          </div>
+          <div className="p-4 space-y-2">
+            <Link href="/admin/dashboard" className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 text-slate-700 hover:text-blue-600 font-bold transition-all border border-transparent hover:border-slate-100">
+              <LayoutDashboard size={18} />
+              <span>Tổng quan (Dashboard)</span>
+            </Link>
+            <Link href="/admin/essays" className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 text-slate-700 hover:text-blue-600 font-bold transition-all border border-transparent hover:border-slate-100">
+              <PenTool size={18} />
+              <span>Quản lý bài viết</span>
+            </Link>
+          </div>
+        </div>
+      )}
+
       {/* Khối 1: Hot Tuần Này */}
       <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
         <div className="bg-slate-900 p-5 flex items-center gap-3 text-white">
