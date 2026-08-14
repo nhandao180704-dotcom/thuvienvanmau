@@ -43,9 +43,9 @@ export default function AdminSidebar() {
           isOpen ? 'translate-x-0' : '-translate-x-full'
         } md:translate-x-0`}
       >
-        {/* Phần Logo Thư Viện (Đã bọc Link dẫn về Dashboard và có hiệu ứng hover) */}
+        {/* Phần Logo Thư Viện (Đã đổi href thành "/" để trỏ về trang chủ) */}
         <Link 
-          href="/admin/dashboard"
+          href="/"
           onClick={() => setIsOpen(false)}
           className="px-6 py-8 md:py-6 pt-16 md:pt-6 border-b border-slate-100 flex items-center gap-3 hover:bg-slate-50 transition-colors group cursor-pointer"
         >
