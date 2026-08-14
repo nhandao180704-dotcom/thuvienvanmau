@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Navbar from '@/components/Navbar'
 import Sidebar from '@/components/Sidebar'
-import { Search, Sparkles, BookOpen, Clock, Eye, Bookmark, Flame, ArrowRight, Star } from 'lucide-react'
+import { Search, Sparkles, BookOpen, Clock, Eye, Bookmark, Flame, ArrowRight, Star, TrendingUp } from 'lucide-react'
 import { supabase } from '@/lib/supabase-client'
 
 const BANNERS = [
@@ -32,6 +32,7 @@ export default function LibraryPage() {
   const [activeTab, setActiveTab] = useState('Tất cả')
   const [searchQuery, setSearchQuery] = useState('')
   const [searchTermSubmitted, setSearchTermSubmitted] = useState('')
+  const [showSuggestions, setShowSuggestions] = useState(false)
   const [essays, setEssays] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [currentBanner, setCurrentBanner] = useState(0)
@@ -69,12 +70,14 @@ export default function LibraryPage() {
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value
     setSearchQuery(value)
+    setShowSuggestions(value.trim().length > 0)
     if (value.trim() === '') setSearchTermSubmitted('')
   }
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     setSearchTermSubmitted(searchQuery.trim().toLowerCase())
+    setShowSuggestions(false)
   }
 
   const filteredEssays = essays.filter(essay => {
@@ -90,6 +93,12 @@ export default function LibraryPage() {
     }
     return matchTab && matchSearch
   })
+
+  // Lấy ra Top 3 bài viết nhiều view nhất
+  const trendingEssays = [...essays].sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, 3)
+  
+  // Gợi ý tìm kiếm theo thời gian thực
+  const searchSuggestions = searchQuery.trim() === '' ? [] : essays.filter(e => e.title?.toLowerCase().includes(searchQuery.trim().toLowerCase())).slice(0, 5)
 
   return (
     <div className="min-h-screen bg-[#F4F7FB] text-slate-800 font-sans selection:bg-blue-300 selection:text-blue-900 overflow-x-hidden w-full relative">
@@ -118,9 +127,9 @@ export default function LibraryPage() {
             {BANNERS[currentBanner].title}
           </h1>
           
-          <form onSubmit={handleSearchSubmit} className="w-full max-w-2xl relative group mb-6 px-2 box-border">
+          <div className="w-full max-w-2xl relative group mb-6 px-2 box-border">
             <div className="absolute inset-0 bg-white/20 rounded-full blur-xl group-focus-within:bg-white/40 transition-all duration-500 mx-2"></div>
-            <div className="relative flex items-center w-full">
+            <form onSubmit={handleSearchSubmit} className="relative flex items-center w-full">
               <Search className="absolute left-4 sm:left-6 w-5 h-5 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
               <input
                 type="text"
@@ -135,8 +144,29 @@ export default function LibraryPage() {
               >
                 Tìm kiếm
               </button>
-            </div>
-          </form>
+            </form>
+
+            {/* Gợi ý tìm kiếm */}
+            {showSuggestions && searchSuggestions.length > 0 && (
+              <div className="absolute top-full mt-2 w-full bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden z-50 text-left animate-in fade-in slide-in-from-top-2 duration-200">
+                {searchSuggestions.map(s => (
+                  <button
+                    key={s.id}
+                    type="button"
+                    onClick={() => {
+                      setSearchQuery(s.title);
+                      setSearchTermSubmitted(s.title.toLowerCase());
+                      setShowSuggestions(false);
+                    }}
+                    className="w-full text-left px-6 py-3.5 hover:bg-slate-50 border-b border-slate-50 last:border-0 transition-colors flex items-center gap-3"
+                  >
+                    <Search className="w-4 h-4 text-slate-400 shrink-0" />
+                    <span className="text-slate-700 font-medium line-clamp-1">{s.title}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
 
           <div className="flex gap-2 mt-2">
             {BANNERS.map((_, idx) => (
@@ -150,12 +180,11 @@ export default function LibraryPage() {
         </div>
       </div>
 
-      {/* LỚP NỀN CỐ ĐỊNH CHUẨN (Tương thích mọi thiết bị) */}
+      {/* LỚP NỀN CỐ ĐỊNH CHUẨN */}
       <div className="relative w-full min-h-screen pb-20 z-10">
         
-        {/* Lớp Fixed Background: Khóa chặt hình nền với kích thước màn hình, không bị bóp méo hay biến mất */}
         <div className="fixed top-0 left-0 w-full h-full pointer-events-none z-0">
-          <div className="w-full h-full bg-[url('/bg-van-hoc.jpg')] bg-cover bg-center bg-no-repeat"></div>
+          <div className="w-full h-full bg-[url('/bg-van-hoc.jpg')] bg-cover bg-center bg-no-repeat opacity-5"></div>
         </div>
 
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 relative z-10 w-full box-border">
@@ -178,6 +207,32 @@ export default function LibraryPage() {
                   ))}
                 </div>
               </div>
+
+              {/* TOP XU HƯỚNG */}
+              {activeTab === 'Tất cả' && !searchTermSubmitted && trendingEssays.length > 0 && !loading && (
+                <div className="mb-8">
+                  <h2 className="text-xl sm:text-2xl font-black text-slate-900 flex items-center gap-2 sm:gap-3 mb-6">
+                    <div className="p-2 bg-purple-100 rounded-lg shrink-0"><TrendingUp className="text-purple-600 w-5 h-5 sm:w-6 sm:h-6" /></div>
+                    <span>Top Bài Viết Nổi Bật</span>
+                  </h2>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+                    {trendingEssays.map(essay => (
+                      <Link href={`/essay/${essay.id}`} key={`trend-${essay.id}`} className="group outline-none w-full">
+                        <div className="bg-gradient-to-br from-white to-slate-50 rounded-3xl p-5 shadow-sm border border-slate-200 group-hover:border-purple-200 group-hover:shadow-xl transition-all duration-300 h-full flex flex-col relative overflow-hidden">
+                          <div className="absolute -top-6 -right-6 w-24 h-24 bg-purple-100 rounded-full opacity-50 group-hover:scale-150 transition-transform duration-500"></div>
+                          <span className="inline-block px-3 py-1 bg-purple-100 text-purple-700 rounded-lg text-[10px] font-black uppercase tracking-wider w-max mb-3">🔥 Nổi bật</span>
+                          <h3 className="text-base font-bold text-slate-800 group-hover:text-purple-700 transition-colors mb-3 line-clamp-2">
+                            {essay.title}
+                          </h3>
+                          <div className="mt-auto flex items-center gap-2 text-slate-500 text-xs font-semibold">
+                            <Eye size={14} className="text-purple-500" /> {essay.views || 0} lượt xem
+                          </div>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               <div className="flex flex-wrap items-center justify-between gap-3 w-full">
                 <h2 className="text-lg sm:text-2xl font-black text-slate-900 flex items-center gap-2 sm:gap-3 flex-1 break-words">
@@ -233,7 +288,7 @@ export default function LibraryPage() {
                         <div className="flex justify-between items-start mb-4 sm:mb-5">
                           <div className="flex flex-wrap gap-2">
                             <span className="px-3 py-1 bg-blue-50 text-blue-600 rounded-lg text-[10px] sm:text-xs font-black uppercase tracking-wider">
-                              {essay.grade || 'Lớp 9'}
+                              {essay.class_level === 10 ? 'Ôn thi vào 10' : essay.grade || `Lớp ${essay.class_level}`}
                             </span>
                             <span className="px-3 py-1 bg-purple-50 text-purple-600 rounded-lg text-[10px] sm:text-xs font-black uppercase tracking-wider line-clamp-1">
                               {essay.genre || 'Văn mẫu'}

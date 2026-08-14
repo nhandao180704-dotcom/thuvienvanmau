@@ -26,7 +26,7 @@ export default function EditEssayPage() {
     content: '',
   })
 
-  // --- HỆ THỐNG CHUYỂN ĐỔI FORMAT CHO KHỚP VỚI DATABASE ---
+  // Ánh xạ chuỗi sang danh mục DB chuẩn
   const mapToGenre = (category: string) => {
     const map: Record<string, string> = {
       'văn_tự_sự': 'Văn tự sự',
@@ -63,7 +63,6 @@ export default function EditEssayPage() {
         if (error) throw error
 
         if (data) {
-          // Ánh xạ dữ liệu từ DB lên UI Form
           setFormData({
             title: data.title || '',
             grade: data.class_level ? (data.class_level === 10 ? 'Ôn thi vào 10' : `Lớp ${data.class_level}`) : 'Lớp 9',
@@ -100,7 +99,6 @@ export default function EditEssayPage() {
     setSaving(true)
 
     try {
-      // Ép kiểu 'Lớp 9' thành số 9 để lưu DB
       let classLevel = 9;
       if (formData.grade === 'Ôn thi vào 10') {
         classLevel = 10;
@@ -151,7 +149,6 @@ export default function EditEssayPage() {
     }
   }
 
-  // --- UI CHỜ TẢI ---
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-50">

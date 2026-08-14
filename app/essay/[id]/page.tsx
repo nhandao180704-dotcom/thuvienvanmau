@@ -31,11 +31,9 @@ export default function EssayDetailPage() {
         if (essayError) throw essayError
         setEssay(essayData)
 
-        // 2. Tăng lượt xem
-        await supabase
-          .from('essays')
-          .update({ views: ((essayData as any)?.views || 0) + 1 })
-          .eq('id', id)
+        // 2. Tăng lượt xem thông qua API để không bị chặn bởi RLS
+        fetch(`/api/essays/${id}/views`, { method: 'POST' })
+          .catch(err => console.error("Lỗi cập nhật lượt xem:", err))
 
         // 3. Kiểm tra xem user đã lưu bài này chưa (nếu đã đăng nhập)
         const { data: { session } } = await supabase.auth.getSession()
@@ -109,7 +107,6 @@ export default function EssayDetailPage() {
     return tmp.textContent || tmp.innerText || ""
   }
 
-  // ĐÃ CẬP NHẬT: Tối ưu chọn giọng Tiếng Việt chuẩn và chỉnh tốc độ đọc truyền cảm hơn
   const handleSpeak = () => {
     if (!essay) return
     if (isSpeaking) {
@@ -124,7 +121,6 @@ export default function EssayDetailPage() {
       const cleanContent = stripHtml(essay.content || essay.title)
       const utterance = new SpeechSynthesisUtterance(cleanContent)
       
-      // Lọc ưu tiên giọng đọc Tiếng Việt có sẵn trong trình duyệt/thiết bị
       const voices = window.speechSynthesis.getVoices()
       const viVoice = voices.find(v => v.lang === 'vi-VN' || v.lang.toLowerCase().includes('vi'))
       if (viVoice) {
@@ -132,8 +128,8 @@ export default function EssayDetailPage() {
       }
 
       utterance.lang = 'vi-VN'
-      utterance.rate = 0.9    // Giảm tốc độ đọc chậm rãi hơn để nghe văn hay và rõ ràng hơn
-      utterance.pitch = 1.0   // Cao độ tự nhiên chuẩn
+      utterance.rate = 0.9    
+      utterance.pitch = 1.0   
 
       utterance.onend = () => setIsSpeaking(false)
       utterance.onerror = () => setIsSpeaking(false)
@@ -230,7 +226,7 @@ export default function EssayDetailPage() {
         <div className="mb-10 text-center animate-in fade-in duration-500">
           <div className="flex flex-wrap justify-center gap-3 mb-4">
             <span className="px-4 py-1.5 rounded-full bg-blue-100 text-blue-700 font-bold text-sm shadow-sm">
-              {essay.grade || 'Lớp 9'}
+              {essay.class_level === 10 ? 'Ôn thi vào 10' : essay.grade || `Lớp ${essay.class_level}`}
             </span>
             <span className="px-4 py-1.5 rounded-full bg-purple-100 text-purple-700 font-bold text-sm shadow-sm flex items-center gap-1.5">
               <Sparkles size={14} /> {categoryDisplay}
