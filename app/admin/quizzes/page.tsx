@@ -47,8 +47,9 @@ export default function AdminQuizzesPage() {
     }
   }
 
+  // ĐÃ SỬA LỖI Ở ĐÂY: Đổi /quizzes/ thành /quiz/
   const handleCopyLink = (id: string) => {
-    const link = `${window.location.origin}/quizzes/${id}`
+    const link = `${window.location.origin}/quiz/${id}`
     navigator.clipboard.writeText(link)
     setCopiedId(id)
     setTimeout(() => setCopiedId(null), 2000)
