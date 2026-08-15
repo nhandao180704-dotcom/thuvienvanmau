@@ -31,10 +31,12 @@ export default function StudentQuizPage() {
 
       if (quizError) throw quizError
 
+      // SỬA LỖI 400 Ở ĐÂY: Xóa bỏ options(*) vì options giờ là cột JSON trong bảng questions
       const { data: qData, error: qError } = await supabase
         .from('questions')
-        .select('*, options(*)')
+        .select('*')
         .eq('quiz_id', quizId)
+        .order('order_index', { ascending: true })
 
       if (qError) throw qError
 
@@ -47,21 +49,24 @@ export default function StudentQuizPage() {
     }
   }
 
-  const handleSelect = (questionId: string, optionId: string) => {
+  const handleSelect = (questionId: string, answer: string) => {
     if (submitted) return
-    setUserAnswers(prev => ({ ...prev, [questionId]: optionId }))
+    setUserAnswers(prev => ({ ...prev, [questionId]: answer }))
   }
 
   const calculateScore = () => {
-    let correct = 0
+    let earnedPoints = 0
+    let correctCount = 0
+    
     questions.forEach(q => {
-      const selectedOptId = userAnswers[q.id]
-      const correctOpt = q.options?.find((o: any) => o.is_correct)
-      if (selectedOptId && correctOpt && selectedOptId === correctOpt.id) {
-        correct++
+      if (q.question_type === 'multiple_choice') {
+        if (userAnswers[q.id] === q.correct_answer) {
+          earnedPoints += Number(q.points) || 0
+          correctCount++
+        }
       }
     })
-    return correct
+    return { earnedPoints, correctCount }
   }
 
   const handleSubmit = () => {
@@ -76,6 +81,16 @@ export default function StudentQuizPage() {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
+  // SỬA LỖI NÚT QUAY LẠI Ở ĐÂY
+  const handleBack = () => {
+    if (window.history.length > 2) {
+      router.back() 
+    } else {
+      window.close() 
+      router.push('/') 
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 gap-3">
@@ -85,21 +100,22 @@ export default function StudentQuizPage() {
     )
   }
 
-  const score = calculateScore()
+  const { earnedPoints, correctCount } = calculateScore()
   const answeredCount = Object.keys(userAnswers).length
+  const mcQuestionsCount = questions.filter(q => q.question_type === 'multiple_choice').length
 
   return (
     <div className="min-h-screen bg-slate-50 py-8 px-4">
       <div className="max-w-3xl mx-auto space-y-6">
-        {/* Nút quay lại linh hoạt */}
+        
+        {/* Nút quay lại đã được gắn hàm handleBack mới */}
         <button
-          onClick={() => router.back()}
+          onClick={handleBack}
           className="inline-flex items-center gap-2 text-sm font-semibold text-slate-600 hover:text-slate-900 bg-white px-4 py-2 rounded-xl border border-slate-200 shadow-sm transition-all"
         >
           <ArrowLeft className="w-4 h-4" /> Quay lại
         </button>
 
-        {/* Tiêu đề & Thông tin đề thi */}
         <div className="bg-white p-6 md:p-8 rounded-3xl border border-slate-200 shadow-sm">
           <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
             <span className="px-3 py-1 bg-blue-50 text-blue-700 rounded-lg text-xs font-bold uppercase tracking-wider">
@@ -114,12 +130,11 @@ export default function StudentQuizPage() {
           <h1 className="text-2xl sm:text-3xl font-black text-slate-900 leading-tight mb-2">
             {quiz?.title || 'Đề kiểm tra'}
           </h1>
-          {quiz?.description && (
-            <p className="text-slate-600 text-sm sm:text-base leading-relaxed">{quiz.description}</p>
+          {quiz?.duration && (
+            <p className="text-slate-600 text-sm sm:text-base font-medium">Thời gian: {quiz.duration} phút</p>
           )}
         </div>
 
-        {/* Khối hiển thị kết quả (nổi bật trên cùng sau khi nộp bài) */}
         {submitted && (
           <div className="bg-gradient-to-br from-blue-600 to-indigo-700 p-6 md:p-8 rounded-3xl text-white shadow-xl flex flex-col sm:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-4">
@@ -129,8 +144,13 @@ export default function StudentQuizPage() {
               <div>
                 <h3 className="text-xl sm:text-2xl font-black">Kết quả bài thi</h3>
                 <p className="text-white/80 text-sm mt-1">
-                  Đúng <strong className="text-yellow-300 text-lg">{score}</strong> / {questions.length} câu 
-                  {questions.length > 0 && ` (${Math.round((score / questions.length) * 100)}%)`}
+                  Đúng Trắc nghiệm: <strong className="text-yellow-300 text-lg">{correctCount}</strong> / {mcQuestionsCount} câu 
+                </p>
+                <p className="text-white/80 text-sm">
+                  Điểm Trắc nghiệm: <strong className="text-yellow-300">{earnedPoints.toFixed(2)}</strong> điểm
+                </p>
+                <p className="text-white/60 text-xs mt-1 italic">
+                  * Phần Tự luận sẽ được giáo viên chấm điểm thủ công sau.
                 </p>
               </div>
             </div>
@@ -147,7 +167,6 @@ export default function StudentQuizPage() {
           </div>
         )}
 
-        {/* TH1: Khi đề thi chưa có câu hỏi */}
         {questions.length === 0 ? (
           <div className="bg-white p-10 rounded-3xl border-2 border-dashed border-slate-200 text-center space-y-4">
             <div className="w-14 h-14 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center mx-auto">
@@ -155,11 +174,10 @@ export default function StudentQuizPage() {
             </div>
             <h3 className="text-lg font-bold text-slate-800">Đề thi này chưa có câu hỏi</h3>
             <p className="text-slate-500 text-sm max-w-md mx-auto">
-              Nội dung câu hỏi đang được cập nhật. Vui lòng quay lại danh sách đề thi hoặc liên hệ quản trị viên.
+              Nội dung câu hỏi đang được cập nhật. Vui lòng quay lại sau.
             </p>
           </div>
         ) : (
-          /* TH2: Danh sách câu hỏi */
           <div className="space-y-6">
             {questions.map((q, idx) => (
               <div key={q.id} className="bg-white p-6 sm:p-7 rounded-3xl border border-slate-200 shadow-sm space-y-4">
@@ -167,15 +185,21 @@ export default function StudentQuizPage() {
                   <span className="w-8 h-8 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center font-bold text-sm shrink-0 mt-0.5">
                     {idx + 1}
                   </span>
-                  <h3 className="font-bold text-slate-900 text-base sm:text-lg leading-snug">
-                    {q.question_text}
-                  </h3>
+                  <div className="flex-1">
+                    <h3 className="font-bold text-slate-900 text-base sm:text-lg leading-snug whitespace-pre-wrap">
+                      {q.content || q.question_text}
+                    </h3>
+                    <span className="inline-block mt-1 text-xs font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded">
+                      {q.points} điểm
+                    </span>
+                  </div>
                 </div>
 
                 <div className="space-y-2.5 pt-2">
-                  {q.options?.map((opt: any, oIdx: number) => {
-                    const isSelected = userAnswers[q.id] === opt.id
-                    const isCorrect = opt.is_correct
+                  {/* HỖ TRỢ HIỂN THỊ ĐÁP ÁN TRẮC NGHIỆM DẠNG JSON */}
+                  {q.question_type === 'multiple_choice' && q.options && Object.entries(q.options).map(([key, value]) => {
+                    const isSelected = userAnswers[q.id] === key
+                    const isCorrect = q.correct_answer === key
 
                     let optionStyle = 'border-slate-200 hover:border-blue-300 bg-white hover:bg-slate-50/50'
                     if (isSelected) optionStyle = 'border-blue-600 bg-blue-50/70 text-blue-900 font-semibold ring-1 ring-blue-600'
@@ -192,35 +216,44 @@ export default function StudentQuizPage() {
 
                     return (
                       <div
-                        key={opt.id}
-                        onClick={() => handleSelect(q.id, opt.id)}
+                        key={key}
+                        onClick={() => handleSelect(q.id, key)}
                         className={`p-4 rounded-2xl border flex items-center justify-between cursor-pointer transition-all duration-200 ${optionStyle}`}
                       >
                         <div className="flex items-center gap-3">
-                          <span className="w-6 h-6 rounded-lg bg-slate-100/80 text-slate-600 flex items-center justify-center text-xs font-bold">
-                            {String.fromCharCode(65 + oIdx)}
+                          <span className="w-6 h-6 rounded-lg bg-slate-100/80 text-slate-600 flex items-center justify-center text-xs font-bold shrink-0">
+                            {key}
                           </span>
-                          <span className="text-sm sm:text-base text-slate-800">{opt.option_text}</span>
+                          <span className="text-sm sm:text-base text-slate-800">{value as string}</span>
                         </div>
                         {submitted && isCorrect && <CheckCircle2 className="w-5 h-5 text-green-600 shrink-0" />}
                         {submitted && isSelected && !isCorrect && <XCircle className="w-5 h-5 text-red-600 shrink-0" />}
                       </div>
                     )
                   })}
-                </div>
 
-                {submitted && q.explanation && (
-                  <div className="mt-4 p-4 bg-amber-50/80 border border-amber-200 rounded-2xl text-amber-900 text-sm leading-relaxed">
-                    <strong className="font-bold flex items-center gap-1.5 mb-1 text-amber-800">
-                      <HelpCircle className="w-4 h-4" /> Giải thích chi tiết:
-                    </strong>
-                    {q.explanation}
-                  </div>
-                )}
+                  {/* HỖ TRỢ HIỂN THỊ Ô NHẬP TỰ LUẬN */}
+                  {q.question_type === 'essay' && (
+                    <div className="pt-2">
+                        <textarea
+                          placeholder="Nhập câu trả lời của bạn..."
+                          value={userAnswers[q.id] || ''}
+                          onChange={(e) => handleSelect(q.id, e.target.value)}
+                          disabled={submitted}
+                          className={`w-full p-4 border rounded-xl outline-none min-h-[120px] transition-all ${submitted ? 'bg-slate-50 border-slate-200 text-slate-600' : 'border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200'}`}
+                        />
+                        {submitted && q.correct_answer && (
+                          <div className="mt-4 p-4 bg-emerald-50 rounded-xl border border-emerald-100">
+                            <p className="text-xs font-bold text-emerald-800 uppercase mb-1">Từ khóa / Đáp án gợi ý:</p>
+                            <p className="text-sm text-emerald-900 whitespace-pre-wrap">{q.correct_answer}</p>
+                          </div>
+                        )}
+                    </div>
+                  )}
+                </div>
               </div>
             ))}
 
-            {/* Nút nộp bài ở cuối */}
             {!submitted && (
               <div className="sticky bottom-6 z-20 flex justify-center">
                 <button
