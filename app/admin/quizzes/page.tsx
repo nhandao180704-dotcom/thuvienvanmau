@@ -129,7 +129,7 @@ export default function AdminQuizzesPage() {
                               {copiedId === quiz.id ? <CheckCircle2 size={16} /> : <Copy size={16} />}
                               {copiedId === quiz.id ? 'Đã copy' : 'Copy Link'}
                             </button>
-                            <Link href={`/quizzes/${quiz.id}`} target="_blank" className="p-2 text-slate-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-colors" title="Xem thử đề thi">
+                            <Link href={`/quiz/${quiz.id}`} target="_blank" className="p-2 text-slate-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-colors" title="Xem thử đề thi">
                               <Eye size={18} />
                             </Link>
                             <button onClick={() => handleDelete(quiz.id, quiz.title)} className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="Xóa đề thi">
