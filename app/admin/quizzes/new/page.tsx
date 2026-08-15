@@ -142,7 +142,7 @@ function QuizForm() {
       if (qErr) throw qErr
 
       success('Tạo đề thi thành công!')
-      setTimeout(() => router.push('/admin/dashboard'), 1500)
+      setTimeout(() => router.push('/admin/quizzes'), 1500)
     } catch (err: any) {
       console.error(err)
       showError(err.message || 'Có lỗi xảy ra khi tạo đề thi')
