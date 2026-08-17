@@ -118,10 +118,10 @@ export default function LibraryPage() {
 
       <Navbar />
 
-      {/* HEADER: KHUNG BANNER CHUẨN XÁC VỚI HÌNH NỀN VÀ THANH CHỮ CHẠY GỌN GÀNG */}
-      <div className="relative w-full min-h-[520px] flex flex-col justify-between overflow-hidden z-20 border-b border-slate-200 bg-slate-50 pt-16">
+      {/* HEADER: KHUNG BANNER TỔNG THỂ (ẢNH NỀN + RUBIK 3D + CHỮ CHẠY CỐ ĐỊNH TRONG 1 KHUNG) */}
+      <div className="relative w-full h-[580px] flex flex-col justify-between overflow-hidden z-20 border-b border-slate-200 bg-slate-50 pt-16">
         
-        {/* Hình nền thực tế sắc nét trọn vẹn trong banner */}
+        {/* Hình nền thực tế sắc nét */}
         <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
           <img 
             src="/hinh-nen-banner.jpg" 
@@ -131,8 +131,8 @@ export default function LibraryPage() {
           <div className="absolute inset-0 bg-white/40 backdrop-blur-[0.5px]"></div>
         </div>
 
-        {/* Khối Rubik 3D nằm ở giữa banner */}
-        <div className="w-full relative z-20 my-auto flex justify-center">
+        {/* Khối Rubik 3D nằm ở giữa */}
+        <div className="w-full relative z-20 my-auto flex justify-center px-4">
           <RubikBanner3D 
             searchQuery={searchQuery}
             setSearchQuery={setSearchQuery}
@@ -145,8 +145,8 @@ export default function LibraryPage() {
           />
         </div>
 
-        {/* DÒNG CHỮ CHẠY LIÊN TỤC NẰM GỌN GÀNG Ở ĐÁY BANNER */}
-        <div className="w-full bg-white/95 backdrop-blur-xl border-t border-solid border-slate-200 py-3.5 relative z-30 overflow-hidden shadow-md mt-auto">
+        {/* DÒNG CHỮ CHẠY LIÊN TỤC NẰM TRỌN VẸN Ở ĐÁY CỦA BANNER */}
+        <div className="w-full bg-white/95 backdrop-blur-xl border-t border-solid border-slate-200 py-3 relative z-30 overflow-hidden shadow-md">
           <div className="animate-marquee-text flex items-center">
             {MARQUEE_TEXT.map((text, idx) => (
               <div key={idx} className="flex items-center text-slate-700 text-sm md:text-base font-extrabold whitespace-nowrap">
