@@ -118,21 +118,22 @@ export default function LibraryPage() {
 
       <Navbar />
 
-      {/* HEADER: BANNER HOÀN CHỈNH - CỐ ĐỊNH CHUẨN XÁC ĐỂ HIỂN THỊ ĐỦ 3 PHẦN */}
-      <div className="relative w-full min-h-[500px] flex flex-col justify-between overflow-hidden z-20 border-b border-slate-200 bg-slate-50 pt-16">
+      {/* HEADER: BANNER ĐÃ ĐƯỢC LÀM ĐẬM VỚI LỚP PHỦ TỐI HƠN */}
+      <div className="relative w-full h-[580px] flex flex-col justify-between overflow-hidden z-20 border-b border-slate-200 bg-slate-900 pt-16">
         
-        {/* Hình nền thực tế sắc nét, phủ đầy cân đối */}
-        <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden flex items-center justify-center">
+        {/* Hình nền thực tế được làm đậm (giảm opacity lớp trắng) */}
+        <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
           <img 
             src="/hinh-nen-banner.jpg" 
             alt="Banner Background" 
-            className="w-full h-full object-cover object-center opacity-95"
+            className="w-full h-full object-cover object-center opacity-70 scale-105"
           />
-          <div className="absolute inset-0 bg-white/30 backdrop-blur-[0.3px]"></div>
+          {/* Lớp phủ đậm hơn (bg-slate-900/40 thay vì white/40) để làm banner trông "đậm" và "sâu" hơn */}
+          <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-[2px]"></div>
         </div>
 
-        {/* Khối Rubik 3D nằm chính giữa */}
-        <div className="w-full relative z-20 my-auto flex justify-center px-4 py-6">
+        {/* Khối Rubik 3D nằm ở giữa */}
+        <div className="w-full relative z-20 my-auto flex justify-center px-4">
           <RubikBanner3D 
             searchQuery={searchQuery}
             setSearchQuery={setSearchQuery}
@@ -145,8 +146,8 @@ export default function LibraryPage() {
           />
         </div>
 
-        {/* DÒNG CHỮ CHẠY NẰM GỌN GÀNG NGAY SÁT ĐÁY BANNER */}
-        <div className="w-full bg-white/95 backdrop-blur-xl border-t border-solid border-slate-200 py-3 relative z-30 overflow-hidden shadow-md">
+        {/* DÒNG CHỮ CHẠY LIÊN TỤC CỐ ĐỊNH Ở ĐÁY BANNER */}
+        <div className="w-full bg-white/95 backdrop-blur-xl border-t border-solid border-slate-200 py-3 relative z-30 overflow-hidden shadow-md mt-6">
           <div className="animate-marquee-text flex items-center">
             {MARQUEE_TEXT.map((text, idx) => (
               <div key={idx} className="flex items-center text-slate-700 text-sm md:text-base font-extrabold whitespace-nowrap">
