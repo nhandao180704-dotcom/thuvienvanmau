@@ -118,18 +118,18 @@ export default function LibraryPage() {
 
       <Navbar />
 
-      {/* HEADER: BANNER ĐÃ ĐƯỢC LÀM ĐẬM VỚI LỚP PHỦ TỐI HƠN */}
-      <div className="relative w-full h-[580px] flex flex-col justify-between overflow-hidden z-20 border-b border-slate-200 bg-slate-900 pt-16">
+      {/* HEADER: BANNER SÁNG SỦA, SẮC NÉT KHÔNG BỊ TỐI MỜ */}
+      <div className="relative w-full h-[580px] flex flex-col justify-between overflow-hidden z-20 border-b border-slate-200 bg-white pt-16">
         
-        {/* Hình nền thực tế được làm đậm (giảm opacity lớp trắng) */}
+        {/* ĐÃ SỬA: Bỏ hoàn toàn lớp phủ tối, giữ ảnh nền sáng nét 100% */}
         <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
           <img 
             src="/hinh-nen-banner.jpg" 
             alt="Banner Background" 
-            className="w-full h-full object-cover object-center opacity-70 scale-105"
+            className="w-full h-full object-cover object-center opacity-100 scale-105"
           />
-          {/* Lớp phủ đậm hơn (bg-slate-900/40 thay vì white/40) để làm banner trông "đậm" và "sâu" hơn */}
-          <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-[2px]"></div>
+          {/* Lớp phủ siêu mỏng giúp làm dịu nhẹ để nổi bật khối Rubik nhưng không làm tối hay mờ ảnh */}
+          <div className="absolute inset-0 bg-white/10"></div>
         </div>
 
         {/* Khối Rubik 3D nằm ở giữa */}
