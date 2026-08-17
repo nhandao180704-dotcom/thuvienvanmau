@@ -27,7 +27,7 @@ const GENRES = [
   { value: 'Phân tích tác phẩm', label: 'Phân tích tác phẩm' },
 ]
 
-// ĐÃ TỐI ƯU: Danh sách Chuyên mục văn mẫu chung cho toàn khối THCS
+// Danh sách Chuyên mục dùng chung cho toàn khối THCS
 const CATEGORIES = [
   { value: 'van-mau', label: 'Văn mẫu chung (Mặc định)' },
   { value: 'dan-y', label: 'Lập dàn ý bài văn/thơ' },
@@ -58,7 +58,7 @@ export default function EssayForm({ essayId }: EssayFormProps) {
     class_level: 6,
     genre: 'Văn biểu cảm', 
     category: 'van-mau',   
-    author: '',
+    author: 'Giáo viên', // ĐÃ SỬA: Mặc định là Giáo viên thay vì bỏ trống hay Admin
     content: '',
     outline_intro: '',
     outline_body: '',
@@ -87,7 +87,7 @@ export default function EssayForm({ essayId }: EssayFormProps) {
           class_level: data.class_level,
           genre: data.genre || 'Văn biểu cảm',
           category: data.category || 'van-mau',
-          author: data.author,
+          author: data.author || 'Giáo viên',
           content: data.content,
           outline_intro: data.outline_intro || '',
           outline_body: data.outline_body || '',
@@ -207,10 +207,10 @@ export default function EssayForm({ essayId }: EssayFormProps) {
                 onChange={(e) => setFormData({ ...formData, class_level: parseInt(e.target.value) as any })}
                 className="w-full px-4 py-2 rounded-lg border border-border focus:outline-none focus:ring-2 focus:ring-primary"
               >
-                {/* ĐÃ TỐI ƯU: Thêm tùy chọn số 0 biểu thị cho "Văn mẫu chung" mọi khối lớp */}
+                {/* ĐÃ SỬA: Đổi hiển thị số 0 thành "Văn mẫu chung" */}
                 {[6, 7, 8, 9, 0].map(level => (
                   <option key={level} value={level}>
-                    {level === 0 ? 'Văn mẫu chung (Mọi khối)' : `Lớp ${level}`}
+                    {level === 0 ? 'Văn mẫu chung' : `Lớp ${level}`}
                   </option>
                 ))}
               </select>
