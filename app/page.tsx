@@ -4,8 +4,9 @@ import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import Navbar from '@/components/Navbar'
 import Sidebar from '@/components/Sidebar'
-import { Search, Sparkles, BookOpen, Clock, Eye, Bookmark, Flame, ArrowRight, Star, TrendingUp, Zap } from 'lucide-react'
+import { BookOpen, Clock, Eye, Bookmark, Flame, ArrowRight, TrendingUp } from 'lucide-react'
 import { supabase } from '@/lib/supabase-client'
+import RubikBanner3D from '@/components/RubikBanner3D'
 
 interface Essay {
   id: string | number;
@@ -19,27 +20,6 @@ interface Essay {
   [key: string]: any;
 }
 
-const BANNERS = [
-  {
-    title: "Khám phá kho tàng Văn Mẫu Xuất Sắc",
-    subtitle: "Hệ sinh thái học tập toàn diện & thông minh nhất",
-    gradient: "from-blue-600 via-indigo-600 to-purple-700",
-    icon: <Sparkles className="text-yellow-300 w-5 h-5" />
-  },
-  {
-    title: "Chinh phục kỳ thi vào Lớp 10 dễ dàng",
-    subtitle: "Trắc nghiệm & Tự luận bám sát cấu trúc đề thi thật",
-    gradient: "from-emerald-500 via-teal-600 to-cyan-700",
-    icon: <Star className="text-yellow-300 w-5 h-5" />
-  },
-  {
-    title: "Nâng tầm tư duy và kỹ năng viết Văn",
-    subtitle: "Hàng ngàn bài viết được chọn lọc và kiểm duyệt kỹ lưỡng",
-    gradient: "from-orange-500 via-red-500 to-rose-600",
-    icon: <Flame className="text-yellow-300 w-5 h-5" />
-  }
-]
-
 // Dữ liệu cho dòng chữ chạy (Slogan)
 const SLOGANS = [
   "🔥 Hàng ngàn bài viết được chọn lọc và kiểm duyệt kỹ lưỡng",
@@ -48,7 +28,7 @@ const SLOGANS = [
   "🎯 Chinh phục điểm tối đa môn Ngữ Văn",
   "⚡ Kho tàng văn mẫu phong phú nhất dành cho học sinh THCS"
 ]
-const MARQUEE_TEXT = [...SLOGANS, ...SLOGANS, ...SLOGANS] // Nhân bản để tạo vòng lặp vô tận
+const MARQUEE_TEXT = [...SLOGANS, ...SLOGANS, ...SLOGANS]
 
 export default function LibraryPage() {
   const [activeTab, setActiveTab] = useState('Tất cả')
@@ -57,9 +37,7 @@ export default function LibraryPage() {
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [essays, setEssays] = useState<Essay[]>([])
   const [loading, setLoading] = useState(true)
-  const [currentBanner, setCurrentBanner] = useState(0)
   
-  const [isHoveringBanner, setIsHoveringBanner] = useState(false)
   const searchContainerRef = useRef<HTMLDivElement>(null)
 
   const TABS = ['Tất cả', 'Lớp 6', 'Lớp 7', 'Lớp 8', 'Lớp 9', 'Ôn thi vào 10']
@@ -73,14 +51,6 @@ export default function LibraryPage() {
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
-
-  useEffect(() => {
-    if (isHoveringBanner) return;
-    const timer = setInterval(() => {
-      setCurrentBanner((prev) => (prev + 1) % BANNERS.length)
-    }, 5000)
-    return () => clearInterval(timer)
-  }, [isHoveringBanner])
 
   useEffect(() => {
     fetchEssays()
@@ -101,13 +71,6 @@ export default function LibraryPage() {
     } finally {
       setTimeout(() => setLoading(false), 500)
     }
-  }
-
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value
-    setSearchQuery(value)
-    setShowSuggestions(value.trim().length > 0)
-    if (value.trim() === '') setSearchTermSubmitted('')
   }
 
   const handleSearchSubmit = (e: React.FormEvent) => {
@@ -139,42 +102,8 @@ export default function LibraryPage() {
   return (
     <div className="min-h-screen bg-[#F8FAFC] text-slate-800 font-sans selection:bg-blue-300 selection:text-blue-900 overflow-x-hidden w-full relative">
       
-      {/* CSS 3D VÀ CHỮ CHẠY ĐƯỢC THIẾT KẾ RIÊNG MỚI */}
+      {/* CSS cho dải chữ chạy ở dưới khối Rubik */}
       <style dangerouslySetInnerHTML={{__html: `
-        /* Hiệu ứng xoay trụ lật trang */
-        .flip-container {
-          perspective: 1500px;
-          transform-style: preserve-3d;
-        }
-        .flip-slide {
-          transition: all 1s cubic-bezier(0.23, 1, 0.32, 1);
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          backface-visibility: hidden;
-        }
-        .flip-slide.active {
-          transform: rotateY(0deg) translateZ(0) scale(1);
-          opacity: 1;
-          z-index: 20;
-          pointer-events: auto;
-        }
-        .flip-slide.next {
-          transform: rotateY(90deg) translateZ(150px) scale(0.9);
-          opacity: 0;
-          z-index: 10;
-          pointer-events: none;
-        }
-        .flip-slide.prev {
-          transform: rotateY(-90deg) translateZ(150px) scale(0.9);
-          opacity: 0;
-          z-index: 10;
-          pointer-events: none;
-        }
-
-        /* Hiệu ứng chữ chạy (Marquee Text) */
         @keyframes scrollText {
           0% { transform: translateX(0); }
           100% { transform: translateX(-50%); }
@@ -191,108 +120,24 @@ export default function LibraryPage() {
 
       <Navbar />
 
-      {/* BANNER 3D XOAY TRỤ VÀ CHỮ CHẠY */}
-      <div className="relative min-h-[550px] md:min-h-[600px] w-full flex flex-col items-center justify-between pt-24 md:pt-32 overflow-hidden bg-slate-900 z-20">
-        
-        {/* Nền gradient động */}
-        {BANNERS.map((banner, index) => (
-          <div 
-            key={index}
-            className={`absolute inset-0 bg-gradient-to-br ${banner.gradient} transition-opacity duration-1000 ease-in-out ${currentBanner === index ? 'opacity-100 z-0' : 'opacity-0 z-0'}`}
-          />
-        ))}
-        <div className="absolute inset-0 bg-black/20 z-0 mix-blend-multiply pointer-events-none"></div>
+      {/* HEADER: KHỐI RUBIK VÀ SOLOGAN CHẠY */}
+      <div className="relative min-h-[500px] w-full flex flex-col items-center justify-between pt-20 md:pt-28 overflow-hidden bg-slate-900 z-20">
         <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-30 z-0 mix-blend-overlay pointer-events-none"></div>
 
-        {/* KHỐI 3D XOAY TRỤ (TRUNG TÂM) */}
-        <div className="relative z-30 w-full max-w-4xl mx-auto px-4 mt-4">
-          <div 
-            className="relative w-full h-[320px] md:h-[350px] flip-container"
-            onMouseEnter={() => setIsHoveringBanner(true)}
-            onMouseLeave={() => setIsHoveringBanner(false)}
-            ref={searchContainerRef}
-          >
-            {BANNERS.map((banner, index) => {
-              // Logic xác định vị trí để lật trang 3D
-              let positionClass = 'next';
-              if (index === currentBanner) positionClass = 'active';
-              else if (index === (currentBanner - 1 + BANNERS.length) % BANNERS.length) positionClass = 'prev';
+        {/* Gọi Component Rubik 3D */}
+        <RubikBanner3D 
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          handleSearchSubmit={handleSearchSubmit}
+          showSuggestions={showSuggestions}
+          setShowSuggestions={setShowSuggestions}
+          searchSuggestions={searchSuggestions}
+          setSearchTermSubmitted={setSearchTermSubmitted}
+          searchContainerRef={searchContainerRef}
+        />
 
-              return (
-                <div key={index} className={`flip-slide ${positionClass}`}>
-                  <div className="w-full h-full rounded-[40px] bg-slate-900/40 backdrop-blur-2xl border border-white/20 shadow-[0_30px_60px_rgba(0,0,0,0.5)] flex flex-col items-center justify-center p-6 md:p-12 text-center">
-                    
-                    <div className="inline-flex items-center justify-center gap-2 px-5 py-2 rounded-full bg-white/10 border border-white/20 text-white text-xs sm:text-sm font-bold mb-6 shadow-inner">
-                      {banner.icon} 
-                      <span className="truncate tracking-wide">{banner.subtitle}</span>
-                    </div>
-                    
-                    <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight mb-10 leading-tight drop-shadow-2xl">
-                      {banner.title}
-                    </h1>
-                    
-                    <div className="w-full max-w-2xl relative group px-2 box-border">
-                      <div className="absolute inset-0 bg-white/20 rounded-full blur-xl group-focus-within:bg-white/40 transition-all duration-500 mx-2"></div>
-                      <form onSubmit={handleSearchSubmit} className="relative flex items-center w-full">
-                        <Search className="absolute left-6 w-5 h-5 text-slate-300 group-focus-within:text-blue-500 transition-colors" />
-                        <input
-                          type="text"
-                          value={searchQuery}
-                          onChange={handleSearchChange}
-                          onClick={() => searchQuery.trim().length > 0 && setShowSuggestions(true)}
-                          placeholder="Nhập tên bài văn, tác phẩm..."
-                          className="w-full pl-14 sm:pl-16 pr-[100px] sm:pr-36 py-3.5 md:py-4 rounded-full border border-solid border-white/30 bg-white/10 backdrop-blur-md text-white placeholder-white/70 outline-none focus:bg-white focus:text-slate-900 focus:border-white shadow-2xl transition-all duration-500 text-sm sm:text-base font-medium"
-                        />
-                        <button 
-                          type="submit"
-                          className="absolute right-2.5 py-2 md:py-2.5 px-5 sm:px-8 bg-white text-blue-600 hover:bg-slate-50 text-xs sm:text-sm rounded-full font-black shadow-lg hover:shadow-xl transition-all active:scale-95"
-                        >
-                          Tìm kiếm
-                        </button>
-                      </form>
-
-                      {/* Gợi ý tìm kiếm */}
-                      {showSuggestions && searchSuggestions.length > 0 && positionClass === 'active' && (
-                        <div className="absolute top-full mt-3 w-[calc(100%-1rem)] mx-2 bg-white rounded-2xl shadow-2xl border border-solid border-slate-100 overflow-hidden z-50 text-left">
-                          {searchSuggestions.map(s => (
-                            <button
-                              key={s.id}
-                              type="button"
-                              onClick={() => {
-                                setSearchQuery(s.title);
-                                setSearchTermSubmitted(s.title.toLowerCase());
-                                setShowSuggestions(false);
-                              }}
-                              className="w-full text-left px-6 py-4 hover:bg-slate-50 border-b border-solid border-slate-50 last:border-0 transition-colors flex items-center gap-3"
-                            >
-                              <Search className="w-4 h-4 text-slate-400 shrink-0" />
-                              <span className="text-slate-700 font-medium line-clamp-1">{s.title}</span>
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Dấu chấm chuyển trang (Dots) */}
-          <div className="flex justify-center gap-2 mt-8">
-            {BANNERS.map((_, idx) => (
-              <button 
-                key={idx} 
-                onClick={() => setCurrentBanner(idx)}
-                className={`h-2 rounded-full transition-all duration-500 ${currentBanner === idx ? 'bg-white w-8 shadow-[0_0_10px_rgba(255,255,255,0.8)]' : 'bg-white/30 hover:bg-white/60 w-2'}`}
-              />
-            ))}
-          </div>
-        </div>
-
-        {/* DÒNG CHỮ CHẠY LIÊN TỤC Ở DƯỚI ĐÁY BANNER */}
-        <div className="w-full mt-10 bg-black/20 backdrop-blur-md border-t border-b border-solid border-white/10 py-3 relative z-30 overflow-hidden">
+        {/* DÒNG CHỮ CHẠY LIÊN TỤC */}
+        <div className="w-full bg-black/20 backdrop-blur-md border-t border-b border-solid border-white/10 py-3 relative z-30 overflow-hidden">
           <div className="animate-marquee-text flex items-center">
             {MARQUEE_TEXT.map((text, idx) => (
               <div key={idx} className="flex items-center text-white/90 text-sm md:text-base font-bold whitespace-nowrap">
