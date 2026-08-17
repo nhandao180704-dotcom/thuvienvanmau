@@ -20,7 +20,6 @@ interface Essay {
   [key: string]: any;
 }
 
-// Dữ liệu cho dòng chữ chạy (Slogan)
 const SLOGANS = [
   "🔥 Hàng ngàn bài viết được chọn lọc và kiểm duyệt kỹ lưỡng",
   "🌟 Nâng tầm tư duy và kỹ năng viết Văn",
@@ -102,7 +101,6 @@ export default function LibraryPage() {
   return (
     <div className="min-h-screen bg-[#F8FAFC] text-slate-800 font-sans selection:bg-blue-300 selection:text-blue-900 overflow-x-hidden w-full relative">
       
-      {/* CSS cho dải chữ chạy ở dưới khối Rubik */}
       <style dangerouslySetInnerHTML={{__html: `
         @keyframes scrollText {
           0% { transform: translateX(0); }
@@ -120,29 +118,30 @@ export default function LibraryPage() {
 
       <Navbar />
 
-      {/* HEADER: BANNER CHỨA HÌNH NỀN VĂN HỌC SẮC NÉT VÀ KHỐI RUBIK */}
-      <div className="relative min-h-[500px] w-full flex flex-col items-center justify-between pt-20 md:pt-28 overflow-hidden z-20 border-b border-slate-200">
+      {/* HEADER: BANNER CHỨA HÌNH NỀN VÀ KHỐI RUBIK ĐƯỢC CÂN CHỈNH CHUẨN XÁC */}
+      <div className="relative w-full flex flex-col items-center justify-between overflow-hidden z-20 border-b border-slate-200">
         
-        {/* ĐÃ SỬA: Cấu hình background hiển thị sắc nét, cân đối hoàn toàn trong khung */}
+        {/* Lớp nền ảnh banner và hiệu ứng phủ mờ dịu mắt */}
         <div className="absolute inset-0 z-0 pointer-events-none">
-          <div className="absolute inset-0 bg-[url('/banner-bg.jpg')] bg-cover bg-center bg-no-repeat opacity-100"></div>
-          {/* Lớp phủ sáng mờ giúp làm nổi bật khối Rubik 3D mà không làm mất chi tiết ảnh */}
-          <div className="absolute inset-0 bg-white/60 backdrop-blur-[1px]"></div>
+          <div className="absolute inset-0 bg-[url('/banner-bg.jpg')] bg-cover bg-center bg-no-repeat opacity-95"></div>
+          <div className="absolute inset-0 bg-white/50 backdrop-blur-[1px]"></div>
         </div>
 
-        {/* Gọi Component Rubik 3D */}
-        <RubikBanner3D 
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-          handleSearchSubmit={handleSearchSubmit}
-          showSuggestions={showSuggestions}
-          setShowSuggestions={setShowSuggestions}
-          searchSuggestions={searchSuggestions}
-          setSearchTermSubmitted={setSearchTermSubmitted}
-          searchContainerRef={searchContainerRef}
-        />
+        {/* Khối Rubik 3D */}
+        <div className="w-full relative z-20 py-8 md:py-12 flex justify-center">
+          <RubikBanner3D 
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            handleSearchSubmit={handleSearchSubmit}
+            showSuggestions={showSuggestions}
+            setShowSuggestions={setShowSuggestions}
+            searchSuggestions={searchSuggestions}
+            setSearchTermSubmitted={setSearchTermSubmitted}
+            searchContainerRef={searchContainerRef}
+          />
+        </div>
 
-        {/* KHUNG CHỮ CHẠY LIÊN TỤC */}
+        {/* DÒNG CHỮ CHẠY LIÊN TỤC */}
         <div className="w-full bg-white/90 backdrop-blur-xl border-t border-b border-solid border-slate-200 py-3.5 relative z-30 overflow-hidden shadow-md">
           <div className="animate-marquee-text flex items-center">
             {MARQUEE_TEXT.map((text, idx) => (
