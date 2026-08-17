@@ -27,11 +27,12 @@ const GENRES = [
   { value: 'Phân tích tác phẩm', label: 'Phân tích tác phẩm' },
 ]
 
-// 2. Danh sách Chuyên mục (Lưu vào cột category - Để hiển thị lên đúng trang)
+// ĐÃ TỐI ƯU: Danh sách Chuyên mục dùng chung cho toàn khối THCS
 const CATEGORIES = [
   { value: 'van-mau', label: 'Văn mẫu chung (Mặc định)' },
-  { value: 'de-thi-10', label: 'Đề thi mẫu vào lớp 10' },
-  { value: 'bi-kip', label: 'Bí kíp đạt điểm cao' },
+  { value: 'dan-y', label: 'Lập dàn ý bài văn/thơ' },
+  { value: 'de-thi-thu', label: 'Đề thi thử / Đề minh họa' },
+  { value: 'bi-kip', label: 'Bí kíp đạt điểm cao môn Văn' },
 ]
 
 const quillModules = {
@@ -55,8 +56,8 @@ export default function EssayForm({ essayId }: EssayFormProps) {
   const [formData, setFormData] = useState({
     title: '',
     class_level: 6,
-    genre: 'Văn biểu cảm', // Thể loại
-    category: 'van-mau',   // Chuyên mục
+    genre: 'Văn biểu cảm', 
+    category: 'van-mau',   
     author: '',
     content: '',
     outline_intro: '',
@@ -118,8 +119,8 @@ export default function EssayForm({ essayId }: EssayFormProps) {
       const essayData = {
         title: formData.title.trim(),
         class_level: formData.class_level,
-        genre: formData.genre,       // Đẩy lên cột genre
-        category: formData.category, // Đẩy lên cột category
+        genre: formData.genre,
+        category: formData.category, 
         author: formData.author.trim(),
         content: formData.content,
         outline_intro: formData.outline_intro.trim() || null,
@@ -196,7 +197,6 @@ export default function EssayForm({ essayId }: EssayFormProps) {
             />
           </div>
 
-          {/* Lưới 3 cột: Lớp - Chuyên Mục - Thể Loại */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
               <label className="block text-sm font-medium text-foreground mb-2">
@@ -207,9 +207,10 @@ export default function EssayForm({ essayId }: EssayFormProps) {
                 onChange={(e) => setFormData({ ...formData, class_level: parseInt(e.target.value) as any })}
                 className="w-full px-4 py-2 rounded-lg border border-border focus:outline-none focus:ring-2 focus:ring-primary"
               >
-                {[6, 7, 8, 9, 10].map(level => (
+                {/* ĐÃ TỐI ƯU: Thêm tùy chọn số 0 biểu thị cho "Dùng chung" mọi khối lớp */}
+                {[6, 7, 8, 9, 0].map(level => (
                   <option key={level} value={level}>
-                    {level === 10 ? 'Ôn thi vào 10' : `Lớp ${level}`}
+                    {level === 0 ? 'Dùng chung (Mọi khối)' : `Lớp ${level}`}
                   </option>
                 ))}
               </select>

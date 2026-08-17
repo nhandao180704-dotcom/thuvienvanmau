@@ -11,13 +11,12 @@ export default function Sidebar() {
   const [isAdmin, setIsAdmin] = useState(false)
 
   useEffect(() => {
-    // 1. Tải danh sách bài viết Hot
     const fetchHotEssays = async () => {
       try {
         const { data } = await supabase
           .from('essays')
           .select('id, title, genre, grade, views')
-          .order('views', { ascending: false }) // Ưu tiên xếp theo views nếu có
+          .order('views', { ascending: false })
           .limit(4)
         
         if (data && data.length > 0) {
@@ -28,7 +27,6 @@ export default function Sidebar() {
       }
     }
 
-    // 2. Kiểm tra quyền Admin
     const checkAdminRole = async () => {
       const { data: { session } } = await supabase.auth.getSession()
       if (session?.user) {
@@ -48,16 +46,18 @@ export default function Sidebar() {
     checkAdminRole()
   }, [])
 
+  // ĐÃ TỐI ƯU: Đa dạng hóa các mục ôn tập cho toàn khối THCS
   const examPrepItems = [
-    { id: 1, title: 'Ôn thi trắc nghiệm', badge: 'Hot', href: '/practice' },
-    { id: 2, title: 'Đề thi mẫu vào lớp 10', badge: 'Mới', href: '/category/de-thi-10' },
-    { id: 3, title: 'Bí kíp đạt điểm cao môn Ngữ Văn', badge: 'Hay', href: '/category/bi-kip' },
+    { id: 1, title: 'Ôn thi trắc nghiệm (Lớp 6-9)', badge: 'Hot', href: '/practice' },
+    { id: 2, title: 'Các mẫu lập dàn ý chi tiết', badge: 'Mới', href: '/category/dan-y' },
+    { id: 3, title: 'Đề thi thử & Đề minh họa', badge: 'Quan trọng', href: '/category/de-thi-thu' },
+    { id: 4, title: 'Bí kíp đạt điểm cao môn Văn', badge: 'Hay', href: '/category/bi-kip' },
   ]
 
   return (
     <aside className="space-y-6 sm:space-y-8">
       
-      {/* KHỐI QUẢN TRỊ - CHỈ HIỂN THỊ KHI LÀ ADMIN */}
+      {/* KHỐI QUẢN TRỊ */}
       {isAdmin && (
         <div className="bg-white rounded-[24px] border border-blue-100 shadow-lg shadow-blue-900/5 overflow-hidden animate-in fade-in slide-in-from-top-4 duration-500">
           <div className="bg-slate-900 p-5 flex items-center gap-3 text-white relative overflow-hidden">
@@ -87,7 +87,7 @@ export default function Sidebar() {
         </div>
       )}
 
-      {/* Khối 1: Hot Tuần Này */}
+      {/* Khối Hot Tuần Này */}
       <div className="bg-white rounded-[24px] border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-slate-200/50 transition-all duration-500 overflow-hidden">
         <div className="bg-slate-900 p-5 flex items-center gap-3 text-white relative overflow-hidden">
           <div className="absolute top-0 right-0 w-24 h-24 bg-yellow-500/10 rounded-full blur-2xl"></div>
@@ -123,7 +123,7 @@ export default function Sidebar() {
         </div>
       </div>
 
-      {/* Khối 2: Góc Ôn Thi */}
+      {/* Khối Góc Ôn Thi */}
       <div className="bg-white rounded-[24px] border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-orange-100 transition-all duration-500 overflow-hidden">
         <div className="bg-gradient-to-r from-orange-500 to-red-500 p-5 flex items-center gap-3 text-white relative overflow-hidden">
           <div className="absolute -right-4 -bottom-4 w-20 h-20 bg-white/20 rounded-full blur-xl"></div>
@@ -132,7 +132,7 @@ export default function Sidebar() {
           </div>
           <div className="relative z-10">
             <h3 className="font-extrabold text-lg tracking-tight">Góc Ôn Thi Ngữ Văn</h3>
-            <p className="text-xs text-orange-100 font-medium mt-0.5">Tự tin bứt phá điểm số Văn 9</p>
+            <p className="text-xs text-orange-100 font-medium mt-0.5">Hệ thống toàn diện cấp THCS</p>
           </div>
         </div>
         <div className="p-4 space-y-3">
@@ -140,7 +140,7 @@ export default function Sidebar() {
             <Link key={item.id} href={item.href} className="group flex items-center justify-between p-3.5 rounded-xl border border-slate-100 hover:border-orange-200 hover:bg-orange-50 hover:-translate-y-0.5 hover:shadow-md hover:shadow-orange-500/5 transition-all duration-300">
               <p className="text-sm font-bold text-slate-700 group-hover:text-orange-600 transition-colors line-clamp-2 flex-1 pr-2">{item.title}</p>
               <div className="flex items-center gap-2">
-                <span className={`text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-lg whitespace-nowrap shadow-sm ${item.badge === 'Hot' ? 'bg-red-100 text-red-600' : item.badge === 'Mới' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
+                <span className={`text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-lg whitespace-nowrap shadow-sm ${item.badge === 'Hot' ? 'bg-red-100 text-red-600' : item.badge === 'Mới' ? 'bg-emerald-100 text-emerald-700' : item.badge === 'Quan trọng' ? 'bg-purple-100 text-purple-700' : 'bg-amber-100 text-amber-700'}`}>
                   {item.badge}
                 </span>
                 <ChevronRight size={16} className="text-slate-300 group-hover:text-orange-500 group-hover:translate-x-1 transition-all" />
@@ -150,7 +150,7 @@ export default function Sidebar() {
         </div>
       </div>
 
-      {/* Khối 3: Thống kê thư viện */}
+      {/* Thống kê thư viện */}
       <div className="bg-gradient-to-br from-blue-600 to-indigo-600 rounded-[24px] p-6 md:p-7 text-white shadow-xl shadow-blue-500/20 relative overflow-hidden group">
         <Star className="absolute -right-4 -top-4 w-32 h-32 text-white opacity-5 transform rotate-12 group-hover:rotate-45 group-hover:scale-110 transition-all duration-700 pointer-events-none" />
         <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-blue-500/50 rounded-full blur-3xl"></div>
@@ -177,7 +177,7 @@ export default function Sidebar() {
         </div>
       </div>
 
-      {/* Khối 4: Thử Thách Tuần Này */}
+      {/* Thử Thách Tuần Này */}
       <div className="bg-gradient-to-br from-indigo-500 via-purple-500 to-fuchsia-500 rounded-[24px] p-6 md:p-7 text-white shadow-xl shadow-purple-500/20 relative overflow-hidden group">
         <div className="absolute -top-10 -right-10 w-40 h-40 bg-white opacity-20 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-700"></div>
         <div className="relative z-10">
@@ -194,9 +194,7 @@ export default function Sidebar() {
         </div>
       </div>
 
-      {/* Khối 5: Thống kê truy cập thời gian thực */}
       <VisitorCounter />
-      
     </aside>
   )
 }
