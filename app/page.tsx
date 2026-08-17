@@ -118,13 +118,13 @@ export default function LibraryPage() {
 
       <Navbar />
 
-      {/* HEADER: BANNER CHỨA HÌNH NỀN HÌNH VẼ VĂN HỌC CHUẨN XÁC VÀ KHỐI RUBIK */}
-      <div className="relative w-full flex flex-col items-center justify-between overflow-hidden z-20 border-b border-slate-200">
+      {/* HEADER: BANNER CHỨA HÌNH NỀN GỌN GÀNG VÀ KHỐI RUBIK */}
+      <div className="relative w-full flex flex-col items-center justify-between overflow-hidden z-20 border-b border-slate-200 bg-slate-50">
         
-        {/* ĐÃ SỬA: Gọi đúng tên file ảnh 'hinh-nen-banner.jpg' */}
-        <div className="absolute inset-0 z-0 pointer-events-none">
-          <div className="absolute inset-0 bg-[url('/hinh-nen-banner.jpg')] bg-cover bg-center bg-no-repeat opacity-95"></div>
-          <div className="absolute inset-0 bg-white/40 backdrop-blur-[1px]"></div>
+        {/* ĐÃ SỬA: Dùng bg-contain để ảnh hiển thị trọn vẹn, sắc nét không bị phóng to tràn viền */}
+        <div className="absolute inset-0 z-0 pointer-events-none flex items-center justify-center">
+          <div className="w-full h-full bg-[url('/hinh-nen-banner.jpg')] bg-contain bg-center bg-no-repeat opacity-90"></div>
+          <div className="absolute inset-0 bg-white/40 backdrop-blur-[0.5px]"></div>
         </div>
 
         {/* Khối Rubik 3D */}
