@@ -1,10 +1,11 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Search, Bell, User, LogOut, ChevronDown } from 'lucide-react'
+import { Search, User, LogOut, ChevronDown } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase-client'
+import NotificationBell from './NotificationBell' // Đã import Component thông báo mới
 
 interface AdminHeaderProps {
   onSearch?: (query: string) => void
@@ -52,11 +53,9 @@ export default function AdminHeader({ onSearch }: AdminHeaderProps) {
 
         {/* Right Section */}
         <div className="flex items-center gap-4">
-          {/* Notification */}
-          <button className="relative p-2 text-muted-foreground hover:bg-slate-50 rounded-lg transition-colors">
-            <Bell size={20} />
-            <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-          </button>
+          
+          {/* Thay thế nút tĩnh bằng Component NotificationBell tương tác */}
+          <NotificationBell />
 
           {/* Admin Profile with Dropdown */}
           <div className="relative pl-4 border-l border-slate-200">
