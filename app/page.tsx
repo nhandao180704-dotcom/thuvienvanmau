@@ -120,8 +120,7 @@ export default function LibraryPage() {
 
       <Navbar />
 
-      {/* ĐÃ SỬA: Nền xám nhạt dịu mắt (slate-200 -> slate-50) để làm giảm độ chói */}
-      <div className="relative min-h-[500px] w-full flex flex-col items-center justify-between pt-20 md:pt-28 overflow-hidden bg-gradient-to-b from-slate-200 via-slate-100 to-slate-50 z-20 border-b border-slate-200">
+      <div className="relative min-h-[500px] w-full flex flex-col items-center justify-between pt-20 md:pt-28 overflow-hidden bg-gradient-to-b from-slate-300 via-slate-200 to-slate-100 z-20 border-b border-slate-300">
         
         {/* Nền pattern mờ */}
         <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-[0.04] z-0 mix-blend-multiply pointer-events-none"></div>
