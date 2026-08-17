@@ -77,7 +77,7 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
                     
                     <div className="mb-4">
                       <span className="px-4 py-1.5 bg-emerald-50 text-emerald-600 rounded-full text-xs font-extrabold border border-emerald-100 tracking-wide uppercase">
-                        {item.grade_level ? `Lớp ${item.grade_level}` : (item.class_level ? `Lớp ${item.class_level}` : 'Dùng Chung')}
+                        {item.grade_level ? `Lớp ${item.grade_level}` : (item.class_level ? `Lớp ${item.class_level}` : 'Văn mẫu chung')}
                       </span>
                     </div>
                     
@@ -103,7 +103,7 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
 
                     <div className="flex flex-wrap gap-2 mb-4">
                       <span className="px-3 py-1.5 bg-blue-50 text-blue-700 rounded-full text-xs font-bold border border-blue-100">
-                        {item.grade || (item.class_level === 0 ? 'Dùng Chung' : `Lớp ${item.class_level}`)}
+                        {item.grade || (item.class_level === 0 ? 'Văn mẫu chung' : `Lớp ${item.class_level}`)}
                       </span>
                       <span className="px-3 py-1.5 bg-purple-50 text-purple-700 rounded-full text-xs font-bold border border-purple-100 line-clamp-1">
                         {item.genre || 'Tài liệu'}

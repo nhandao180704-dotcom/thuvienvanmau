@@ -121,7 +121,7 @@ export default function Sidebar() {
                   <p className="text-sm font-bold text-slate-800 group-hover:text-blue-700 transition-colors line-clamp-2 leading-snug">{item.title}</p>
                   <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mt-1.5 group-hover:text-blue-500/70 transition-colors">
                     {/* ĐÃ SỬA: Xử lý hiển thị class_level thay thế cho grade */}
-                    {item.genre || 'Văn mẫu'} • {item.class_level === 0 ? 'Dùng chung' : `Lớp ${item.class_level || 'THCS'}`}
+                    {item.genre || 'Văn mẫu'} • {item.class_level === 0 ? 'Văn mẫu chung' : `Lớp ${item.class_level || 'THCS'}`}
                   </span>
                 </div>
               </Link>

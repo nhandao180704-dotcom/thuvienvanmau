@@ -6,6 +6,17 @@ import Link from 'next/link'
 import { ArrowLeft, Copy, Volume2, Bookmark, BookmarkCheck, Eye, Calendar, User, Check, Sparkles } from 'lucide-react'
 import { supabase } from '@/lib/supabase-client'
 
+// Hàm "dịch" mã slug thành tên tiếng Việt chuẩn
+const getCategoryLabel = (cat: string) => {
+  switch (cat) {
+    case 'van-mau': return 'Văn mẫu chung';
+    case 'dan-y': return 'Lập dàn ý chi tiết';
+    case 'de-thi-thu': return 'Đề thi thử & Minh họa';
+    case 'bi-kip': return 'Bí kíp đạt điểm cao';
+    default: return cat;
+  }
+}
+
 export default function EssayDetailPage() {
   const { id } = useParams() as { id: string }
   const [essay, setEssay] = useState<any>(null)
@@ -176,7 +187,8 @@ export default function EssayDetailPage() {
     )
   }
 
-  const categoryDisplay = essay.category || essay.genre || 'Văn mẫu'
+  // ĐÃ SỬA: Dịch mã chuyên mục
+  const categoryDisplay = getCategoryLabel(essay.category) || essay.genre || 'Văn mẫu'
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] pb-20 selection:bg-blue-200">
@@ -226,7 +238,8 @@ export default function EssayDetailPage() {
         <div className="mb-10 text-center animate-in fade-in duration-500">
           <div className="flex flex-wrap justify-center gap-3 mb-4">
             <span className="px-4 py-1.5 rounded-full bg-blue-100 text-blue-700 font-bold text-sm shadow-sm">
-              {essay.class_level === 10 ? 'Ôn thi vào 10' : essay.grade || `Lớp ${essay.class_level}`}
+              {/* ĐÃ SỬA: Logic kiểm tra Lớp 0 thành Văn mẫu chung */}
+              {essay.class_level === 0 ? 'Văn mẫu chung' : (essay.class_level === 10 ? 'Ôn thi vào 10' : `Lớp ${essay.class_level}`)}
             </span>
             <span className="px-4 py-1.5 rounded-full bg-purple-100 text-purple-700 font-bold text-sm shadow-sm flex items-center gap-1.5">
               <Sparkles size={14} /> {categoryDisplay}
@@ -277,8 +290,17 @@ export default function EssayDetailPage() {
 
         <article className="animate-in fade-in duration-700">
           <div className="bg-white rounded-[2.5rem] p-8 md:p-12 shadow-sm border border-slate-200">
+            {/* ĐÃ SỬA LỖI PHÔNG CHỮ: Ép kiểu font-sans không chân, sửa khoảng cách các thẻ cho đều mắt và sửa lỗi ngắt dòng */}
             <div 
-              className="prose prose-lg md:prose-xl max-w-none text-slate-700 leading-[2.2] font-serif"
+              className="font-sans text-[17px] md:text-lg text-slate-800 leading-loose 
+                         [&>p]:mb-5 [&>p]:text-justify
+                         [&>h1]:text-2xl [&>h1]:font-bold [&>h1]:mb-4 [&>h1]:mt-8
+                         [&>h2]:text-xl [&>h2]:font-bold [&>h2]:mb-4 [&>h2]:mt-6
+                         [&>h3]:text-lg [&>h3]:font-bold [&>h3]:mb-3 [&>h3]:mt-5
+                         [&>ul]:list-disc [&>ul]:ml-6 [&>ul]:mb-5 [&>ul>li]:mb-2
+                         [&>ol]:list-decimal [&>ol]:ml-6 [&>ol]:mb-5 [&>ol>li]:mb-2
+                         [&>strong]:text-slate-900 [&>strong]:font-bold
+                         break-words whitespace-pre-wrap"
               dangerouslySetInnerHTML={{ __html: essay.content || '<p>Nội dung bài viết đang được cập nhật...</p>' }}
             />
           </div>

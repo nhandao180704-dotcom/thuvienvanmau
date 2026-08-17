@@ -27,7 +27,7 @@ const GENRES = [
   { value: 'Phân tích tác phẩm', label: 'Phân tích tác phẩm' },
 ]
 
-// ĐÃ TỐI ƯU: Danh sách Chuyên mục dùng chung cho toàn khối THCS
+// ĐÃ TỐI ƯU: Danh sách Chuyên mục văn mẫu chung cho toàn khối THCS
 const CATEGORIES = [
   { value: 'van-mau', label: 'Văn mẫu chung (Mặc định)' },
   { value: 'dan-y', label: 'Lập dàn ý bài văn/thơ' },
@@ -207,10 +207,10 @@ export default function EssayForm({ essayId }: EssayFormProps) {
                 onChange={(e) => setFormData({ ...formData, class_level: parseInt(e.target.value) as any })}
                 className="w-full px-4 py-2 rounded-lg border border-border focus:outline-none focus:ring-2 focus:ring-primary"
               >
-                {/* ĐÃ TỐI ƯU: Thêm tùy chọn số 0 biểu thị cho "Dùng chung" mọi khối lớp */}
+                {/* ĐÃ TỐI ƯU: Thêm tùy chọn số 0 biểu thị cho "Văn mẫu chung" mọi khối lớp */}
                 {[6, 7, 8, 9, 0].map(level => (
                   <option key={level} value={level}>
-                    {level === 0 ? 'Dùng chung (Mọi khối)' : `Lớp ${level}`}
+                    {level === 0 ? 'Văn mẫu chung (Mọi khối)' : `Lớp ${level}`}
                   </option>
                 ))}
               </select>
