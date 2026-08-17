@@ -118,21 +118,20 @@ export default function LibraryPage() {
 
       <Navbar />
 
-      {/* HEADER: KHUNG BANNER TỔNG THỂ (ẢNH NỀN SẮC NÉT + RUBIK 3D + CHỮ CHẠY NẰM TRONG 1 KHUNG) */}
-      <div className="relative w-full flex flex-col overflow-hidden z-20 border-b border-slate-200 bg-slate-50 pt-20">
+      {/* HEADER: BANNER HOÀN CHỈNH - ẢNH HIỂN THỊ TRỌN VẸN KHÔNG TRÀN VIỀN */}
+      <div className="relative w-full h-[520px] flex flex-col justify-between overflow-hidden z-20 border-b border-slate-200 bg-white pt-12">
         
-        {/* Hình nền thực tế sắc nét */}
-        <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+        {/* Dùng object-contain để giữ trọn vẹn toàn bộ bức ảnh gốc ở giữa banner */}
+        <div className="absolute inset-0 z-0 pointer-events-none flex items-center justify-center p-4">
           <img 
             src="/hinh-nen-banner.jpg" 
             alt="Banner Background" 
-            className="w-full h-full object-cover object-center opacity-95 scale-105"
+            className="w-full h-full max-w-6xl object-contain object-center opacity-100"
           />
-          <div className="absolute inset-0 bg-white/40 backdrop-blur-[0.5px]"></div>
         </div>
 
-        {/* Khối Rubik 3D nằm ở giữa */}
-        <div className="w-full relative z-20 py-8 flex justify-center px-4">
+        {/* Khối Rubik 3D nằm chính giữa đè lên ảnh */}
+        <div className="w-full relative z-20 my-auto flex justify-center px-4">
           <RubikBanner3D 
             searchQuery={searchQuery}
             setSearchQuery={setSearchQuery}
@@ -145,8 +144,8 @@ export default function LibraryPage() {
           />
         </div>
 
-        {/* DÒNG CHỮ CHẠY LIÊN TỤC NẰM TRỌN VẸN Ở ĐÁY CỦA BANNER */}
-        <div className="w-full bg-white/95 backdrop-blur-xl border-t border-solid border-slate-200 py-3 relative z-30 overflow-hidden shadow-md mt-6">
+        {/* DÒNG CHỮ CHẠY LIÊN TỤC NẰM GỌN GÀNG Ở ĐÁY BANNER */}
+        <div className="w-full bg-white/95 backdrop-blur-xl border-t border-solid border-slate-200 py-3 relative z-30 overflow-hidden shadow-md">
           <div className="animate-marquee-text flex items-center">
             {MARQUEE_TEXT.map((text, idx) => (
               <div key={idx} className="flex items-center text-slate-700 text-sm md:text-base font-extrabold whitespace-nowrap">
