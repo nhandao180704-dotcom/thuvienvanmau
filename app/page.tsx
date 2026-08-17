@@ -120,14 +120,14 @@ export default function LibraryPage() {
 
       <Navbar />
 
-      <div className="relative min-h-[500px] w-full flex flex-col items-center justify-between pt-20 md:pt-28 overflow-hidden bg-gradient-to-b from-slate-300 via-slate-200 to-slate-100 z-20 border-b border-slate-300">
+      {/* HEADER: KHỐI RUBIK VÀ HÌNH NỀN VĂN HỌC BÊN DƯỚI */}
+      <div className="relative min-h-[500px] w-full flex flex-col items-center justify-between pt-20 md:pt-28 overflow-hidden z-20 border-b border-slate-200">
         
-        {/* Nền pattern mờ */}
-        <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-[0.04] z-0 mix-blend-multiply pointer-events-none"></div>
-
-        {/* ÁNH SÁNG ẢO HẮT RA TỪ PHÍA SAU (GLOW) CÂN BẰNG LẠI MÀU SẮC */}
-        <div className="absolute top-1/4 left-1/4 w-[400px] h-[400px] bg-blue-400/20 rounded-full blur-[100px] pointer-events-none z-0"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-purple-400/20 rounded-full blur-[100px] pointer-events-none z-0"></div>
+        {/* HÌNH NỀN VÀ LỚP PHỦ MỜ */}
+        <div className="absolute inset-0 z-0 pointer-events-none bg-slate-100">
+          <div className="absolute inset-0 bg-[url('/hinh-nen-banner.jpg')] bg-cover bg-center bg-no-repeat opacity-90"></div>
+          <div className="absolute inset-0 bg-gradient-to-b from-white/40 via-slate-50/60 to-slate-200/90 backdrop-blur-[3px]"></div>
+        </div>
 
         {/* Gọi Component Rubik 3D */}
         <RubikBanner3D 
@@ -141,7 +141,7 @@ export default function LibraryPage() {
           searchContainerRef={searchContainerRef}
         />
 
-        {/* KHUNG CHỮ CHẠY LIÊN TỤC: Vẫn giữ màu trắng nhưng làm sắc nét hơn để nổi bật trên nền xám nhạt */}
+        {/* KHUNG CHỮ CHẠY LIÊN TỤC */}
         <div className="w-full bg-white/90 backdrop-blur-xl border-t border-b border-solid border-slate-200 py-3.5 relative z-30 overflow-hidden shadow-md">
           <div className="animate-marquee-text flex items-center">
             {MARQUEE_TEXT.map((text, idx) => (
