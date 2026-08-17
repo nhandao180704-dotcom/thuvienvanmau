@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Search, Bell, User, Settings, LogOut, ChevronDown } from 'lucide-react'
+import { Search, Bell, User, LogOut, ChevronDown } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase-client'
@@ -74,7 +74,7 @@ export default function AdminHeader({ onSearch }: AdminHeaderProps) {
               <ChevronDown size={16} className={`text-slate-400 transition-transform ${showDropdown ? 'rotate-180' : ''}`} />
             </button>
 
-            {/* Dropdown Menu */}
+            {/* Dropdown Menu - Đã xóa mục Cài đặt hệ thống trùng lặp */}
             {showDropdown && (
               <div className="absolute top-full right-0 mt-2 w-48 bg-white rounded-xl border border-slate-200 shadow-xl z-50 animate-in fade-in slide-in-from-top-2 duration-200 overflow-hidden">
                 <div className="p-2 space-y-1">
@@ -85,15 +85,6 @@ export default function AdminHeader({ onSearch }: AdminHeaderProps) {
                   >
                     <User size={18} />
                     <span>Hồ sơ Admin</span>
-                  </Link>
-
-                  <Link
-                    href="/admin/settings"
-                    className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm text-slate-700 hover:bg-slate-50 hover:text-blue-600 transition-colors font-medium"
-                    onClick={() => setShowDropdown(false)}
-                  >
-                    <Settings size={18} />
-                    <span>Cài đặt hệ thống</span>
                   </Link>
                   
                   <div className="h-px bg-slate-100 my-1"></div>
