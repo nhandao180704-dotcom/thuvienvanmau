@@ -121,14 +121,14 @@ export default function LibraryPage() {
       <Navbar />
 
       {/* HEADER: KHỐI RUBIK VÀ SOLOGAN CHẠY (Nền sáng hơn + Glow) */}
-      <div className="relative min-h-[500px] w-full flex flex-col items-center justify-between pt-20 md:pt-28 overflow-hidden bg-slate-800 z-20">
+      <div className="relative min-h-[500px] w-full flex flex-col items-center justify-between pt-20 md:pt-28 overflow-hidden bg-gradient-to-b from-blue-50 via-white to-[#F8FAFC] z-20 border-b border-slate-100">
         
         {/* Nền pattern mờ */}
-        <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-50 z-0 mix-blend-overlay pointer-events-none"></div>
+        <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-[0.03] z-0 mix-blend-multiply pointer-events-none"></div>
 
         {/* ÁNH SÁNG ẢO HẮT RA TỪ PHÍA SAU (GLOW) GIÚP NỀN SÁNG LÊN */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-blue-500/25 rounded-full blur-[120px] pointer-events-none z-0"></div>
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-purple-500/25 rounded-full blur-[100px] pointer-events-none z-0"></div>
+        <div className="absolute top-1/4 left-1/4 w-[400px] h-[400px] bg-blue-300/20 rounded-full blur-[100px] pointer-events-none z-0"></div>
+        <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-purple-300/20 rounded-full blur-[100px] pointer-events-none z-0"></div>
 
         {/* Gọi Component Rubik 3D */}
         <RubikBanner3D 
@@ -143,12 +143,12 @@ export default function LibraryPage() {
         />
 
         {/* DÒNG CHỮ CHẠY LIÊN TỤC (Sáng và có hiệu ứng kính mờ trắng) */}
-        <div className="w-full bg-white/10 backdrop-blur-xl border-t border-b border-solid border-white/20 py-3.5 relative z-30 overflow-hidden shadow-lg">
+        <div className="w-full bg-white/70 backdrop-blur-xl border-t border-b border-solid border-slate-200 py-3.5 relative z-30 overflow-hidden shadow-sm">
           <div className="animate-marquee-text flex items-center">
             {MARQUEE_TEXT.map((text, idx) => (
-              <div key={idx} className="flex items-center text-white text-sm md:text-base font-bold whitespace-nowrap">
-                <span className="mx-6 tracking-wide drop-shadow-md">{text}</span>
-                <span className="text-white/60 text-xl mx-2">•</span>
+              <div key={idx} className="flex items-center text-slate-700 text-sm md:text-base font-extrabold whitespace-nowrap">
+                <span className="mx-6 tracking-wide drop-shadow-sm">{text}</span>
+                <span className="text-slate-300 text-xl mx-2">•</span>
               </div>
             ))}
           </div>
