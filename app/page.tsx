@@ -279,7 +279,7 @@ export default function LibraryPage() {
                     ))}
                   </div>
                 ) : filteredEssays.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center px-4 py-16 sm:py-24 bg-white/60 backdrop-blur-md rounded-[32px] border-2 border-dashed border-slate-200 w-full text-center">
+                  <div className="flex flex-col items-center justify-center px-4 py-16 sm:py-24 bg-white/60 backdrop-blur-md rounded-[32px] border-2 border-solid border-slate-200 w-full text-center">
                     <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mb-6">
                       <BookOpen size={40} className="text-slate-400 animate-pulse" />
                     </div>
