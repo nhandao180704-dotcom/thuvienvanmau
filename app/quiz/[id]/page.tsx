@@ -168,7 +168,7 @@ export default function StudentQuizPage() {
         )}
 
         {questions.length === 0 ? (
-          <div className="bg-white p-10 rounded-3xl border-2 border-dashed border-slate-200 text-center space-y-4">
+          <div className="bg-white p-10 rounded-3xl border-2 border-solid border-slate-200 text-center space-y-4">
             <div className="w-14 h-14 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center mx-auto">
               <AlertCircle className="w-7 h-7" />
             </div>

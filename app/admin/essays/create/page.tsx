@@ -159,7 +159,7 @@ export default function CreateEssayPage() {
 
             <div>
               <label className="block text-sm font-bold text-slate-700 mb-2">Ảnh bìa (Tùy chọn)</label>
-              <label className="flex items-center gap-3 px-4 py-3 border-2 border-dashed border-slate-300 rounded-xl cursor-pointer hover:bg-slate-50 hover:border-blue-400 transition-all text-slate-500 font-medium w-max">
+              <label className="flex items-center gap-3 px-4 py-3 border-2 border-solid border-slate-300 rounded-xl cursor-pointer hover:bg-slate-50 hover:border-blue-400 transition-all text-slate-500 font-medium w-max">
                 <ImageIcon size={20} />
                 <span>{thumbnail ? thumbnail.name : 'Nhấn để chọn ảnh tải lên'}</span>
                 <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" />

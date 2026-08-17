@@ -13,7 +13,7 @@ export default function ProfilePage() {
         onClick={() => router.push('/admin/dashboard')} 
         className="flex items-center text-slate-600 hover:text-blue-600 mb-6 transition font-medium"
       >
-        <ArrowLeft className="w-4 h-4 mr-2" /> Quay lại Dashboard
+        <ArrowLeft className="w-4 h-4 mr-2" /> Quay lại
       </button>
 
       <h1 className="text-2xl font-bold mb-6 text-slate-800">Thông tin cá nhân</h1>

@@ -134,7 +134,7 @@ export default function GlobalHistoryPage() {
             <div className="w-10 h-10 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
           </div>
         ) : historyList.length === 0 ? (
-          <div className="text-center py-24 bg-white rounded-3xl border border-dashed border-slate-300 shadow-sm">
+          <div className="text-center py-24 bg-white rounded-3xl border border-solid border-slate-300 shadow-sm">
             <BookOpen className="w-16 h-16 text-slate-300 mx-auto mb-4" />
             <h3 className="text-xl font-bold text-slate-700 mb-2">Chưa có dữ liệu</h3>
             <p className="text-slate-500 font-medium mb-6">Bạn chưa hoàn thành bài thi nào. Hãy bắt đầu luyện tập ngay nhé!</p>

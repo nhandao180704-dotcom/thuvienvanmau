@@ -134,7 +134,7 @@ export default function PublicPracticeHub() {
             <div className="w-10 h-10 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
           </div>
         ) : filteredQuizzes.length === 0 ? (
-          <div className="text-center py-20 bg-white rounded-3xl border border-dashed border-slate-300 shadow-sm">
+          <div className="text-center py-20 bg-white rounded-3xl border border-solid border-slate-300 shadow-sm">
             <BrainCircuit className="w-16 h-16 text-slate-300 mx-auto mb-4" />
             <p className="text-slate-500 text-lg font-medium">Không tìm thấy đề thi phù hợp.</p>
           </div>

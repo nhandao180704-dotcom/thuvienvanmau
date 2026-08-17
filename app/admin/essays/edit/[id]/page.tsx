@@ -233,7 +233,7 @@ export default function EditEssayPage() {
                   {thumbnailUrl && !thumbnail && (
                     <img src={thumbnailUrl} alt="Thumbnail" className="w-16 h-16 object-cover rounded-lg border border-slate-200" />
                   )}
-                  <label className="flex flex-1 sm:flex-none items-center justify-center gap-3 px-4 py-3 border-2 border-dashed border-slate-300 rounded-xl cursor-pointer hover:bg-slate-50 hover:border-blue-400 transition-all text-slate-500 font-medium">
+                  <label className="flex flex-1 sm:flex-none items-center justify-center gap-3 px-4 py-3 border-2 border-solid border-slate-300 rounded-xl cursor-pointer hover:bg-slate-50 hover:border-blue-400 transition-all text-slate-500 font-medium">
                     <ImageIcon size={20} />
                     <span className="truncate max-w-[200px]">{thumbnail ? thumbnail.name : 'Chọn ảnh mới để thay thế'}</span>
                     <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
