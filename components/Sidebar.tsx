@@ -48,7 +48,7 @@ export default function Sidebar() {
 
   // ĐÃ TỐI ƯU: Đa dạng hóa các mục ôn tập cho toàn khối THCS
   const examPrepItems = [
-    { id: 1, title: 'Ôn thi trắc nghiệm (Lớp 6-9)', badge: 'Hot', href: '/practice' },
+    { id: 1, title: 'Ôn thi trắc nghiệm', badge: 'Hot', href: '/practice' },
     { id: 2, title: 'Các mẫu lập dàn ý chi tiết', badge: 'Mới', href: '/category/dan-y' },
     { id: 3, title: 'Đề thi thử & Đề minh họa', badge: 'Quan trọng', href: '/category/de-thi-thu' },
     { id: 4, title: 'Bí kíp đạt điểm cao môn Văn', badge: 'Hay', href: '/category/bi-kip' },

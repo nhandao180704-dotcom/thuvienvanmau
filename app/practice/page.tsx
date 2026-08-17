@@ -92,7 +92,7 @@ export default function PublicPracticeHub() {
             Phòng Luyện Thi Trắc Nghiệm
           </h1>
           <p className="text-lg text-slate-600">
-            Khu vực làm bài kiểm tra, thử sức với các đề thi chuẩn bị cho kì thi vào lớp 10. Hệ thống sẽ tự động lưu lại tiến độ của bạn!
+            Khu vực làm bài kiểm tra, thử sức với các đề thi bám sát chương trình Ngữ văn THCS. Hệ thống sẽ tự động lưu lại tiến độ của bạn!
           </p>
         </div>
 
