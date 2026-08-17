@@ -118,17 +118,16 @@ export default function LibraryPage() {
 
       <Navbar />
 
-      {/* HEADER: BANNER SÁNG SỦA, SẮC NÉT KHÔNG BỊ TỐI MỜ */}
-      <div className="relative w-full h-[580px] flex flex-col justify-between overflow-hidden z-20 border-b border-slate-200 bg-white pt-16">
+      {/* HEADER: BANNER HOÀN CHỈNH - SÁNG NÉT, ĐẦY ĐỦ ẢNH, RUBIK VÀ CHỮ CHẠY */}
+      <div className="relative w-full h-[560px] flex flex-col justify-between overflow-hidden z-20 border-b border-slate-200 bg-white pt-12">
         
-        {/* ĐÃ SỬA: Bỏ hoàn toàn lớp phủ tối, giữ ảnh nền sáng nét 100% */}
-        <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+        {/* Hình nền thực tế sắc nét 100% */}
+        <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden flex items-center justify-center">
           <img 
             src="/hinh-nen-banner.jpg" 
             alt="Banner Background" 
             className="w-full h-full object-cover object-center opacity-100 scale-105"
           />
-          {/* Lớp phủ siêu mỏng giúp làm dịu nhẹ để nổi bật khối Rubik nhưng không làm tối hay mờ ảnh */}
           <div className="absolute inset-0 bg-white/10"></div>
         </div>
 
@@ -146,8 +145,8 @@ export default function LibraryPage() {
           />
         </div>
 
-        {/* DÒNG CHỮ CHẠY LIÊN TỤC CỐ ĐỊNH Ở ĐÁY BANNER */}
-        <div className="w-full bg-white/95 backdrop-blur-xl border-t border-solid border-slate-200 py-3 relative z-30 overflow-hidden shadow-md mt-6">
+        {/* DÒNG CHỮ CHẠY NẰM GỌN GÀNG ĐÚNG VỊ TRÍ Ở ĐÁY BANNER */}
+        <div className="w-full bg-white/95 backdrop-blur-xl border-t border-solid border-slate-200 py-3 relative z-30 overflow-hidden shadow-md">
           <div className="animate-marquee-text flex items-center">
             {MARQUEE_TEXT.map((text, idx) => (
               <div key={idx} className="flex items-center text-slate-700 text-sm md:text-base font-extrabold whitespace-nowrap">
