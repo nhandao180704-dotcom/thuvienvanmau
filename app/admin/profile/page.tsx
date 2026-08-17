@@ -1,8 +1,21 @@
-import { Mail, Shield, Calendar } from "lucide-react"
+'use client'
+
+import { useRouter } from 'next/navigation'
+import { Mail, Shield, Calendar, ArrowLeft } from "lucide-react"
 
 export default function ProfilePage() {
+  const router = useRouter()
+
   return (
     <div className="max-w-4xl mx-auto p-6">
+      {/* Nút Quay lại */}
+      <button 
+        onClick={() => router.push('/admin/dashboard')} 
+        className="flex items-center text-slate-600 hover:text-blue-600 mb-6 transition font-medium"
+      >
+        <ArrowLeft className="w-4 h-4 mr-2" /> Quay lại Dashboard
+      </button>
+
       <h1 className="text-2xl font-bold mb-6 text-slate-800">Thông tin cá nhân</h1>
       
       <div className="bg-white rounded-xl shadow-sm p-8 border border-slate-200">
