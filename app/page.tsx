@@ -120,13 +120,14 @@ export default function LibraryPage() {
 
       <Navbar />
 
-      {/* HEADER: KHỐI RUBIK VÀ HÌNH NỀN VĂN HỌC BÊN DƯỚI */}
+      {/* HEADER: BANNER CHỨA HÌNH NỀN VĂN HỌC SẮC NÉT VÀ KHỐI RUBIK */}
       <div className="relative min-h-[500px] w-full flex flex-col items-center justify-between pt-20 md:pt-28 overflow-hidden z-20 border-b border-slate-200">
         
-        {/* HÌNH NỀN VÀ LỚP PHỦ MỜ */}
-        <div className="absolute inset-0 z-0 pointer-events-none bg-slate-100">
-          <div className="absolute inset-0 bg-[url('/hinh-nen-banner.jpg')] bg-cover bg-center bg-no-repeat opacity-90"></div>
-          <div className="absolute inset-0 bg-gradient-to-b from-white/40 via-slate-50/60 to-slate-200/90 backdrop-blur-[3px]"></div>
+        {/* ĐÃ SỬA: Cấu hình background hiển thị sắc nét, cân đối hoàn toàn trong khung */}
+        <div className="absolute inset-0 z-0 pointer-events-none">
+          <div className="absolute inset-0 bg-[url('/banner-bg.jpg')] bg-cover bg-center bg-no-repeat opacity-100"></div>
+          {/* Lớp phủ sáng mờ giúp làm nổi bật khối Rubik 3D mà không làm mất chi tiết ảnh */}
+          <div className="absolute inset-0 bg-white/60 backdrop-blur-[1px]"></div>
         </div>
 
         {/* Gọi Component Rubik 3D */}
