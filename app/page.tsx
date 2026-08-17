@@ -1,11 +1,24 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import Navbar from '@/components/Navbar'
 import Sidebar from '@/components/Sidebar'
 import { Search, Sparkles, BookOpen, Clock, Eye, Bookmark, Flame, ArrowRight, Star, TrendingUp } from 'lucide-react'
 import { supabase } from '@/lib/supabase-client'
+
+// NÂNG CẤP: Định nghĩa kiểu dữ liệu rõ ràng thay vì dùng any[]
+interface Essay {
+  id: string | number;
+  title: string;
+  category?: string;
+  grade?: string;
+  class_level?: number;
+  genre?: string;
+  views?: number;
+  created_at: string;
+  [key: string]: any; // Dự phòng cho các field khác
+}
 
 const BANNERS = [
   {
@@ -33,18 +46,36 @@ export default function LibraryPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [searchTermSubmitted, setSearchTermSubmitted] = useState('')
   const [showSuggestions, setShowSuggestions] = useState(false)
-  const [essays, setEssays] = useState<any[]>([])
+  const [essays, setEssays] = useState<Essay[]>([])
   const [loading, setLoading] = useState(true)
   const [currentBanner, setCurrentBanner] = useState(0)
+  
+  // NÂNG CẤP: Thêm state để tạm dừng banner khi di chuột vào
+  const [isHoveringBanner, setIsHoveringBanner] = useState(false)
+  // NÂNG CẤP: Ref để xử lý click ra ngoài phần tìm kiếm
+  const searchContainerRef = useRef<HTMLDivElement>(null)
 
   const TABS = ['Tất cả', 'Lớp 6', 'Lớp 7', 'Lớp 8', 'Lớp 9', 'Ôn thi vào 10']
 
+  // NÂNG CẤP: Xử lý click ra ngoài để đóng gợi ý tìm kiếm
   useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(event.target as Node)) {
+        setShowSuggestions(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  // NÂNG CẤP: Banner chỉ tự động chuyển khi không được hover
+  useEffect(() => {
+    if (isHoveringBanner) return;
     const timer = setInterval(() => {
       setCurrentBanner((prev) => (prev + 1) % BANNERS.length)
     }, 5000)
     return () => clearInterval(timer)
-  }, [])
+  }, [isHoveringBanner])
 
   useEffect(() => {
     fetchEssays()
@@ -59,7 +90,7 @@ export default function LibraryPage() {
         .order('created_at', { ascending: false })
 
       if (error) throw error
-      if (data) setEssays(data)
+      if (data) setEssays(data as Essay[])
     } catch (err) {
       console.error('Lỗi tải bài viết:', err)
     } finally {
@@ -80,12 +111,17 @@ export default function LibraryPage() {
     setShowSuggestions(false)
   }
 
+  // ĐÃ FIX LỖI: Cập nhật logic lọc để tương thích với cột `class_level` mới dạng số
   const filteredEssays = essays.filter(essay => {
     let matchTab = true
     if (activeTab !== 'Tất cả') {
       if (activeTab === 'Ôn thi vào 10') {
-        matchTab = essay.grade === 'Lớp 9' || (essay.category && essay.category.includes('10'))
-      } else matchTab = essay.grade === activeTab
+        matchTab = essay.class_level === 10 || essay.grade === 'Lớp 9' || Boolean(essay.category && essay.category.includes('10'))
+      } else {
+        // Tách lấy số từ chuỗi "Lớp 6" -> 6 để so sánh
+        const tabLevel = parseInt(activeTab.replace(/\D/g, ''), 10);
+        matchTab = essay.class_level === tabLevel || essay.grade === activeTab;
+      }
     }
     let matchSearch = true
     if (searchTermSubmitted) {
@@ -105,7 +141,11 @@ export default function LibraryPage() {
       <Navbar />
 
       {/* Phần Header màu xanh với hiệu ứng chuyển động */}
-      <div className="relative min-h-[480px] md:h-[550px] w-full overflow-hidden flex items-center justify-center pb-8 px-4 box-border z-20">
+      <div 
+        className="relative min-h-[480px] md:h-[550px] w-full overflow-hidden flex items-center justify-center pb-8 px-4 box-border z-20"
+        onMouseEnter={() => setIsHoveringBanner(true)}
+        onMouseLeave={() => setIsHoveringBanner(false)}
+      >
         {BANNERS.map((banner, index) => (
           <div 
             key={index}
@@ -127,7 +167,8 @@ export default function LibraryPage() {
             {BANNERS[currentBanner].title}
           </h1>
           
-          <div className="w-full max-w-2xl relative group mb-6 px-4 box-border animate-in slide-in-from-bottom-6 duration-700 delay-300">
+          {/* NÂNG CẤP: Gắn ref vào container chứa form và dropdown gợi ý */}
+          <div ref={searchContainerRef} className="w-full max-w-2xl relative group mb-6 px-4 box-border animate-in slide-in-from-bottom-6 duration-700 delay-300">
             <div className="absolute inset-0 bg-white/20 rounded-full blur-xl group-focus-within:bg-white/40 transition-all duration-500 mx-2"></div>
             <form onSubmit={handleSearchSubmit} className="relative flex items-center w-full">
               <Search className="absolute left-6 w-5 h-5 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
@@ -135,6 +176,7 @@ export default function LibraryPage() {
                 type="text"
                 value={searchQuery}
                 onChange={handleSearchChange}
+                onClick={() => searchQuery.trim().length > 0 && setShowSuggestions(true)}
                 placeholder="Nhập tên bài văn, tác phẩm..."
                 className="w-full pl-14 sm:pl-16 pr-[100px] sm:pr-36 py-4 rounded-full border border-white/30 bg-white/15 backdrop-blur-xl text-white placeholder-white/80 outline-none focus:bg-white focus:text-slate-900 focus:border-white shadow-2xl transition-all duration-500 text-sm sm:text-base font-medium"
               />
@@ -303,8 +345,9 @@ export default function LibraryPage() {
                           
                           <div className="flex justify-between items-start mb-5 relative z-10">
                             <div className="flex flex-wrap gap-2">
+                              {/* ĐÃ FIX LỖI: Hiển thị đúng Lớp 6,7,8,9,10 và "Văn mẫu chung" thay vì Lớp 0 */}
                               <span className="px-3 py-1.5 bg-blue-50/80 text-blue-700 rounded-lg text-[10px] sm:text-xs font-black uppercase tracking-wider">
-                                {essay.class_level === 10 ? 'Ôn thi vào 10' : essay.grade || `Lớp ${essay.class_level}`}
+                                {essay.class_level === 10 ? 'Ôn thi vào 10' : essay.class_level === 0 ? 'Văn mẫu chung' : essay.grade || `Lớp ${essay.class_level}`}
                               </span>
                               <span className="px-3 py-1.5 bg-slate-100/80 text-slate-700 rounded-lg text-[10px] sm:text-xs font-black uppercase tracking-wider line-clamp-1">
                                 {essay.genre || 'Văn mẫu'}
