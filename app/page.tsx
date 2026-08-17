@@ -180,18 +180,18 @@ export default function LibraryPage() {
         </div>
       </div>
 
-      {/* LỚP NỀN CỐ ĐỊNH */}
+      {/* LỚP NỀN CỐ ĐỊNH - Đã trả lại opacity 100% cho hình nền */}
       <div className="relative w-full min-h-screen pb-20 z-10">
         <div className="fixed top-0 left-0 w-full h-full pointer-events-none z-0">
-          <div className="w-full h-full bg-[url('/bg-van-hoc.jpg')] bg-cover bg-center bg-no-repeat opacity-[0.03]"></div>
+          <div className="w-full h-full bg-[url('/bg-van-hoc.jpg')] bg-cover bg-center bg-no-repeat opacity-100"></div>
         </div>
 
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 relative z-10 w-full box-border">
           <div className="flex flex-col lg:flex-row gap-8 lg:gap-10 w-full animate-in fade-in slide-in-from-bottom-10 duration-1000">
             <div className="flex-1 space-y-8 md:space-y-10 w-full max-w-full overflow-hidden">
               
-              {/* TABS NÂNG CẤP */}
-              <div className="bg-white/80 backdrop-blur-md p-1.5 rounded-full shadow-sm border border-slate-200/60 overflow-x-auto hide-scrollbar touch-pan-x w-full">
+              {/* TABS NÂNG CẤP - Đã sửa lỗi thừa width */}
+              <div className="bg-white/90 backdrop-blur-md p-1.5 rounded-full shadow-sm border border-slate-200/60 overflow-x-auto hide-scrollbar touch-pan-x w-fit max-w-full">
                 <div className="flex items-center w-max gap-1">
                   {TABS.map((tab) => (
                     <button
