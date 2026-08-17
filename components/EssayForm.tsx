@@ -7,9 +7,8 @@ import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { useToast } from './Toast'
 import dynamic from 'next/dynamic'
-import 'react-quill-new/dist/quill.snow.css' // Import CSS của giao diện Editor
+import 'react-quill-new/dist/quill.snow.css'
 
-// Bắt buộc: Tải React-Quill linh hoạt, tắt SSR để không bị lỗi trên Next.js
 const ReactQuill = dynamic(() => import('react-quill-new'), { 
   ssr: false,
   loading: () => <div className="p-4 border rounded-lg text-slate-400 bg-slate-50 animate-pulse">Đang tải công cụ soạn thảo...</div>
@@ -19,23 +18,30 @@ interface EssayFormProps {
   essayId?: string
 }
 
-const CATEGORIES = [
-  { value: 'văn_biểu_cảm', label: 'Văn biểu cảm' },
-  { value: 'văn_tự_sự', label: 'Văn tự sự' },
-  { value: 'văn_thuyết_minh', label: 'Văn thuyết minh' },
-  { value: 'văn_nghị_luận', label: 'Văn nghị luận' },
-  { value: 'phân_tích_tác_phẩm', label: 'Phân tích tác phẩm' },
+// 1. Danh sách Thể loại (Lưu vào cột genre)
+const GENRES = [
+  { value: 'Văn biểu cảm', label: 'Văn biểu cảm' },
+  { value: 'Văn tự sự', label: 'Văn tự sự' },
+  { value: 'Văn thuyết minh', label: 'Văn thuyết minh' },
+  { value: 'Văn nghị luận', label: 'Văn nghị luận' },
+  { value: 'Phân tích tác phẩm', label: 'Phân tích tác phẩm' },
 ]
 
-// Cấu hình các nút công cụ cho Editor
+// 2. Danh sách Chuyên mục (Lưu vào cột category - Để hiển thị lên đúng trang)
+const CATEGORIES = [
+  { value: 'van-mau', label: 'Văn mẫu chung (Mặc định)' },
+  { value: 'de-thi-10', label: 'Đề thi mẫu vào lớp 10' },
+  { value: 'bi-kip', label: 'Bí kíp đạt điểm cao' },
+]
+
 const quillModules = {
   toolbar: [
     [{ 'header': [1, 2, 3, false] }],
-    ['bold', 'italic', 'underline', 'strike'], // Chữ đậm, nghiêng, gạch dưới
-    [{ 'list': 'ordered'}, { 'list': 'bullet' }], // Danh sách
-    [{ 'color': [] }, { 'background': [] }], // Màu chữ, màu nền
-    ['link', 'image'], // Chèn link, chèn ảnh
-    ['clean'] // Xóa định dạng
+    ['bold', 'italic', 'underline', 'strike'],
+    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+    [{ 'color': [] }, { 'background': [] }],
+    ['link', 'image'],
+    ['clean']
   ],
 }
 
@@ -49,7 +55,8 @@ export default function EssayForm({ essayId }: EssayFormProps) {
   const [formData, setFormData] = useState({
     title: '',
     class_level: 6,
-    category: 'văn_biểu_cảm' as const,
+    genre: 'Văn biểu cảm', // Thể loại
+    category: 'van-mau',   // Chuyên mục
     author: '',
     content: '',
     outline_intro: '',
@@ -77,7 +84,8 @@ export default function EssayForm({ essayId }: EssayFormProps) {
         setFormData({
           title: data.title,
           class_level: data.class_level,
-          category: data.category,
+          genre: data.genre || 'Văn biểu cảm',
+          category: data.category || 'van-mau',
           author: data.author,
           content: data.content,
           outline_intro: data.outline_intro || '',
@@ -101,7 +109,6 @@ export default function EssayForm({ essayId }: EssayFormProps) {
     setSubmitting(true)
 
     try {
-      // Validate required fields (loại bỏ các thẻ HTML rỗng của Quill để check thật)
       const cleanContent = formData.content.replace(/<[^>]*>?/gm, '').trim()
       
       if (!formData.title.trim()) throw new Error('Tiêu đề không được bỏ trống')
@@ -111,37 +118,27 @@ export default function EssayForm({ essayId }: EssayFormProps) {
       const essayData = {
         title: formData.title.trim(),
         class_level: formData.class_level,
-        category: formData.category,
+        genre: formData.genre,       // Đẩy lên cột genre
+        category: formData.category, // Đẩy lên cột category
         author: formData.author.trim(),
-        content: formData.content, // Giữ nguyên thẻ HTML
+        content: formData.content,
         outline_intro: formData.outline_intro.trim() || null,
         outline_body: formData.outline_body.trim() || null,
         outline_conclusion: formData.outline_conclusion.trim() || null,
         status: formData.status,
-        // Chỉ set views = 0 nếu là tạo mới
         ...(essayId ? {} : { views: 0 })
       }
 
       if (essayId) {
-        // Update existing essay
-        const { error } = await supabase
-          .from('essays')
-          .update(essayData)
-          .eq('id', essayId)
-
+        const { error } = await supabase.from('essays').update(essayData).eq('id', essayId)
         if (error) throw error
         success('Cập nhật bài viết thành công!')
       } else {
-        // Create new essay
-        const { error } = await supabase
-          .from('essays')
-          .insert([essayData])
-
+        const { error } = await supabase.from('essays').insert([essayData])
         if (error) throw error
         success('Tạo bài viết thành công!')
       }
 
-      // Redirect after showing success message
       setTimeout(() => {
         router.push('/admin/dashboard')
       }, 800)
@@ -164,7 +161,6 @@ export default function EssayForm({ essayId }: EssayFormProps) {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
       <header className="bg-white border-b border-border shadow-sm">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <Link href="/admin/dashboard" className="flex items-center gap-2 text-primary hover:text-primary/80">
@@ -172,13 +168,12 @@ export default function EssayForm({ essayId }: EssayFormProps) {
             <span>Quay lại</span>
           </Link>
           <h1 className="text-2xl font-bold text-foreground">
-            {essayId ? 'Chỉnh sửa bài văn' : 'Tạo bài văn mới'}
+            {essayId ? 'Chỉnh sửa bài viết' : 'Tạo bài viết mới'}
           </h1>
           <div style={{ width: '80px' }} />
         </div>
       </header>
 
-      {/* Form */}
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <form onSubmit={handleSubmit} className="space-y-6">
           {error && (
@@ -187,7 +182,6 @@ export default function EssayForm({ essayId }: EssayFormProps) {
             </div>
           )}
 
-          {/* Title */}
           <div>
             <label className="block text-sm font-medium text-foreground mb-2">
               Tiêu đề <span className="text-red-500">*</span>
@@ -197,13 +191,13 @@ export default function EssayForm({ essayId }: EssayFormProps) {
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
               className="w-full px-4 py-2 rounded-lg border border-border focus:outline-none focus:ring-2 focus:ring-primary"
-              placeholder="Nhập tiêu đề bài văn"
+              placeholder="Nhập tiêu đề bài viết"
               required
             />
           </div>
 
-          {/* Class & Category */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Lưới 3 cột: Lớp - Chuyên Mục - Thể Loại */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
               <label className="block text-sm font-medium text-foreground mb-2">
                 Lớp <span className="text-red-500">*</span>
@@ -213,8 +207,25 @@ export default function EssayForm({ essayId }: EssayFormProps) {
                 onChange={(e) => setFormData({ ...formData, class_level: parseInt(e.target.value) as any })}
                 className="w-full px-4 py-2 rounded-lg border border-border focus:outline-none focus:ring-2 focus:ring-primary"
               >
-                {[6, 7, 8, 9].map(level => (
-                  <option key={level} value={level}>Lớp {level}</option>
+                {[6, 7, 8, 9, 10].map(level => (
+                  <option key={level} value={level}>
+                    {level === 10 ? 'Ôn thi vào 10' : `Lớp ${level}`}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-2">
+                Chuyên mục <span className="text-red-500">*</span>
+              </label>
+              <select
+                value={formData.category}
+                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                className="w-full px-4 py-2 rounded-lg border border-border focus:outline-none focus:ring-2 focus:ring-primary bg-blue-50/50 font-semibold text-blue-700"
+              >
+                {CATEGORIES.map(cat => (
+                  <option key={cat.value} value={cat.value}>{cat.label}</option>
                 ))}
               </select>
             </div>
@@ -224,18 +235,17 @@ export default function EssayForm({ essayId }: EssayFormProps) {
                 Thể loại <span className="text-red-500">*</span>
               </label>
               <select
-                value={formData.category}
-                onChange={(e) => setFormData({ ...formData, category: e.target.value as any })}
+                value={formData.genre}
+                onChange={(e) => setFormData({ ...formData, genre: e.target.value })}
                 className="w-full px-4 py-2 rounded-lg border border-border focus:outline-none focus:ring-2 focus:ring-primary"
               >
-                {CATEGORIES.map(cat => (
+                {GENRES.map(cat => (
                   <option key={cat.value} value={cat.value}>{cat.label}</option>
                 ))}
               </select>
             </div>
           </div>
 
-          {/* Author */}
           <div>
             <label className="block text-sm font-medium text-foreground mb-2">
               Tác giả <span className="text-red-500">*</span>
@@ -250,7 +260,6 @@ export default function EssayForm({ essayId }: EssayFormProps) {
             />
           </div>
 
-          {/* Content (Thay bằng React-Quill) */}
           <div>
             <label className="block text-sm font-medium text-foreground mb-2">
               Nội dung <span className="text-red-500">*</span>
@@ -261,13 +270,12 @@ export default function EssayForm({ essayId }: EssayFormProps) {
                 value={formData.content} 
                 onChange={(content) => setFormData({ ...formData, content })} 
                 modules={quillModules}
-                className="h-[400px] mb-12" // Giữ chiều cao và thêm margin dưới để tránh che mất thanh công cụ
-                placeholder="Viết nội dung bài văn mẫu tại đây..."
+                className="h-[400px] mb-12" 
+                placeholder="Viết nội dung tại đây..."
               />
             </div>
           </div>
 
-          {/* Outline */}
           <div className="space-y-4 pt-4 border-t border-slate-100">
             <h3 className="text-lg font-semibold text-foreground">Dàn ý (Tùy chọn)</h3>
 
@@ -302,7 +310,6 @@ export default function EssayForm({ essayId }: EssayFormProps) {
             </div>
           </div>
 
-          {/* Status */}
           <div>
             <label className="block text-sm font-medium text-foreground mb-2">Trạng thái</label>
             <select
@@ -316,7 +323,6 @@ export default function EssayForm({ essayId }: EssayFormProps) {
             </select>
           </div>
 
-          {/* Submit */}
           <div className="flex gap-4 pt-6 pb-20">
             <button
               type="submit"
