@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { supabase } from '@/lib/supabase-client'
 import AdminSidebar from '@/components/AdminSidebar'
 import AdminHeader from '@/components/AdminHeader'
-import { Plus, Search, Edit, Trash2, Eye, Loader2 } from 'lucide-react'
+import { Plus, Search, Edit, Trash2, Eye, Loader2, FileText } from 'lucide-react'
 
 export default function AdminEssaysPage() {
   const router = useRouter()
@@ -14,7 +14,6 @@ export default function AdminEssaysPage() {
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
 
-  // Gọi dữ liệu bài viết từ Supabase
   const fetchEssays = async () => {
     setLoading(true)
     try {
@@ -36,7 +35,6 @@ export default function AdminEssaysPage() {
     fetchEssays()
   }, [])
 
-  // Tính năng Xóa bài viết
   const handleDelete = async (id: string, title: string) => {
     if (!window.confirm(`Bạn có chắc chắn muốn xóa bài viết "${title}" không? Hành động này không thể hoàn tác.`)) {
       return
@@ -51,14 +49,13 @@ export default function AdminEssaysPage() {
       if (error) throw error
       
       alert('Đã xóa bài viết thành công!')
-      fetchEssays() // Tải lại danh sách sau khi xóa
+      fetchEssays()
     } catch (error) {
       console.error("Lỗi khi xóa bài:", error)
       alert('Có lỗi xảy ra khi xóa bài viết.')
     }
   }
 
-  // Lọc bài viết theo từ khóa tìm kiếm (Tiêu đề hoặc Thể loại)
   const filteredEssays = essays.filter(essay => 
     essay.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
     (essay.genre && essay.genre.toLowerCase().includes(searchQuery.toLowerCase()))
@@ -73,10 +70,11 @@ export default function AdminEssaysPage() {
         <main className="flex-1 p-4 md:p-8 overflow-y-auto mt-16 max-w-7xl mx-auto w-full">
           <div className="space-y-6">
             
-            {/* Header & Nút Thêm mới */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
-                <h1 className="text-2xl md:text-3xl font-black text-slate-800">Quản lý Bài viết</h1>
+                <h1 className="text-2xl font-black text-slate-800 flex items-center gap-2">
+                  <FileText className="text-blue-600" size={28} /> Quản lý Bài viết
+                </h1>
                 <p className="text-slate-500 mt-1 font-medium">Tổng số: <span className="text-blue-600 font-bold">{essays.length}</span> bài viết đã đăng</p>
               </div>
               
@@ -89,7 +87,6 @@ export default function AdminEssaysPage() {
               </Link>
             </div>
 
-            {/* Thanh tìm kiếm */}
             <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex items-center gap-3">
               <Search className="text-slate-400 w-5 h-5 ml-2" />
               <input 
@@ -101,7 +98,6 @@ export default function AdminEssaysPage() {
               />
             </div>
 
-            {/* Bảng dữ liệu */}
             <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
               <div className="overflow-x-auto hide-scrollbar">
                 <table className="w-full text-left border-collapse min-w-[900px]">
@@ -155,7 +151,6 @@ export default function AdminEssaysPage() {
                           </td>
                           <td className="p-5 pr-6 text-right whitespace-nowrap">
                             <div className="flex items-center justify-end gap-2">
-                              {/* Nút Xem bài trên web */}
                               <Link 
                                 href={`/essay/${essay.id}`} 
                                 target="_blank"
@@ -164,7 +159,6 @@ export default function AdminEssaysPage() {
                               >
                                 <Eye size={18} />
                               </Link>
-                              {/* Nút Sửa */}
                               <Link 
                                 href={`/admin/essays/edit/${essay.id}`}
                                 className="p-2 text-slate-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
@@ -172,7 +166,6 @@ export default function AdminEssaysPage() {
                               >
                                 <Edit size={18} />
                               </Link>
-                              {/* Nút Xóa */}
                               <button 
                                 onClick={() => handleDelete(essay.id, essay.title)}
                                 className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"

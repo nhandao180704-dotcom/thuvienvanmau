@@ -6,7 +6,7 @@ import AdminSidebar from '@/components/AdminSidebar'
 import AdminHeader from '@/components/AdminHeader'
 import DashboardCharts from '@/components/DashboardCharts'
 import OverviewCards from '@/components/OverviewCards'
-import { Loader2 } from 'lucide-react'
+import { Loader2, LayoutDashboard } from 'lucide-react'
 
 function DashboardContent() {
   const [essays, setEssays] = useState<any[]>([])
@@ -16,7 +16,6 @@ function DashboardContent() {
     const fetchData = async () => {
       setLoading(true)
       try {
-        // Chỉ tải cột views để tính tổng, giúp trang Dashboard tải cực nhanh
         const { data: essaysData } = await supabase.from('essays').select('views')
         if (essaysData) setEssays(essaysData)
       } catch (error) {
@@ -42,7 +41,9 @@ function DashboardContent() {
         <main className="flex-1 p-8 overflow-y-auto mt-16">
           <div className="animate-in fade-in duration-300">
             <div className="mb-8">
-              <h1 className="text-3xl font-bold text-slate-900 mb-2">Dashboard</h1>
+              <h1 className="text-2xl font-black text-slate-800 flex items-center gap-2 mb-2">
+                <LayoutDashboard className="text-blue-600" size={28} /> Dashboard
+              </h1>
               <p className="text-slate-500">Quản lý số liệu và tổng quan hệ thống thư viện</p>
             </div>
 

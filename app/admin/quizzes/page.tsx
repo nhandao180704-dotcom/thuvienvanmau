@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { supabase } from '@/lib/supabase-client'
 import AdminSidebar from '@/components/AdminSidebar'
 import AdminHeader from '@/components/AdminHeader'
-import { Plus, Search, Trash2, Eye, Loader2, Copy, CheckCircle2 } from 'lucide-react'
+import { Plus, Search, Trash2, Eye, Loader2, Copy, CheckCircle2, HelpCircle } from 'lucide-react'
 
 export default function AdminQuizzesPage() {
   const [quizzes, setQuizzes] = useState<any[]>([])
@@ -47,7 +47,6 @@ export default function AdminQuizzesPage() {
     }
   }
 
-  // ĐÃ SỬA LỖI Ở ĐÂY: Đổi /quizzes/ thành /quiz/
   const handleCopyLink = (id: string) => {
     const link = `${window.location.origin}/quiz/${id}`
     navigator.clipboard.writeText(link)
@@ -69,7 +68,9 @@ export default function AdminQuizzesPage() {
           
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-black text-slate-800">Quản lý Đề Thi</h1>
+              <h1 className="text-2xl font-black text-slate-800 flex items-center gap-2">
+                <HelpCircle className="text-blue-600" size={28} /> Quản lý Đề Thi
+              </h1>
               <p className="text-slate-500 mt-1 font-medium">Tổng số: {quizzes.length} đề kiểm tra</p>
             </div>
             

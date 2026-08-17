@@ -16,7 +16,6 @@ export default function QuestionBankPage() {
     fetchQuestions()
   }, [])
 
-  // Tải danh sách câu hỏi từ bảng question_bank
   const fetchQuestions = async () => {
     setLoading(true)
     try {
@@ -34,7 +33,6 @@ export default function QuestionBankPage() {
     }
   }
 
-  // Xử lý xóa câu hỏi
   const handleDelete = async (id: string) => {
     if (!window.confirm('Bạn có chắc chắn muốn xóa câu hỏi này khỏi ngân hàng?')) return
 
@@ -65,11 +63,11 @@ export default function QuestionBankPage() {
             
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
-                <h1 className="text-2xl md:text-3xl font-black text-slate-900 flex items-center gap-3">
-                  <Database className="text-[#0052CC]" /> Ngân hàng câu hỏi
+                <h1 className="text-2xl font-black text-slate-800 flex items-center gap-2">
+                  <Database className="text-blue-600" size={28} /> Ngân hàng câu hỏi
                 </h1>
                 <p className="text-slate-500 mt-1 font-medium">
-                  Tổng số: <span className="text-[#0052CC] font-bold">{questions.length}</span> câu hỏi lưu trữ
+                  Tổng số: <span className="text-blue-600 font-bold">{questions.length}</span> câu hỏi lưu trữ
                 </p>
               </div>
               
