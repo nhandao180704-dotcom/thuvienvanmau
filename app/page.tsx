@@ -118,17 +118,22 @@ export default function LibraryPage() {
 
       <Navbar />
 
-      {/* HEADER: BANNER CHỨA HÌNH NỀN GỌN GÀNG VÀ KHỐI RUBIK */}
-      <div className="relative w-full flex flex-col items-center justify-between overflow-hidden z-20 border-b border-slate-200 bg-slate-50">
+      {/* HEADER: BANNER CỐ ĐỊNH CHIỀU CAO VÀ FULL TRỌN KHUNG VỚI ẢNH THỰC TẾ */}
+      <div className="relative w-full h-[460px] flex flex-col items-center justify-between overflow-hidden z-20 border-b border-slate-200 bg-slate-50">
         
-        {/* ĐÃ SỬA: Dùng bg-contain để ảnh hiển thị trọn vẹn, sắc nét không bị phóng to tràn viền */}
-        <div className="absolute inset-0 z-0 pointer-events-none flex items-center justify-center">
-          <div className="w-full h-full bg-[url('/hinh-nen-banner.jpg')] bg-contain bg-center bg-no-repeat opacity-90"></div>
+        {/* ĐÃ SỬA: Dùng thẻ img bọc lớp object-cover để ảnh phủ kín toàn bộ khung, sắc nét tuyệt đối */}
+        <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+          <img 
+            src="/hinh-nen-banner.jpg" 
+            alt="Banner Background" 
+            className="w-full h-full object-cover object-center opacity-90 scale-105"
+          />
+          {/* Lớp phủ sáng nhẹ giúp khối Rubik và chữ nổi bật hẳn lên */}
           <div className="absolute inset-0 bg-white/40 backdrop-blur-[0.5px]"></div>
         </div>
 
-        {/* Khối Rubik 3D */}
-        <div className="w-full relative z-20 py-8 md:py-12 flex justify-center">
+        {/* Khối Rubik 3D nằm chính giữa */}
+        <div className="w-full relative z-20 h-full flex items-center justify-center">
           <RubikBanner3D 
             searchQuery={searchQuery}
             setSearchQuery={setSearchQuery}
@@ -141,8 +146,8 @@ export default function LibraryPage() {
           />
         </div>
 
-        {/* DÒNG CHỮ CHẠY LIÊN TỤC */}
-        <div className="w-full bg-white/90 backdrop-blur-xl border-t border-b border-solid border-slate-200 py-3.5 relative z-30 overflow-hidden shadow-md">
+        {/* DÒNG CHỮ CHẠY LIÊN TỤC PHÍA DƯỚI */}
+        <div className="w-full bg-white/95 backdrop-blur-xl border-t border-b border-solid border-slate-200 py-3.5 relative z-30 overflow-hidden shadow-md">
           <div className="animate-marquee-text flex items-center">
             {MARQUEE_TEXT.map((text, idx) => (
               <div key={idx} className="flex items-center text-slate-700 text-sm md:text-base font-extrabold whitespace-nowrap">
