@@ -118,47 +118,43 @@ export default function LibraryPage() {
 
       <Navbar />
 
-      {/* HEADER: BANNER HOÀN CHỈNH (ẢNH NỀN SÁNG SỦA, SẮC NÉT + RUBIK 3D + CHỮ CHẠY) */}
-      <div className="w-full flex flex-col z-20 border-b border-slate-200 bg-white shadow-sm">
+      {/* HEADER: BANNER HIỂN THỊ ĐÚNG FILE hinh-nen-banner.jpg VÀ KHỐI RUBIK */}
+      <div className="relative w-full h-[480px] flex items-center justify-center overflow-hidden z-20 border-b border-slate-200 bg-white pt-10">
         
-        {/* Khung banner chứa ảnh nền và khối Rubik */}
-        <div className="relative w-full h-[480px] flex items-center justify-center overflow-hidden pt-10">
-          
-          {/* Ảnh nền sắc nét 100%, sáng rõ không bị tối mờ */}
-          <div className="absolute inset-0 z-0 pointer-events-none flex items-center justify-center">
-            <img 
-              src="/hinh-nen-banner.jpg" 
-              alt="Banner Background" 
-              className="w-full h-full object-cover object-center opacity-100 scale-105"
-            />
-            <div className="absolute inset-0 bg-white/5"></div>
-          </div>
-
-          {/* Khối Rubik 3D nằm chính giữa */}
-          <div className="w-full relative z-20 flex justify-center px-4">
-            <RubikBanner3D 
-              searchQuery={searchQuery}
-              setSearchQuery={setSearchQuery}
-              handleSearchSubmit={handleSearchSubmit}
-              showSuggestions={showSuggestions}
-              setShowSuggestions={setShowSuggestions}
-              searchSuggestions={searchSuggestions}
-              setSearchTermSubmitted={setSearchTermSubmitted}
-              searchContainerRef={searchContainerRef}
-            />
-          </div>
+        {/* Ảnh nền hinh-nen-banner.jpg sắc nét, sáng rõ */}
+        <div className="absolute inset-0 z-0 pointer-events-none flex items-center justify-center">
+          <img 
+            src="/hinh-nen-banner.jpg" 
+            alt="Banner Background" 
+            className="w-full h-full object-cover object-center opacity-100 scale-105"
+          />
+          <div className="absolute inset-0 bg-white/5"></div>
         </div>
 
-        {/* DÒNG CHỮ CHẠY NẰM NGAY NGẮN DƯỚI BANNER TRONG CÙNG MỘT KHỐI */}
-        <div className="w-full bg-white/95 backdrop-blur-xl border-t border-solid border-slate-200 py-3 relative z-30 overflow-hidden shadow-inner">
-          <div className="animate-marquee-text flex items-center">
-            {MARQUEE_TEXT.map((text, idx) => (
-              <div key={idx} className="flex items-center text-slate-700 text-sm md:text-base font-extrabold whitespace-nowrap">
-                <span className="mx-6 tracking-wide drop-shadow-sm">{text}</span>
-                <span className="text-slate-300 text-xl mx-2">•</span>
-              </div>
-            ))}
-          </div>
+        {/* Khối Rubik 3D nằm ở giữa */}
+        <div className="w-full relative z-20 flex justify-center px-4">
+          <RubikBanner3D 
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            handleSearchSubmit={handleSearchSubmit}
+            showSuggestions={showSuggestions}
+            setShowSuggestions={setShowSuggestions}
+            searchSuggestions={searchSuggestions}
+            setSearchTermSubmitted={setSearchTermSubmitted}
+            searchContainerRef={searchContainerRef}
+          />
+        </div>
+      </div>
+
+      {/* THANH CHỮ CHẠY TÁCH RIÊNG ỔN ĐỊNH NGAY DƯỚI BANNER */}
+      <div className="w-full bg-white/95 backdrop-blur-xl border-b border-solid border-slate-200 py-3 relative z-30 overflow-hidden shadow-sm">
+        <div className="animate-marquee-text flex items-center">
+          {MARQUEE_TEXT.map((text, idx) => (
+            <div key={idx} className="flex items-center text-slate-700 text-sm md:text-base font-extrabold whitespace-nowrap">
+              <span className="mx-6 tracking-wide drop-shadow-sm">{text}</span>
+              <span className="text-slate-300 text-xl mx-2">•</span>
+            </div>
+          ))}
         </div>
       </div>
 
