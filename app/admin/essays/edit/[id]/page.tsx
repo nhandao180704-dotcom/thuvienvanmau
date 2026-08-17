@@ -19,9 +19,11 @@ export default function EditEssayPage() {
   const [thumbnail, setThumbnail] = useState<File | null>(null)
   const [thumbnailUrl, setThumbnailUrl] = useState<string>('') 
   
+  // ĐÃ SỬA: Thay thế grade bằng class_level và bổ sung category
   const [formData, setFormData] = useState({
     title: '',
-    grade: 'Lớp 9',
+    class_level: 9,
+    category: 'van-mau',
     genre: 'Văn nghị luận',
     content: '',
   })
@@ -38,10 +40,11 @@ export default function EditEssayPage() {
         if (error) throw error
 
         if (data) {
-          // Lấy dữ liệu trực tiếp từ cột grade và genre của DB
+          // ĐÃ SỬA: Lấy dữ liệu chuẩn từ DB mới
           setFormData({
             title: data.title || '',
-            grade: data.grade || 'Lớp 9',
+            class_level: data.class_level ?? 9,
+            category: data.category || 'van-mau',
             genre: data.genre || 'Văn nghị luận',
             content: data.content || '',
           })
@@ -75,10 +78,11 @@ export default function EditEssayPage() {
     setSaving(true)
 
     try {
-      // Lưu lại chính xác bằng tên cột grade và genre, không đổi thành class_level hay category
+      // ĐÃ SỬA: Map đúng tên cột trong DB
       const updateData: any = {
-        title: formData.title,
-        grade: formData.grade,
+        title: formData.title.trim(),
+        class_level: formData.class_level,
+        category: formData.category,
         genre: formData.genre,
         content: formData.content,
       }
@@ -174,19 +178,35 @@ export default function EditEssayPage() {
                 />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* ĐÃ SỬA: Chia thành 3 cột cho Khối Lớp, Chuyên mục, Thể loại */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-bold text-slate-700 mb-2">Khối Lớp</label>
                   <select
-                    value={formData.grade}
-                    onChange={(e) => setFormData({ ...formData, grade: e.target.value })}
+                    value={formData.class_level}
+                    onChange={(e) => setFormData({ ...formData, class_level: parseInt(e.target.value) })}
                     className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none font-medium bg-white"
                   >
-                    <option value="Lớp 6">Lớp 6</option>
-                    <option value="Lớp 7">Lớp 7</option>
-                    <option value="Lớp 8">Lớp 8</option>
-                    <option value="Lớp 9">Lớp 9</option>
-                    <option value="Ôn thi vào 10">Ôn thi vào 10</option>
+                    <option value={6}>Lớp 6</option>
+                    <option value={7}>Lớp 7</option>
+                    <option value={8}>Lớp 8</option>
+                    <option value={9}>Lớp 9</option>
+                    <option value={10}>Ôn thi vào 10</option>
+                    <option value={0}>Văn mẫu chung</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-bold text-slate-700 mb-2">Chuyên mục</label>
+                  <select
+                    value={formData.category}
+                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                    className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none font-medium bg-white"
+                  >
+                    <option value="van-mau">Văn mẫu chung (Mặc định)</option>
+                    <option value="dan-y">Lập dàn ý bài văn/thơ</option>
+                    <option value="de-thi-thu">Đề thi thử / Đề minh họa</option>
+                    <option value="bi-kip">Bí kíp đạt điểm cao môn Văn</option>
                   </select>
                 </div>
                 
