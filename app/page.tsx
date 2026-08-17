@@ -120,9 +120,15 @@ export default function LibraryPage() {
 
       <Navbar />
 
-      {/* HEADER: KHỐI RUBIK VÀ SOLOGAN CHẠY */}
-      <div className="relative min-h-[500px] w-full flex flex-col items-center justify-between pt-20 md:pt-28 overflow-hidden bg-slate-900 z-20">
-        <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-30 z-0 mix-blend-overlay pointer-events-none"></div>
+      {/* HEADER: KHỐI RUBIK VÀ SOLOGAN CHẠY (Nền sáng hơn + Glow) */}
+      <div className="relative min-h-[500px] w-full flex flex-col items-center justify-between pt-20 md:pt-28 overflow-hidden bg-slate-800 z-20">
+        
+        {/* Nền pattern mờ */}
+        <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-50 z-0 mix-blend-overlay pointer-events-none"></div>
+
+        {/* ÁNH SÁNG ẢO HẮT RA TỪ PHÍA SAU (GLOW) GIÚP NỀN SÁNG LÊN */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-blue-500/25 rounded-full blur-[120px] pointer-events-none z-0"></div>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-purple-500/25 rounded-full blur-[100px] pointer-events-none z-0"></div>
 
         {/* Gọi Component Rubik 3D */}
         <RubikBanner3D 
@@ -136,13 +142,13 @@ export default function LibraryPage() {
           searchContainerRef={searchContainerRef}
         />
 
-        {/* DÒNG CHỮ CHẠY LIÊN TỤC */}
-        <div className="w-full bg-black/20 backdrop-blur-md border-t border-b border-solid border-white/10 py-3 relative z-30 overflow-hidden">
+        {/* DÒNG CHỮ CHẠY LIÊN TỤC (Sáng và có hiệu ứng kính mờ trắng) */}
+        <div className="w-full bg-white/10 backdrop-blur-xl border-t border-b border-solid border-white/20 py-3.5 relative z-30 overflow-hidden shadow-lg">
           <div className="animate-marquee-text flex items-center">
             {MARQUEE_TEXT.map((text, idx) => (
-              <div key={idx} className="flex items-center text-white/90 text-sm md:text-base font-bold whitespace-nowrap">
+              <div key={idx} className="flex items-center text-white text-sm md:text-base font-bold whitespace-nowrap">
                 <span className="mx-6 tracking-wide drop-shadow-md">{text}</span>
-                <span className="text-white/30 text-xl mx-2">•</span>
+                <span className="text-white/60 text-xl mx-2">•</span>
               </div>
             ))}
           </div>
